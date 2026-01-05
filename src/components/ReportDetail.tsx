@@ -140,10 +140,10 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
   return (
     <TooltipProvider>
       <div className="flex h-full">
-        {/* Main Content Area */}
+        {/* Main Content Area - Full width, panel floats over */}
         <div className={cn(
-          "flex-1 overflow-y-auto bg-background transition-all duration-300",
-          showAnalysisPanel ? "min-w-[520px]" : ""
+          "flex-1 overflow-y-auto bg-background",
+          ""
         )}>
           <div className="animate-fade-in p-6">
             {/* Breadcrumb */}

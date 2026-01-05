@@ -186,7 +186,8 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels }: RightA
 
   return (
     <TooltipProvider>
-      <div className="w-[420px] max-w-[35vw] min-w-[360px] bg-card border-l border-border shadow-lg flex flex-col h-full animate-in slide-in-from-right duration-300">
+      {/* Floating overlay panel - doesn't affect layout */}
+      <div className="fixed top-0 right-0 bottom-0 w-[420px] max-w-[90vw] bg-card border-l border-border shadow-2xl flex flex-col z-50 animate-in slide-in-from-right duration-300">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-card">
           <div className="flex items-center gap-3">
