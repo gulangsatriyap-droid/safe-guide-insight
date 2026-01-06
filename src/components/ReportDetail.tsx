@@ -115,6 +115,13 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
   const [showVLMPanel, setShowVLMPanel] = useState(false);
   const [showPinPoint, setShowPinPoint] = useState(false);
   const [showAnalysisPanel, setShowAnalysisPanel] = useState(false);
+  const [analysisPanelInitialTab, setAnalysisPanelInitialTab] = useState<'TBC' | 'GR' | 'PSPP'>('TBC');
+
+  // Handler to open analysis panel with specific tab
+  const openAnalysisPanelWithTab = (tab: 'TBC' | 'GR' | 'PSPP') => {
+    setAnalysisPanelInitialTab(tab);
+    setShowAnalysisPanel(true);
+  };
 
   // Coordinates for the location (could come from report data)
   const latitude = 2.389337;
@@ -298,7 +305,7 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
 
                   {/* Image */}
                   <div 
-                    className="relative aspect-[4/3] bg-muted rounded-xl overflow-hidden group cursor-pointer"
+                    className="relative aspect-[4/3] bg-muted rounded-xl overflow-hidden group cursor-pointer mb-5"
                     onClick={() => setShowVLMPanel(true)}
                   >
                     <img 
@@ -310,6 +317,180 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
                       <Sparkles className="w-3.5 h-3.5 text-primary" />
                       <span className="text-xs font-medium text-foreground">VLM Inspection</span>
                     </div>
+                  </div>
+                </div>
+
+                {/* AI Reasoning Details - 3 Cards */}
+                <div className="bg-card rounded-xl p-5 border border-border shadow-sm mt-5">
+                  <h3 className="font-bold text-foreground mb-4 text-base">AI Reasoning Details</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* TBC Card */}
+                    {(() => {
+                      const tbcSource = aiSources.find(s => s.type === 'TBC');
+                      const isTbcActive = activeLabels.includes('TBC');
+                      return (
+                        <div 
+                          className={cn(
+                            "rounded-xl border p-4 cursor-pointer transition-all hover:shadow-md",
+                            isTbcActive 
+                              ? "bg-primary/5 border-primary/30 hover:border-primary/50" 
+                              : "bg-muted/30 border-border hover:bg-muted/50"
+                          )}
+                          onClick={() => openAnalysisPanelWithTab('TBC')}
+                        >
+                          <div className="flex items-center gap-2 mb-3">
+                            <span className={cn(
+                              "inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold border",
+                              isTbcActive 
+                                ? "bg-primary/15 text-primary border-primary/40"
+                                : "bg-muted text-muted-foreground border-border"
+                            )}>
+                              {isTbcActive ? <CheckCircle2 className="w-3 h-3" /> : <Ban className="w-3 h-3" />}
+                              TBC
+                            </span>
+                            <div className="flex items-center gap-1 px-1.5 py-0.5 bg-primary/10 rounded border border-primary/20">
+                              <Sparkles className="w-3 h-3 text-primary" />
+                              <span className="text-[10px] font-medium text-primary">AI</span>
+                            </div>
+                          </div>
+                          <p className="text-sm font-bold text-foreground mb-2 line-clamp-1">
+                            {tbcSource?.category || 'Kesesuaian dokumen kerja'}
+                          </p>
+                          <div className="mb-2">
+                            <span className="text-xs text-primary font-bold">Tipe: </span>
+                            <span className="text-xs text-foreground">
+                              {tbcSource?.deviationType || 'Pekerjaan tidak sesuai DOP / tidak ada DOP'}
+                            </span>
+                          </div>
+                          <div className={cn(
+                            "rounded-lg p-2.5 mb-3",
+                            isTbcActive ? "bg-primary/10" : "bg-muted/50"
+                          )}>
+                            <p className="text-xs text-primary font-bold mb-1">Alasan:</p>
+                            <p className="text-xs text-muted-foreground line-clamp-3">
+                              {tbcSource?.reasoning || 'Deskripsi laporan menyebutkan tidak adanya handrail...'}
+                            </p>
+                          </div>
+                          <button className="flex items-center gap-1 text-xs font-bold text-primary hover:text-primary/80 transition-colors">
+                            <Info className="w-3.5 h-3.5" />
+                            Detail Analisis
+                            <ChevronRight className="w-3 h-3" />
+                          </button>
+                        </div>
+                      );
+                    })()}
+
+                    {/* GR Card */}
+                    {(() => {
+                      const grSource = aiSources.find(s => s.type === 'GR');
+                      const isGrActive = activeLabels.includes('GR');
+                      return (
+                        <div 
+                          className={cn(
+                            "rounded-xl border p-4 cursor-pointer transition-all hover:shadow-md",
+                            isGrActive 
+                              ? "bg-emerald-500/5 border-emerald-500/30 hover:border-emerald-500/50" 
+                              : "bg-muted/30 border-border hover:bg-muted/50"
+                          )}
+                          onClick={() => openAnalysisPanelWithTab('GR')}
+                        >
+                          <div className="flex items-center gap-2 mb-3">
+                            <span className={cn(
+                              "inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold border",
+                              isGrActive 
+                                ? "bg-emerald-500/15 text-emerald-600 border-emerald-500/40"
+                                : "bg-muted text-muted-foreground border-border"
+                            )}>
+                              {isGrActive ? <CheckCircle2 className="w-3 h-3" /> : <Ban className="w-3 h-3" />}
+                              GR
+                            </span>
+                            <div className="flex items-center gap-1 px-1.5 py-0.5 bg-primary/10 rounded border border-primary/20">
+                              <Sparkles className="w-3 h-3 text-primary" />
+                              <span className="text-[10px] font-medium text-primary">AI</span>
+                            </div>
+                          </div>
+                          <p className="text-sm font-bold text-foreground mb-2 line-clamp-1">
+                            {grSource?.category || 'Golden Rules - Keselamatan Bekerja di Ketinggian'}
+                          </p>
+                          <div className="mb-2">
+                            <span className="text-xs text-emerald-600 font-bold">Tipe: </span>
+                            <span className="text-xs text-foreground">
+                              {grSource?.deviationType || 'Bekerja pada ketinggian > 1,8 m tanpa full body harness'}
+                            </span>
+                          </div>
+                          <div className={cn(
+                            "rounded-lg p-2.5 mb-3",
+                            isGrActive ? "bg-emerald-500/10" : "bg-muted/50"
+                          )}>
+                            <p className="text-xs text-emerald-600 font-bold mb-1">Alasan:</p>
+                            <p className="text-xs text-muted-foreground line-clamp-3">
+                              {grSource?.reasoning || 'Deskripsi bahaya menyebutkan tidak adanya handrail...'}
+                            </p>
+                          </div>
+                          <button className="flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-600/80 transition-colors">
+                            <Info className="w-3.5 h-3.5" />
+                            Detail Analisis
+                            <ChevronRight className="w-3 h-3" />
+                          </button>
+                        </div>
+                      );
+                    })()}
+
+                    {/* PSPP Card */}
+                    {(() => {
+                      const psppSource = aiSources.find(s => s.type === 'PSPP');
+                      const isPsppActive = activeLabels.includes('PSPP');
+                      return (
+                        <div 
+                          className={cn(
+                            "rounded-xl border p-4 cursor-pointer transition-all hover:shadow-md",
+                            isPsppActive 
+                              ? "bg-amber-500/5 border-amber-500/30 hover:border-amber-500/50" 
+                              : "bg-muted/30 border-border hover:bg-muted/50"
+                          )}
+                          onClick={() => openAnalysisPanelWithTab('PSPP')}
+                        >
+                          <div className="flex items-center gap-2 mb-3">
+                            <span className={cn(
+                              "inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold border",
+                              isPsppActive 
+                                ? "bg-amber-500/15 text-amber-600 border-amber-500/40"
+                                : "bg-muted text-muted-foreground border-border"
+                            )}>
+                              {isPsppActive ? <CheckCircle2 className="w-3 h-3" /> : <Ban className="w-3 h-3" />}
+                              PSPP
+                            </span>
+                            <div className="flex items-center gap-1 px-1.5 py-0.5 bg-primary/10 rounded border border-primary/20">
+                              <Sparkles className="w-3 h-3 text-primary" />
+                              <span className="text-[10px] font-medium text-primary">AI</span>
+                            </div>
+                          </div>
+                          <p className="text-sm font-bold text-foreground mb-2 line-clamp-1">
+                            {psppSource?.category || 'Unsafe Behavior'}
+                          </p>
+                          <div className="mb-2">
+                            <span className="text-xs text-amber-600 font-bold">Tipe: </span>
+                            <span className="text-xs text-foreground">
+                              {psppSource?.deviationType || 'Hand rail tidak ada pada dudukan tandon profil'}
+                            </span>
+                          </div>
+                          <div className={cn(
+                            "rounded-lg p-2.5 mb-3",
+                            isPsppActive ? "bg-amber-500/10" : "bg-muted/50"
+                          )}>
+                            <p className="text-xs text-amber-600 font-bold mb-1">Alasan:</p>
+                            <p className="text-xs text-muted-foreground line-clamp-3">
+                              {psppSource?.reasoning || 'Deskripsi bahaya secara eksplisit menyebutkan tidak adanya handrail...'}
+                            </p>
+                          </div>
+                          <button className="flex items-center gap-1 text-xs font-bold text-amber-600 hover:text-amber-600/80 transition-colors">
+                            <Info className="w-3.5 h-3.5" />
+                            Detail Analisis
+                            <ChevronRight className="w-3 h-3" />
+                          </button>
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
               </div>
@@ -327,14 +508,14 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
                       variant="ghost" 
                       size="sm" 
                       className="h-7 text-xs gap-1.5 text-primary hover:text-primary"
-                      onClick={() => setShowAnalysisPanel(true)}
+                      onClick={() => openAnalysisPanelWithTab('TBC')}
                     >
                       <Info className="w-3.5 h-3.5" />
                       Detail Analisis
                     </Button>
                   </div>
                   <div className="flex items-center gap-2 flex-wrap">
-                    {(['TBC', 'PSPP', 'GR'] as const).map((type) => {
+                    {(['TBC', 'GR', 'PSPP'] as const).map((type) => {
                       const isActive = activeLabels.includes(type);
                       const config = labelConfig[type];
                       
@@ -343,7 +524,7 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
                           <Tooltip key={type}>
                             <TooltipTrigger asChild>
                               <button
-                                onClick={() => setShowAnalysisPanel(true)}
+                                onClick={() => openAnalysisPanelWithTab(type)}
                                 className={cn(
                                   "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border-2 transition-all",
                                   "bg-muted/50 text-muted-foreground/70 border-border/60 hover:bg-muted"
@@ -369,7 +550,7 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
                       return (
                         <button
                           key={type}
-                          onClick={() => setShowAnalysisPanel(true)}
+                          onClick={() => openAnalysisPanelWithTab(type)}
                           className={cn(
                             "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border-2 transition-all shadow-sm",
                             config.bg, config.text, config.border,
@@ -439,12 +620,13 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
           </div>
         </div>
 
-        {/* Right Analysis Panel - Non-modal */}
+        {/* Right Analysis Panel - Non-modal, floats over content */}
         <RightAnalysisPanel
           isOpen={showAnalysisPanel}
           onClose={() => setShowAnalysisPanel(false)}
           aiSources={aiSources}
           activeLabels={activeLabels}
+          initialTab={analysisPanelInitialTab}
         />
 
         {/* VLM Inspection Panel */}

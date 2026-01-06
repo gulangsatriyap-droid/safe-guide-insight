@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { X, FileText, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, CheckCircle2, AlertCircle, HelpCircle, Sparkles, Target, Eye, Brain, ArrowRight, Ban, Info } from "lucide-react";
+import { useState, useEffect } from "react";
+import { X, FileText, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, CheckCircle2, AlertCircle, HelpCircle, Sparkles, Target, Eye, Brain, ArrowRight, Ban, Info, XCircle } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
@@ -11,8 +11,10 @@ interface RightAnalysisPanelProps {
   onClose: () => void;
   aiSources: AIKnowledgeSource[];
   activeLabels: ('TBC' | 'PSPP' | 'GR')[];
+  initialTab?: 'TBC' | 'GR' | 'PSPP';
 }
 
+// Consistent label config - TBC blue, GR green, PSPP orange
 const labelConfig = {
   TBC: { 
     bg: "bg-primary/10", 
@@ -21,16 +23,8 @@ const labelConfig = {
     accent: "bg-gradient-to-r from-primary/5 to-primary/10",
     iconBg: "bg-primary/10",
     activeBg: "bg-primary",
-    activeText: "text-primary-foreground"
-  },
-  PSPP: { 
-    bg: "bg-amber-500/10", 
-    text: "text-amber-600",
-    border: "border-amber-500/30",
-    accent: "bg-gradient-to-r from-amber-500/5 to-amber-500/10",
-    iconBg: "bg-amber-500/10",
-    activeBg: "bg-amber-500",
-    activeText: "text-white"
+    activeText: "text-primary-foreground",
+    falseBadge: "bg-primary/10 text-primary border-primary/30"
   },
   GR: { 
     bg: "bg-emerald-500/10", 
@@ -39,7 +33,18 @@ const labelConfig = {
     accent: "bg-gradient-to-r from-emerald-500/5 to-emerald-500/10",
     iconBg: "bg-emerald-500/10",
     activeBg: "bg-emerald-500",
-    activeText: "text-white"
+    activeText: "text-white",
+    falseBadge: "bg-emerald-500/10 text-emerald-600 border-emerald-500/30"
+  },
+  PSPP: { 
+    bg: "bg-amber-500/10", 
+    text: "text-amber-600",
+    border: "border-amber-500/30",
+    accent: "bg-gradient-to-r from-amber-500/5 to-amber-500/10",
+    iconBg: "bg-amber-500/10",
+    activeBg: "bg-amber-500",
+    activeText: "text-white",
+    falseBadge: "bg-amber-500/10 text-amber-600 border-amber-500/30"
   }
 };
 
@@ -77,23 +82,6 @@ Contoh:
       }
     ]
   },
-  PSPP: {
-    title: "PSPP - Peraturan Sanksi",
-    fileName: "PSPP-Regulasi-Keselamatan-2024.pdf",
-    pages: [
-      {
-        page: 1,
-        title: "Daftar Isi",
-        content: `DAFTAR ISI
-
-1. Pendahuluan ................................................ 3
-2. Definisi Pelanggaran .................................... 5
-3. Kategori Sanksi ........................................... 8
-4. Prosedur Penanganan .................................. 14
-5. Lampiran ..................................................... 20`
-      }
-    ]
-  },
   GR: {
     title: "GR - Golden Rules",
     fileName: "Safety-Golden-Rules-2024.pdf",
@@ -110,14 +98,38 @@ Contoh:
 5. Lampiran ..................................................... 18`
       }
     ]
+  },
+  PSPP: {
+    title: "PSPP - Peraturan Sanksi",
+    fileName: "PSPP-Regulasi-Keselamatan-2024.pdf",
+    pages: [
+      {
+        page: 1,
+        title: "Daftar Isi",
+        content: `DAFTAR ISI
+
+1. Pendahuluan ................................................ 3
+2. Definisi Pelanggaran .................................... 5
+3. Kategori Sanksi ........................................... 8
+4. Prosedur Penanganan .................................. 14
+5. Lampiran ..................................................... 20`
+      }
+    ]
   }
 };
 
-const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels }: RightAnalysisPanelProps) => {
-  const [activeTab, setActiveTab] = useState<'TBC' | 'PSPP' | 'GR'>('TBC');
+const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialTab }: RightAnalysisPanelProps) => {
+  const [activeTab, setActiveTab] = useState<'TBC' | 'GR' | 'PSPP'>(initialTab || 'TBC');
   const [showExpandedAnalysis, setShowExpandedAnalysis] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const [contentView, setContentView] = useState<'detail' | 'dokumen'>('detail');
+
+  // Update active tab when initialTab changes
+  useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab]);
 
   if (!isOpen) return null;
 
@@ -136,8 +148,53 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels }: RightA
   };
 
   // Generate analysis data for the current source
-  const getAnalysisData = (source: AIKnowledgeSource | undefined) => {
-    if (!source) return null;
+  const getAnalysisData = (source: AIKnowledgeSource | undefined, isFalse: boolean = false) => {
+    if (!source && !isFalse) return null;
+    
+    // Default data for FALSE states
+    const defaultData = {
+      id: `${activeTab}-VEH-004`,
+      category: activeTab === 'TBC' ? 'Deviasi Pengoperasian Kendaraan/Unit' : 
+                activeTab === 'GR' ? 'Golden Rules - Keselamatan Kerja' : 
+                'Pelanggaran Prosedur Keselamatan',
+      label: activeTab,
+      relevanceScore: 0,
+      classification: "No Match",
+      reason: `AI tidak menemukan kecocokan ${activeTab === 'GR' ? 'Golden Rules' : activeTab} yang relevan dengan temuan ini berdasarkan analisis deskripsi dan visual.`,
+      deviationType: "Tidak teridentifikasi",
+      deviationNotes: `Tidak ada deviasi ${activeTab} yang terdeteksi pada laporan ini.`,
+      extractedContext: {
+        actors: ["Tidak teridentifikasi"],
+        objects: ["Tidak teridentifikasi"],
+        activities: ["Tidak teridentifikasi"],
+        workContext: "Tidak jelas",
+        visualSignals: [],
+        textSignals: [],
+        imageQuality: "Clear",
+        visibility: "Tidak ada"
+      },
+      evidence: {
+        actorMatch: false,
+        objectMatch: false,
+        activityMatch: false,
+        contextMatch: "No Match",
+        matchedSignals: [],
+        missingSignals: ["Tidak ada sinyal yang cocok untuk kategori " + activeTab]
+      },
+      observedFacts: [
+        "Tidak ditemukan indikasi pelanggaran " + activeTab + " pada laporan ini"
+      ],
+      assumptions: [
+        "Mungkin memerlukan review manual untuk konfirmasi"
+      ],
+      recommendations: [
+        "Review laporan secara manual jika diperlukan",
+        "Cek kategori lain yang mungkin relevan"
+      ]
+    };
+
+    if (!source) return defaultData;
+    
     return {
       id: `${source.type}-VEH-004`,
       category: source.category,
@@ -182,12 +239,12 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels }: RightA
     };
   };
 
-  const analysisData = getAnalysisData(currentSource);
+  const analysisData = getAnalysisData(currentSource, !isCurrentActive);
 
   return (
     <TooltipProvider>
-      {/* Floating overlay panel - doesn't affect layout */}
-      <div className="fixed top-0 right-0 bottom-0 w-[420px] max-w-[90vw] bg-card border-l border-border shadow-2xl flex flex-col z-50 animate-in slide-in-from-right duration-300">
+      {/* Floating overlay panel - wider for better readability (35-40% viewport) */}
+      <div className="fixed top-0 right-0 bottom-0 w-[480px] max-w-[40vw] min-w-[400px] bg-card border-l border-border shadow-2xl flex flex-col z-50 animate-in slide-in-from-right duration-300">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-card">
           <div className="flex items-center gap-3">
@@ -197,7 +254,7 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels }: RightA
             <div>
               <div className="flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-primary" />
-                <span className="text-xs font-medium text-muted-foreground">AI Analysis</span>
+                <span className="text-xs font-medium text-muted-foreground">Detail Analisis</span>
               </div>
               <p className="text-sm font-semibold text-foreground">{docConfig.title}</p>
             </div>
@@ -210,7 +267,7 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels }: RightA
           </button>
         </div>
 
-        {/* Segmented Tabs - TBC / GR / PSPP */}
+        {/* Segmented Tabs - Order: TBC → GR → PSPP with bold colors */}
         <div className="px-4 py-3 border-b border-border bg-muted/30">
           <div className="flex gap-1 p-1 bg-muted/50 rounded-xl">
             {(['TBC', 'GR', 'PSPP'] as const).map((type) => {
@@ -228,25 +285,23 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels }: RightA
                         setCurrentPage(0);
                       }}
                       className={cn(
-                        "flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-200",
+                        "flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-sm font-bold transition-all duration-200",
                         isActive 
-                          ? isLabelActive
-                            ? `${typeConfig.activeBg} ${typeConfig.activeText} shadow-sm`
-                            : "bg-muted-foreground/20 text-muted-foreground"
+                          ? `${typeConfig.activeBg} ${typeConfig.activeText} shadow-md`
                           : isLabelActive
-                            ? `${typeConfig.bg} ${typeConfig.text} hover:opacity-80`
-                            : "text-muted-foreground/60 hover:text-muted-foreground hover:bg-muted"
+                            ? `${typeConfig.bg} ${typeConfig.text} border ${typeConfig.border} hover:opacity-80`
+                            : "bg-muted/80 text-muted-foreground/60 hover:text-muted-foreground hover:bg-muted border border-transparent"
                       )}
                     >
-                      {!isLabelActive && type === 'GR' && (
-                        <Ban className="w-3.5 h-3.5" />
+                      {!isLabelActive && (
+                        <XCircle className="w-3.5 h-3.5 text-destructive/60" />
                       )}
                       {isLabelActive && isActive && (
                         <CheckCircle2 className="w-3.5 h-3.5" />
                       )}
                       {type}
-                      {!isLabelActive && (
-                        <span className="text-[10px] opacity-70">✕</span>
+                      {!isLabelActive && !isActive && (
+                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-destructive/10 text-destructive font-bold ml-0.5">FALSE</span>
                       )}
                     </button>
                   </TooltipTrigger>
@@ -266,13 +321,28 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels }: RightA
           </div>
         </div>
 
+        {/* FALSE Status Banner - Show when current tab is FALSE */}
+        {!isCurrentActive && (
+          <div className="px-4 py-2 bg-destructive/10 border-b border-destructive/20">
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-destructive/15 border border-destructive/30">
+                <XCircle className="w-3.5 h-3.5 text-destructive" />
+                <span className="text-xs font-bold text-destructive">FALSE</span>
+              </div>
+              <span className="text-xs text-muted-foreground">
+                Status: Tidak memenuhi kriteria {activeTab}
+              </span>
+            </div>
+          </div>
+        )}
+
         {/* Content View Toggle */}
         <div className="px-4 pt-3">
           <div className="flex gap-1 p-1 bg-muted/30 rounded-lg">
             <button
               onClick={() => setContentView('detail')}
               className={cn(
-                "flex-1 px-3 py-1.5 rounded-md text-xs font-medium transition-all",
+                "flex-1 px-3 py-1.5 rounded-md text-xs font-semibold transition-all",
                 contentView === 'detail'
                   ? "bg-background shadow-sm text-foreground"
                   : "text-muted-foreground hover:text-foreground"
@@ -283,7 +353,7 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels }: RightA
             <button
               onClick={() => setContentView('dokumen')}
               className={cn(
-                "flex-1 px-3 py-1.5 rounded-md text-xs font-medium transition-all",
+                "flex-1 px-3 py-1.5 rounded-md text-xs font-semibold transition-all",
                 contentView === 'dokumen'
                   ? "bg-background shadow-sm text-foreground"
                   : "text-muted-foreground hover:text-foreground"
@@ -297,48 +367,26 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels }: RightA
         {/* Content Area */}
         <ScrollArea className="flex-1">
           <div className="px-4 py-4">
-            {!isCurrentActive ? (
-              /* Empty State for False/Inactive Labels */
-              <div className="flex flex-col items-center justify-center py-12 px-6 text-center animate-in fade-in duration-200">
-                <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
-                  <Ban className="w-8 h-8 text-muted-foreground/50" />
-                </div>
-                <h3 className="text-base font-semibold text-foreground mb-2">
-                  {activeTab} tidak terdeteksi
-                </h3>
-                <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
-                  AI tidak menemukan kecocokan {activeTab === 'GR' ? 'Golden Rules' : activeTab} pada laporan ini.
-                </p>
-                <div className="flex gap-2">
-                  {activeLabels.filter(l => l !== activeTab).slice(0, 2).map(label => (
-                    <Button
-                      key={label}
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setActiveTab(label)}
-                      className="gap-1.5"
-                    >
-                      <span>Lihat {label}</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            ) : contentView === 'detail' && analysisData ? (
-              /* Detail Analysis Content */
+            {contentView === 'detail' && analysisData ? (
+              /* Detail Analysis Content - Always show, even for FALSE states */
               <div className="space-y-4 animate-in fade-in slide-in-from-right-2 duration-200">
                 {/* Main Analysis Card */}
-                <div className={`rounded-xl border ${config.border} overflow-hidden`}>
+                <div className={`rounded-xl border ${isCurrentActive ? config.border : 'border-border'} overflow-hidden`}>
                   {/* Card Header */}
-                  <div className={`px-4 py-3 ${config.accent} border-b ${config.border}`}>
+                  <div className={`px-4 py-3 ${isCurrentActive ? config.accent : 'bg-muted/30'} border-b ${isCurrentActive ? config.border : 'border-border'}`}>
                     <div className="flex items-center gap-3">
-                      <div className={`w-9 h-9 rounded-lg ${config.iconBg} flex items-center justify-center`}>
-                        <Target className={`w-4 h-4 ${config.text}`} />
+                      <div className={`w-9 h-9 rounded-lg ${isCurrentActive ? config.iconBg : 'bg-muted/50'} flex items-center justify-center`}>
+                        <Target className={`w-4 h-4 ${isCurrentActive ? config.text : 'text-muted-foreground'}`} />
                       </div>
-                      <div>
-                        <h4 className="text-sm font-semibold text-foreground">
-                          {currentSource?.category || "Deviasi Pengoperasian Kendaraan/Unit"}
-                        </h4>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-sm font-semibold text-foreground">
+                            {analysisData.category}
+                          </h4>
+                          {!isCurrentActive && (
+                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-destructive/10 text-destructive font-bold">FALSE</span>
+                          )}
+                        </div>
                         <p className="text-xs text-muted-foreground mt-0.5">
                           Hasil klasifikasi otomatis oleh AI
                         </p>
@@ -355,9 +403,14 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels }: RightA
                       </div>
                       <div className="flex-1">
                         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Label</span>
-                        <p className="text-sm font-semibold text-foreground mt-0.5">
-                          {activeTab}
-                        </p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <p className="text-sm font-bold text-foreground">
+                            {activeTab}
+                          </p>
+                          {!isCurrentActive && (
+                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-medium">Not Matched</span>
+                          )}
+                        </div>
                       </div>
                     </div>
 
@@ -395,12 +448,12 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels }: RightA
 
                     {/* Alasan AI */}
                     <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-                        <Brain className="w-3.5 h-3.5 text-primary" />
+                      <div className={`w-6 h-6 rounded-md ${isCurrentActive ? 'bg-primary/10' : 'bg-muted/50'} flex items-center justify-center shrink-0 mt-0.5`}>
+                        <Brain className={`w-3.5 h-3.5 ${isCurrentActive ? 'text-primary' : 'text-muted-foreground'}`} />
                       </div>
                       <div className="flex-1">
                         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Alasan AI</span>
-                        <div className="mt-2 p-3 bg-primary/5 rounded-lg border border-primary/10">
+                        <div className={`mt-2 p-3 rounded-lg border ${isCurrentActive ? 'bg-primary/5 border-primary/10' : 'bg-muted/30 border-border'}`}>
                           <p className="text-sm text-foreground leading-relaxed">
                             {analysisData.reason}
                           </p>
@@ -409,6 +462,34 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels }: RightA
                     </div>
                   </div>
                 </div>
+
+                {/* Quick Navigation for FALSE states */}
+                {!isCurrentActive && activeLabels.length > 0 && (
+                  <div className="p-3 bg-muted/30 rounded-xl border border-border">
+                    <p className="text-xs text-muted-foreground mb-2">Lihat kategori yang terdeteksi:</p>
+                    <div className="flex gap-2 flex-wrap">
+                      {activeLabels.map(label => {
+                        const lConfig = labelConfig[label];
+                        return (
+                          <Button
+                            key={label}
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setActiveTab(label)}
+                            className={cn(
+                              "gap-1.5 h-8 text-xs font-bold",
+                              lConfig.bg, lConfig.text, `border ${lConfig.border}`
+                            )}
+                          >
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            {label}
+                            <ArrowRight className="w-3 h-3" />
+                          </Button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
                 {/* Expand Analysis Accordion */}
                 <Button
