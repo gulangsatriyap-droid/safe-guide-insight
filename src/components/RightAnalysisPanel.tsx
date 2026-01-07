@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { X, FileText, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, CheckCircle2, AlertCircle, HelpCircle, Sparkles, Target, Eye, Brain, ArrowRight, Ban, Info, XCircle } from "lucide-react";
+import { X, FileText, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, CheckCircle2, AlertCircle, HelpCircle, Sparkles, Target, Eye, Brain, ArrowRight, Ban, Info, XCircle, Braces, Copy, Download, ChevronDownSquare, ChevronUpSquare, Search, BookOpen, Link2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { AIKnowledgeSource } from "@/data/hazardReports";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface RightAnalysisPanelProps {
   isOpen: boolean;
@@ -123,6 +124,8 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
   const [showExpandedAnalysis, setShowExpandedAnalysis] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const [contentView, setContentView] = useState<'detail' | 'dokumen'>('detail');
+  const [drawerMode, setDrawerMode] = useState<'none' | 'dokumen' | 'ontologi'>('none');
+  const [jsonExpanded, setJsonExpanded] = useState(false);
 
   // Update active tab when initialTab changes
   useEffect(() => {
@@ -130,6 +133,83 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
       setActiveTab(initialTab);
     }
   }, [initialTab]);
+
+  // Sample ontology JSON data
+  const ontologyData = {
+    report_id: "TBC-VEH-004",
+    classification: {
+      tbc: {
+        matched: activeLabels.includes('TBC'),
+        category: "Deviasi pengoperasian kendaraan/unit",
+        confidence: 0.95,
+        deviation_type: "Pekerjaan tidak sesuai DOP / tidak ada DOP"
+      },
+      gr: {
+        matched: activeLabels.includes('GR'),
+        category: "Pengoperasian Kendaraan & Unit",
+        confidence: 0.90,
+        deviation_type: "Bekerja di ketinggian > 1.8 m tanpa full body harness"
+      },
+      pspp: {
+        matched: activeLabels.includes('PSPP'),
+        category: "Pelanggaran Prosedur Keselamatan",
+        confidence: 0.88,
+        deviation_type: "Hand rail tidak ada pada dudukan tandon profil"
+      }
+    },
+    extracted_entities: {
+      actors: ["Maintenance", "Inspector"],
+      objects: ["Hauler", "Tire", "Workshop Tyre"],
+      activities: ["Equipment inspection", "Maintenance observation"],
+      work_context: "Work"
+    },
+    visual_analysis: {
+      signals: ["Visual tyre damage", "Text unfit for operation"],
+      image_quality: "Clear",
+      visibility: "High"
+    },
+    timestamp: new Date().toISOString()
+  };
+
+  const handleCopyJson = () => {
+    navigator.clipboard.writeText(JSON.stringify(ontologyData, null, 2));
+    toast.success("JSON disalin ke clipboard");
+  };
+
+  const handleDownloadJson = () => {
+    const blob = new Blob([JSON.stringify(ontologyData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ontology-${ontologyData.report_id}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success("JSON berhasil diunduh");
+  };
+
+  // Document references data
+  const documentReferences = [
+    {
+      title: "SOP Keselamatan Pengoperasian Kendaraan",
+      type: "SOP",
+      reference: "SOP-KPK-001",
+      sections: ["Pasal 4.2", "Pasal 5.1"]
+    },
+    {
+      title: "Regulasi K3 Pertambangan",
+      type: "Regulasi",
+      reference: "REG-K3P-2024",
+      sections: ["Bab III", "Pasal 12"]
+    },
+    {
+      title: "Panduan Internal Safety",
+      type: "Internal",
+      reference: "INT-SAF-003",
+      sections: ["Section 2.4", "Section 3.1"]
+    }
+  ];
 
   if (!isOpen) return null;
 
@@ -259,13 +339,278 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
               <p className="text-sm font-semibold text-foreground">{docConfig.title}</p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-lg hover:bg-muted flex items-center justify-center transition-colors"
-          >
-            <X className="w-4 h-4 text-muted-foreground" />
-          </button>
+          <div className="flex items-center gap-1">
+            {/* Document Icon */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => setDrawerMode(drawerMode === 'dokumen' ? 'none' : 'dokumen')}
+                  className={cn(
+                    "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
+                    drawerMode === 'dokumen' 
+                      ? "bg-primary text-primary-foreground" 
+                      : "hover:bg-muted text-muted-foreground"
+                  )}
+                >
+                  <BookOpen className="w-4 h-4" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <p className="text-xs">{drawerMode === 'dokumen' ? 'Dokumen (open)' : 'Dokumen'}</p>
+              </TooltipContent>
+            </Tooltip>
+            
+            {/* Ontology Icon */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => setDrawerMode(drawerMode === 'ontologi' ? 'none' : 'ontologi')}
+                  className={cn(
+                    "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
+                    drawerMode === 'ontologi' 
+                      ? "bg-primary text-primary-foreground" 
+                      : "hover:bg-muted text-muted-foreground"
+                  )}
+                >
+                  <Braces className="w-4 h-4" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <p className="text-xs">{drawerMode === 'ontologi' ? 'Ontologi (open)' : 'Ontologi (JSON)'}</p>
+              </TooltipContent>
+            </Tooltip>
+            
+            {/* Close Button */}
+            <button
+              onClick={onClose}
+              className="w-8 h-8 rounded-lg hover:bg-muted flex items-center justify-center transition-colors"
+            >
+              <X className="w-4 h-4 text-muted-foreground" />
+            </button>
+          </div>
         </div>
+
+        {/* Slide-in Drawer for Dokumen / Ontologi */}
+        {drawerMode !== 'none' && (
+          <div className="absolute top-0 right-0 bottom-0 w-[380px] bg-card border-l border-border shadow-2xl flex flex-col z-60 animate-in slide-in-from-right duration-200">
+            {/* Drawer Header */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30">
+              <div className="flex items-center gap-2.5">
+                <div className={cn(
+                  "w-8 h-8 rounded-lg flex items-center justify-center",
+                  drawerMode === 'dokumen' ? "bg-primary/10" : "bg-amber-500/10"
+                )}>
+                  {drawerMode === 'dokumen' 
+                    ? <BookOpen className="w-4 h-4 text-primary" />
+                    : <Braces className="w-4 h-4 text-amber-600" />
+                  }
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">
+                    {drawerMode === 'dokumen' ? 'Dokumen Rujukan' : 'Raw Ontology JSON'}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground">
+                    {drawerMode === 'dokumen' ? 'Referensi SOP & Regulasi' : 'Struktur data klasifikasi AI'}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setDrawerMode('none')}
+                className="w-7 h-7 rounded-lg hover:bg-muted flex items-center justify-center transition-colors"
+              >
+                <X className="w-4 h-4 text-muted-foreground" />
+              </button>
+            </div>
+            
+            {/* Drawer Content */}
+            <ScrollArea className="flex-1">
+              <div className="p-4">
+                {drawerMode === 'dokumen' ? (
+                  /* Dokumen Rujukan Content */
+                  <div className="space-y-3">
+                    {/* Search (optional) */}
+                    <div className="relative">
+                      <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                      <input 
+                        type="text"
+                        placeholder="Cari dokumen..."
+                        className="w-full h-9 pl-9 pr-3 text-sm bg-muted/50 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50"
+                      />
+                    </div>
+                    
+                    {/* Document List */}
+                    {documentReferences.map((doc, idx) => (
+                      <div 
+                        key={idx}
+                        className="bg-card border border-border rounded-xl p-3 hover:shadow-md transition-shadow"
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className={cn(
+                            "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
+                            doc.type === 'SOP' ? "bg-primary/10" :
+                            doc.type === 'Regulasi' ? "bg-emerald-500/10" :
+                            "bg-amber-500/10"
+                          )}>
+                            <FileText className={cn(
+                              "w-4 h-4",
+                              doc.type === 'SOP' ? "text-primary" :
+                              doc.type === 'Regulasi' ? "text-emerald-600" :
+                              "text-amber-600"
+                            )} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className={cn(
+                                "text-[10px] px-1.5 py-0.5 rounded font-semibold",
+                                doc.type === 'SOP' ? "bg-primary/10 text-primary" :
+                                doc.type === 'Regulasi' ? "bg-emerald-500/10 text-emerald-600" :
+                                "bg-amber-500/10 text-amber-600"
+                              )}>
+                                {doc.type}
+                              </span>
+                              <span className="text-[10px] text-muted-foreground">{doc.reference}</span>
+                            </div>
+                            <p className="text-sm font-medium text-foreground truncate">{doc.title}</p>
+                            <div className="flex items-center gap-1.5 mt-1.5">
+                              {doc.sections.map((section, sIdx) => (
+                                <span 
+                                  key={sIdx}
+                                  className="text-[10px] px-1.5 py-0.5 bg-muted rounded text-muted-foreground"
+                                >
+                                  {section}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                          <button className="w-6 h-6 rounded hover:bg-muted flex items-center justify-center shrink-0">
+                            <Link2 className="w-3.5 h-3.5 text-muted-foreground" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  /* Ontologi JSON Content */
+                  <div className="space-y-3">
+                    {/* Action Buttons */}
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex-1 h-8 text-xs gap-1.5"
+                        onClick={handleCopyJson}
+                      >
+                        <Copy className="w-3.5 h-3.5" />
+                        Copy JSON
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex-1 h-8 text-xs gap-1.5"
+                        onClick={handleDownloadJson}
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        Download
+                      </Button>
+                    </div>
+                    
+                    {/* Expand/Collapse Toggle */}
+                    <button 
+                      onClick={() => setJsonExpanded(!jsonExpanded)}
+                      className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {jsonExpanded ? (
+                        <>
+                          <ChevronUpSquare className="w-3.5 h-3.5" />
+                          Collapse All
+                        </>
+                      ) : (
+                        <>
+                          <ChevronDownSquare className="w-3.5 h-3.5" />
+                          Expand All
+                        </>
+                      )}
+                    </button>
+                    
+                    {/* JSON Code Viewer */}
+                    <div className="bg-slate-950 rounded-xl p-4 overflow-x-auto">
+                      <pre className="text-xs font-mono leading-relaxed">
+                        <code className="text-slate-300">
+                          {jsonExpanded ? (
+                            JSON.stringify(ontologyData, null, 2).split('\n').map((line, i) => (
+                              <div key={i} className="hover:bg-slate-800/50 px-1 -mx-1 rounded">
+                                <span className="text-slate-600 select-none mr-4">{String(i + 1).padStart(3, ' ')}</span>
+                                {line.includes(':') ? (
+                                  <>
+                                    <span className="text-cyan-400">{line.split(':')[0]}</span>
+                                    <span className="text-slate-400">:</span>
+                                    <span className={cn(
+                                      line.includes('true') ? "text-emerald-400" :
+                                      line.includes('false') ? "text-rose-400" :
+                                      line.includes('"') ? "text-amber-300" :
+                                      "text-purple-400"
+                                    )}>{line.split(':').slice(1).join(':')}</span>
+                                  </>
+                                ) : (
+                                  <span className="text-slate-400">{line}</span>
+                                )}
+                              </div>
+                            ))
+                          ) : (
+                            <>
+                              <div className="hover:bg-slate-800/50 px-1 -mx-1 rounded">
+                                <span className="text-slate-600 select-none mr-4">  1</span>
+                                <span className="text-slate-400">{'{'}</span>
+                              </div>
+                              <div className="hover:bg-slate-800/50 px-1 -mx-1 rounded">
+                                <span className="text-slate-600 select-none mr-4">  2</span>
+                                <span className="text-cyan-400">  "report_id"</span>
+                                <span className="text-slate-400">: </span>
+                                <span className="text-amber-300">"{ontologyData.report_id}"</span>
+                                <span className="text-slate-400">,</span>
+                              </div>
+                              <div className="hover:bg-slate-800/50 px-1 -mx-1 rounded">
+                                <span className="text-slate-600 select-none mr-4">  3</span>
+                                <span className="text-cyan-400">  "classification"</span>
+                                <span className="text-slate-400">: </span>
+                                <span className="text-slate-500">{'{ ... }'}</span>
+                                <span className="text-slate-400">,</span>
+                              </div>
+                              <div className="hover:bg-slate-800/50 px-1 -mx-1 rounded">
+                                <span className="text-slate-600 select-none mr-4">  4</span>
+                                <span className="text-cyan-400">  "extracted_entities"</span>
+                                <span className="text-slate-400">: </span>
+                                <span className="text-slate-500">{'{ ... }'}</span>
+                                <span className="text-slate-400">,</span>
+                              </div>
+                              <div className="hover:bg-slate-800/50 px-1 -mx-1 rounded">
+                                <span className="text-slate-600 select-none mr-4">  5</span>
+                                <span className="text-cyan-400">  "visual_analysis"</span>
+                                <span className="text-slate-400">: </span>
+                                <span className="text-slate-500">{'{ ... }'}</span>
+                                <span className="text-slate-400">,</span>
+                              </div>
+                              <div className="hover:bg-slate-800/50 px-1 -mx-1 rounded">
+                                <span className="text-slate-600 select-none mr-4">  6</span>
+                                <span className="text-cyan-400">  "timestamp"</span>
+                                <span className="text-slate-400">: </span>
+                                <span className="text-amber-300">"..."</span>
+                              </div>
+                              <div className="hover:bg-slate-800/50 px-1 -mx-1 rounded">
+                                <span className="text-slate-600 select-none mr-4">  7</span>
+                                <span className="text-slate-400">{'}'}</span>
+                              </div>
+                            </>
+                          )}
+                        </code>
+                      </pre>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+          </div>
+        )}
 
         {/* Segmented Tabs - Order: TBC → GR → PSPP with bold colors */}
         <div className="px-4 py-3 border-b border-border bg-muted/30">
