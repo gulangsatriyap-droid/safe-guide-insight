@@ -325,7 +325,7 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
               <div className="lg:col-span-4 flex flex-col gap-4">
                 {/* AI Labeled Section */}
                 <div className="bg-card rounded-xl p-4 border border-border shadow-sm">
-                  <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
                       <Sparkles className="w-4 h-4 text-primary" />
                       <h3 className="font-bold text-foreground text-sm">AI Labeled</h3>
@@ -339,35 +339,52 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
                     </button>
                   </div>
                   
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     {/* TBC Card */}
                     {(() => {
                       const tbcSource = aiSources.find(s => s.type === 'TBC');
                       const isTbcActive = activeLabels.includes('TBC');
                       return (
                         <div 
-                          className="cursor-pointer hover:bg-muted/30 rounded-lg p-2 -mx-2 transition-colors"
+                          className={cn(
+                            "cursor-pointer rounded-xl p-3 transition-all border",
+                            isTbcActive 
+                              ? "bg-primary/5 border-primary/20 hover:bg-primary/10"
+                              : "bg-muted/30 border-muted hover:bg-muted/50"
+                          )}
                           onClick={() => openAnalysisPanelWithTab('TBC')}
                         >
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className={cn(
-                              "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold",
-                              isTbcActive 
-                                ? "bg-primary text-primary-foreground"
-                                : "bg-muted text-muted-foreground"
-                            )}>
-                              TBC
-                            </span>
+                          <div className="flex items-center gap-2 mb-2">
+                            {isTbcActive ? (
+                              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-primary text-primary-foreground">
+                                TBC
+                              </span>
+                            ) : (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border border-muted-foreground/30 bg-transparent text-muted-foreground">
+                                    <X className="w-3 h-3 text-destructive" />
+                                    TBC
+                                  </span>
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="max-w-[200px]">
+                                  <p className="text-xs">Tidak ada rule TBC yang cocok pada laporan ini.</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            )}
                             <div className="flex items-center gap-1 px-1.5 py-0.5 bg-primary/10 rounded border border-primary/20">
                               <Sparkles className="w-2.5 h-2.5 text-primary" />
                               <span className="text-[10px] font-medium text-primary">AI</span>
                             </div>
                           </div>
-                          <p className="text-sm font-semibold text-foreground mb-0.5">
+                          <p className={cn(
+                            "text-sm font-semibold mb-0.5",
+                            isTbcActive ? "text-foreground" : "text-muted-foreground"
+                          )}>
                             {tbcSource?.category || 'Deviasi pengoperasian kendaraan/unit'}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            <span className="text-primary font-medium">Tipe:</span>{' '}
+                            <span className={cn("font-medium", isTbcActive ? "text-primary" : "text-muted-foreground")}>Tipe:</span>{' '}
                             {tbcSource?.deviationType || 'Pekerjaan tidak sesuai DOP / tidak ada DOP'}
                           </p>
                         </div>
@@ -380,28 +397,45 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
                       const isGrActive = activeLabels.includes('GR');
                       return (
                         <div 
-                          className="cursor-pointer hover:bg-muted/30 rounded-lg p-2 -mx-2 transition-colors"
+                          className={cn(
+                            "cursor-pointer rounded-xl p-3 transition-all border",
+                            isGrActive 
+                              ? "bg-emerald-500/5 border-emerald-500/20 hover:bg-emerald-500/10"
+                              : "bg-muted/30 border-muted hover:bg-muted/50"
+                          )}
                           onClick={() => openAnalysisPanelWithTab('GR')}
                         >
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className={cn(
-                              "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold",
-                              isGrActive 
-                                ? "bg-emerald-500 text-white"
-                                : "bg-muted text-muted-foreground"
-                            )}>
-                              GR
-                            </span>
+                          <div className="flex items-center gap-2 mb-2">
+                            {isGrActive ? (
+                              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500 text-white">
+                                GR
+                              </span>
+                            ) : (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border border-muted-foreground/30 bg-transparent text-muted-foreground">
+                                    <X className="w-3 h-3 text-destructive" />
+                                    GR
+                                  </span>
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="max-w-[200px]">
+                                  <p className="text-xs">Tidak ada rule GR yang cocok pada laporan ini.</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            )}
                             <div className="flex items-center gap-1 px-1.5 py-0.5 bg-primary/10 rounded border border-primary/20">
                               <Sparkles className="w-2.5 h-2.5 text-primary" />
                               <span className="text-[10px] font-medium text-primary">AI</span>
                             </div>
                           </div>
-                          <p className="text-sm font-semibold text-foreground mb-0.5">
+                          <p className={cn(
+                            "text-sm font-semibold mb-0.5",
+                            isGrActive ? "text-foreground" : "text-muted-foreground"
+                          )}>
                             {grSource?.category || 'Pengoperasian Kendaraan & Unit'}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            <span className="text-emerald-600 font-medium">Tipe:</span>{' '}
+                            <span className={cn("font-medium", isGrActive ? "text-emerald-600" : "text-muted-foreground")}>Tipe:</span>{' '}
                             {grSource?.deviationType || 'Bekerja di ketinggian > 1.8 m tanpa full body harness'}
                           </p>
                         </div>
@@ -414,28 +448,45 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
                       const isPsppActive = activeLabels.includes('PSPP');
                       return (
                         <div 
-                          className="cursor-pointer hover:bg-muted/30 rounded-lg p-2 -mx-2 transition-colors"
+                          className={cn(
+                            "cursor-pointer rounded-xl p-3 transition-all border",
+                            isPsppActive 
+                              ? "bg-amber-500/5 border-amber-500/20 hover:bg-amber-500/10"
+                              : "bg-muted/30 border-muted hover:bg-muted/50"
+                          )}
                           onClick={() => openAnalysisPanelWithTab('PSPP')}
                         >
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className={cn(
-                              "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold",
-                              isPsppActive 
-                                ? "bg-amber-500 text-white"
-                                : "bg-muted text-muted-foreground"
-                            )}>
-                              PSPP
-                            </span>
+                          <div className="flex items-center gap-2 mb-2">
+                            {isPsppActive ? (
+                              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500 text-white">
+                                PSPP
+                              </span>
+                            ) : (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border border-muted-foreground/30 bg-transparent text-muted-foreground">
+                                    <X className="w-3 h-3 text-destructive" />
+                                    PSPP
+                                  </span>
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="max-w-[200px]">
+                                  <p className="text-xs">Tidak ada rule PSPP yang cocok pada laporan ini.</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            )}
                             <div className="flex items-center gap-1 px-1.5 py-0.5 bg-primary/10 rounded border border-primary/20">
                               <Sparkles className="w-2.5 h-2.5 text-primary" />
                               <span className="text-[10px] font-medium text-primary">AI</span>
                             </div>
                           </div>
-                          <p className="text-sm font-semibold text-foreground mb-0.5">
+                          <p className={cn(
+                            "text-sm font-semibold mb-0.5",
+                            isPsppActive ? "text-foreground" : "text-muted-foreground"
+                          )}>
                             {psppSource?.category || 'Pelanggaran Prosedur Keselamatan'}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            <span className="text-amber-600 font-medium">Tipe:</span>{' '}
+                            <span className={cn("font-medium", isPsppActive ? "text-amber-600" : "text-muted-foreground")}>Tipe:</span>{' '}
                             {psppSource?.deviationType || 'Hand rail tidak ada pada dudukan tandon profil'}
                           </p>
                         </div>
