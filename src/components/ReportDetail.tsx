@@ -347,10 +347,10 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
                       return (
                         <div 
                           className={cn(
-                            "cursor-pointer rounded-xl p-3 transition-all border",
+                            "cursor-pointer rounded-xl p-3 transition-all",
                             isTbcActive 
-                              ? "bg-primary/5 border-primary/20 hover:bg-primary/10"
-                              : "bg-muted/30 border-muted hover:bg-muted/50"
+                              ? "bg-primary/5 border border-primary/20 hover:bg-primary/10 hover:border-primary/40"
+                              : "bg-muted/20 border-2 border-dashed border-muted-foreground/20 hover:bg-destructive/5 hover:border-destructive/30 group"
                           )}
                           onClick={() => openAnalysisPanelWithTab('TBC')}
                         >
@@ -362,8 +362,8 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
                             ) : (
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border border-muted-foreground/30 bg-transparent text-muted-foreground">
-                                    <X className="w-3 h-3 text-destructive" />
+                                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border-2 border-dashed border-muted-foreground/40 bg-muted/50 text-muted-foreground group-hover:border-destructive/50 group-hover:bg-destructive/10 transition-all">
+                                    <X className="w-3.5 h-3.5 text-destructive" />
                                     TBC
                                   </span>
                                 </TooltipTrigger>
@@ -372,20 +372,34 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
                                 </TooltipContent>
                               </Tooltip>
                             )}
-                            <div className="flex items-center gap-1 px-1.5 py-0.5 bg-primary/10 rounded border border-primary/20">
-                              <Sparkles className="w-2.5 h-2.5 text-primary" />
-                              <span className="text-[10px] font-medium text-primary">AI</span>
+                            <div className={cn(
+                              "flex items-center gap-1 px-1.5 py-0.5 rounded border transition-all",
+                              isTbcActive 
+                                ? "bg-primary/10 border-primary/20"
+                                : "bg-muted/50 border-muted-foreground/20 group-hover:bg-muted"
+                            )}>
+                              <Sparkles className={cn("w-2.5 h-2.5", isTbcActive ? "text-primary" : "text-muted-foreground")} />
+                              <span className={cn("text-[10px] font-medium", isTbcActive ? "text-primary" : "text-muted-foreground")}>AI</span>
                             </div>
                           </div>
                           <p className={cn(
-                            "text-sm font-semibold mb-0.5",
-                            isTbcActive ? "text-foreground" : "text-muted-foreground"
+                            "text-sm font-semibold mb-0.5 transition-colors",
+                            isTbcActive ? "text-foreground" : "text-muted-foreground/70 group-hover:text-muted-foreground"
                           )}>
-                            {tbcSource?.category || 'Deviasi pengoperasian kendaraan/unit'}
+                            {isTbcActive ? (tbcSource?.category || 'Deviasi pengoperasian kendaraan/unit') : 'Tidak Terdeteksi'}
                           </p>
-                          <p className="text-xs text-muted-foreground">
-                            <span className={cn("font-medium", isTbcActive ? "text-primary" : "text-muted-foreground")}>Tipe:</span>{' '}
-                            {tbcSource?.deviationType || 'Pekerjaan tidak sesuai DOP / tidak ada DOP'}
+                          <p className={cn(
+                            "text-xs transition-colors",
+                            isTbcActive ? "text-muted-foreground" : "text-muted-foreground/50 group-hover:text-muted-foreground/70"
+                          )}>
+                            {isTbcActive ? (
+                              <>
+                                <span className="font-medium text-primary">Tipe:</span>{' '}
+                                {tbcSource?.deviationType || 'Pekerjaan tidak sesuai DOP / tidak ada DOP'}
+                              </>
+                            ) : (
+                              'Tidak ada rule yang cocok pada laporan ini'
+                            )}
                           </p>
                         </div>
                       );
@@ -398,10 +412,10 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
                       return (
                         <div 
                           className={cn(
-                            "cursor-pointer rounded-xl p-3 transition-all border",
+                            "cursor-pointer rounded-xl p-3 transition-all",
                             isGrActive 
-                              ? "bg-emerald-500/5 border-emerald-500/20 hover:bg-emerald-500/10"
-                              : "bg-muted/30 border-muted hover:bg-muted/50"
+                              ? "bg-emerald-500/5 border border-emerald-500/20 hover:bg-emerald-500/10 hover:border-emerald-500/40"
+                              : "bg-muted/20 border-2 border-dashed border-muted-foreground/20 hover:bg-destructive/5 hover:border-destructive/30 group"
                           )}
                           onClick={() => openAnalysisPanelWithTab('GR')}
                         >
@@ -413,8 +427,8 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
                             ) : (
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border border-muted-foreground/30 bg-transparent text-muted-foreground">
-                                    <X className="w-3 h-3 text-destructive" />
+                                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border-2 border-dashed border-muted-foreground/40 bg-muted/50 text-muted-foreground group-hover:border-destructive/50 group-hover:bg-destructive/10 transition-all">
+                                    <X className="w-3.5 h-3.5 text-destructive" />
                                     GR
                                   </span>
                                 </TooltipTrigger>
@@ -423,20 +437,34 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
                                 </TooltipContent>
                               </Tooltip>
                             )}
-                            <div className="flex items-center gap-1 px-1.5 py-0.5 bg-primary/10 rounded border border-primary/20">
-                              <Sparkles className="w-2.5 h-2.5 text-primary" />
-                              <span className="text-[10px] font-medium text-primary">AI</span>
+                            <div className={cn(
+                              "flex items-center gap-1 px-1.5 py-0.5 rounded border transition-all",
+                              isGrActive 
+                                ? "bg-primary/10 border-primary/20"
+                                : "bg-muted/50 border-muted-foreground/20 group-hover:bg-muted"
+                            )}>
+                              <Sparkles className={cn("w-2.5 h-2.5", isGrActive ? "text-primary" : "text-muted-foreground")} />
+                              <span className={cn("text-[10px] font-medium", isGrActive ? "text-primary" : "text-muted-foreground")}>AI</span>
                             </div>
                           </div>
                           <p className={cn(
-                            "text-sm font-semibold mb-0.5",
-                            isGrActive ? "text-foreground" : "text-muted-foreground"
+                            "text-sm font-semibold mb-0.5 transition-colors",
+                            isGrActive ? "text-foreground" : "text-muted-foreground/70 group-hover:text-muted-foreground"
                           )}>
-                            {grSource?.category || 'Pengoperasian Kendaraan & Unit'}
+                            {isGrActive ? (grSource?.category || 'Pengoperasian Kendaraan & Unit') : 'Tidak Terdeteksi'}
                           </p>
-                          <p className="text-xs text-muted-foreground">
-                            <span className={cn("font-medium", isGrActive ? "text-emerald-600" : "text-muted-foreground")}>Tipe:</span>{' '}
-                            {grSource?.deviationType || 'Bekerja di ketinggian > 1.8 m tanpa full body harness'}
+                          <p className={cn(
+                            "text-xs transition-colors",
+                            isGrActive ? "text-muted-foreground" : "text-muted-foreground/50 group-hover:text-muted-foreground/70"
+                          )}>
+                            {isGrActive ? (
+                              <>
+                                <span className="font-medium text-emerald-600">Tipe:</span>{' '}
+                                {grSource?.deviationType || 'Bekerja di ketinggian > 1.8 m tanpa full body harness'}
+                              </>
+                            ) : (
+                              'Tidak ada rule yang cocok pada laporan ini'
+                            )}
                           </p>
                         </div>
                       );
@@ -449,10 +477,10 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
                       return (
                         <div 
                           className={cn(
-                            "cursor-pointer rounded-xl p-3 transition-all border",
+                            "cursor-pointer rounded-xl p-3 transition-all",
                             isPsppActive 
-                              ? "bg-amber-500/5 border-amber-500/20 hover:bg-amber-500/10"
-                              : "bg-muted/30 border-muted hover:bg-muted/50"
+                              ? "bg-amber-500/5 border border-amber-500/20 hover:bg-amber-500/10 hover:border-amber-500/40"
+                              : "bg-muted/20 border-2 border-dashed border-muted-foreground/20 hover:bg-destructive/5 hover:border-destructive/30 group"
                           )}
                           onClick={() => openAnalysisPanelWithTab('PSPP')}
                         >
@@ -464,8 +492,8 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
                             ) : (
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border border-muted-foreground/30 bg-transparent text-muted-foreground">
-                                    <X className="w-3 h-3 text-destructive" />
+                                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border-2 border-dashed border-muted-foreground/40 bg-muted/50 text-muted-foreground group-hover:border-destructive/50 group-hover:bg-destructive/10 transition-all">
+                                    <X className="w-3.5 h-3.5 text-destructive" />
                                     PSPP
                                   </span>
                                 </TooltipTrigger>
@@ -474,20 +502,34 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
                                 </TooltipContent>
                               </Tooltip>
                             )}
-                            <div className="flex items-center gap-1 px-1.5 py-0.5 bg-primary/10 rounded border border-primary/20">
-                              <Sparkles className="w-2.5 h-2.5 text-primary" />
-                              <span className="text-[10px] font-medium text-primary">AI</span>
+                            <div className={cn(
+                              "flex items-center gap-1 px-1.5 py-0.5 rounded border transition-all",
+                              isPsppActive 
+                                ? "bg-primary/10 border-primary/20"
+                                : "bg-muted/50 border-muted-foreground/20 group-hover:bg-muted"
+                            )}>
+                              <Sparkles className={cn("w-2.5 h-2.5", isPsppActive ? "text-primary" : "text-muted-foreground")} />
+                              <span className={cn("text-[10px] font-medium", isPsppActive ? "text-primary" : "text-muted-foreground")}>AI</span>
                             </div>
                           </div>
                           <p className={cn(
-                            "text-sm font-semibold mb-0.5",
-                            isPsppActive ? "text-foreground" : "text-muted-foreground"
+                            "text-sm font-semibold mb-0.5 transition-colors",
+                            isPsppActive ? "text-foreground" : "text-muted-foreground/70 group-hover:text-muted-foreground"
                           )}>
-                            {psppSource?.category || 'Pelanggaran Prosedur Keselamatan'}
+                            {isPsppActive ? (psppSource?.category || 'Pelanggaran Prosedur Keselamatan') : 'Tidak Terdeteksi'}
                           </p>
-                          <p className="text-xs text-muted-foreground">
-                            <span className={cn("font-medium", isPsppActive ? "text-amber-600" : "text-muted-foreground")}>Tipe:</span>{' '}
-                            {psppSource?.deviationType || 'Hand rail tidak ada pada dudukan tandon profil'}
+                          <p className={cn(
+                            "text-xs transition-colors",
+                            isPsppActive ? "text-muted-foreground" : "text-muted-foreground/50 group-hover:text-muted-foreground/70"
+                          )}>
+                            {isPsppActive ? (
+                              <>
+                                <span className="font-medium text-amber-600">Tipe:</span>{' '}
+                                {psppSource?.deviationType || 'Hand rail tidak ada pada dudukan tandon profil'}
+                              </>
+                            ) : (
+                              'Tidak ada rule yang cocok pada laporan ini'
+                            )}
                           </p>
                         </div>
                       );
