@@ -321,79 +321,18 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
 
   const analysisData = getAnalysisData(currentSource, !isCurrentActive);
 
+  // Calculate panel widths based on drawer state
+  const mainPanelWidth = drawerMode !== 'none' ? 'w-[480px]' : 'w-[480px]';
+  const extensionPanelWidth = 'w-[420px]';
+  
   return (
     <TooltipProvider>
-      {/* Floating overlay panel - wider for better readability (35-40% viewport) */}
-      <div className="fixed top-0 right-0 bottom-0 w-[480px] max-w-[40vw] min-w-[400px] bg-card border-l border-border shadow-2xl flex flex-col z-50 animate-in slide-in-from-right duration-300">
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-card">
-          <div className="flex items-center gap-3">
-            <div className={`w-9 h-9 rounded-lg ${config.iconBg} flex items-center justify-center`}>
-              <FileText className={`w-5 h-5 ${config.text}`} />
-            </div>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-primary" />
-                <span className="text-xs font-medium text-muted-foreground">Detail Analisis</span>
-              </div>
-              <p className="text-sm font-semibold text-foreground">{docConfig.title}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-1">
-            {/* Document Icon */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={() => setDrawerMode(drawerMode === 'dokumen' ? 'none' : 'dokumen')}
-                  className={cn(
-                    "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
-                    drawerMode === 'dokumen' 
-                      ? "bg-primary text-primary-foreground" 
-                      : "hover:bg-muted text-muted-foreground"
-                  )}
-                >
-                  <BookOpen className="w-4 h-4" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                <p className="text-xs">{drawerMode === 'dokumen' ? 'Dokumen (open)' : 'Dokumen'}</p>
-              </TooltipContent>
-            </Tooltip>
-            
-            {/* Ontology Icon */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={() => setDrawerMode(drawerMode === 'ontologi' ? 'none' : 'ontologi')}
-                  className={cn(
-                    "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
-                    drawerMode === 'ontologi' 
-                      ? "bg-primary text-primary-foreground" 
-                      : "hover:bg-muted text-muted-foreground"
-                  )}
-                >
-                  <Braces className="w-4 h-4" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                <p className="text-xs">{drawerMode === 'ontologi' ? 'Ontologi (open)' : 'Ontologi (JSON)'}</p>
-              </TooltipContent>
-            </Tooltip>
-            
-            {/* Close Button */}
-            <button
-              onClick={onClose}
-              className="w-8 h-8 rounded-lg hover:bg-muted flex items-center justify-center transition-colors"
-            >
-              <X className="w-4 h-4 text-muted-foreground" />
-            </button>
-          </div>
-        </div>
-
-        {/* Slide-in Drawer for Dokumen / Ontologi */}
+      {/* Container for both panels */}
+      <div className="fixed top-0 right-0 bottom-0 flex z-50 animate-in slide-in-from-right duration-300">
+        {/* Extension Panel for Dokumen / Ontologi - appears on the LEFT of main panel */}
         {drawerMode !== 'none' && (
-          <div className="absolute top-0 right-0 bottom-0 w-[380px] bg-card border-l border-border shadow-2xl flex flex-col z-60 animate-in slide-in-from-right duration-200">
-            {/* Drawer Header */}
+          <div className={`${extensionPanelWidth} bg-card border-l border-border shadow-xl flex flex-col animate-in slide-in-from-right duration-200`}>
+            {/* Extension Panel Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30">
               <div className="flex items-center gap-2.5">
                 <div className={cn(
@@ -422,13 +361,13 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
               </button>
             </div>
             
-            {/* Drawer Content */}
+            {/* Extension Panel Content */}
             <ScrollArea className="flex-1">
               <div className="p-4">
                 {drawerMode === 'dokumen' ? (
                   /* Dokumen Rujukan Content */
                   <div className="space-y-3">
-                    {/* Search (optional) */}
+                    {/* Search */}
                     <div className="relative">
                       <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                       <input 
@@ -611,6 +550,31 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
             </ScrollArea>
           </div>
         )}
+        
+        {/* Main Analysis Panel */}
+        <div className={`${mainPanelWidth} max-w-[40vw] min-w-[400px] bg-card border-l border-border shadow-2xl flex flex-col`}>
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-card">
+          <div className="flex items-center gap-3">
+            <div className={`w-9 h-9 rounded-lg ${config.iconBg} flex items-center justify-center`}>
+              <FileText className={`w-5 h-5 ${config.text}`} />
+            </div>
+            <div>
+              <div className="flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-primary" />
+                <span className="text-xs font-medium text-muted-foreground">Detail Analisis</span>
+              </div>
+              <p className="text-sm font-semibold text-foreground">{docConfig.title}</p>
+            </div>
+          </div>
+          {/* Close Button */}
+          <button
+            onClick={onClose}
+            className="w-8 h-8 rounded-lg hover:bg-muted flex items-center justify-center transition-colors"
+          >
+            <X className="w-4 h-4 text-muted-foreground" />
+          </button>
+        </div>
 
         {/* Segmented Tabs - Order: TBC → GR → PSPP with bold colors */}
         <div className="px-4 py-3 border-b border-border bg-muted/30">
@@ -664,6 +628,48 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
               );
             })}
           </div>
+          
+          {/* Dokumen & Ontologi Toggle Buttons */}
+          <div className="flex gap-2 mt-3">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => setDrawerMode(drawerMode === 'dokumen' ? 'none' : 'dokumen')}
+                  className={cn(
+                    "flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all border",
+                    drawerMode === 'dokumen' 
+                      ? "bg-primary text-primary-foreground border-primary shadow-sm" 
+                      : "bg-card hover:bg-muted text-muted-foreground border-border hover:border-primary/30"
+                  )}
+                >
+                  <BookOpen className="w-4 h-4" />
+                  <span className="font-semibold">Aa</span>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <p className="text-xs">{drawerMode === 'dokumen' ? 'Dokumen (open)' : 'Dokumen'}</p>
+              </TooltipContent>
+            </Tooltip>
+            
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => setDrawerMode(drawerMode === 'ontologi' ? 'none' : 'ontologi')}
+                  className={cn(
+                    "flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all border",
+                    drawerMode === 'ontologi' 
+                      ? "bg-primary text-primary-foreground border-primary shadow-sm" 
+                      : "bg-card hover:bg-muted text-muted-foreground border-border hover:border-primary/30"
+                  )}
+                >
+                  <Braces className="w-4 h-4" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <p className="text-xs">{drawerMode === 'ontologi' ? 'Ontologi (open)' : 'Ontologi (JSON)'}</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
         </div>
 
         {/* FALSE Status Banner - Show when current tab is FALSE */}
@@ -681,38 +687,11 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
           </div>
         )}
 
-        {/* Content View Toggle */}
-        <div className="px-4 pt-3">
-          <div className="flex gap-1 p-1 bg-muted/30 rounded-lg">
-            <button
-              onClick={() => setContentView('detail')}
-              className={cn(
-                "flex-1 px-3 py-1.5 rounded-md text-xs font-semibold transition-all",
-                contentView === 'detail'
-                  ? "bg-background shadow-sm text-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              Detail Analisis
-            </button>
-            <button
-              onClick={() => setContentView('dokumen')}
-              className={cn(
-                "flex-1 px-3 py-1.5 rounded-md text-xs font-semibold transition-all",
-                contentView === 'dokumen'
-                  ? "bg-background shadow-sm text-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              Dokumen
-            </button>
-          </div>
-        </div>
 
         {/* Content Area */}
         <ScrollArea className="flex-1">
           <div className="px-4 py-4">
-            {contentView === 'detail' && analysisData ? (
+            {analysisData && (
               /* Detail Analysis Content - Always show, even for FALSE states */
               <div className="space-y-4 animate-in fade-in slide-in-from-right-2 duration-200">
                 {/* Main Analysis Card */}
@@ -975,42 +954,10 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
                   </div>
                 )}
               </div>
-            ) : contentView === 'dokumen' ? (
-              /* Dokumen Tab Content */
-              <div className="space-y-4 animate-in fade-in slide-in-from-right-2 duration-200">
-                <div className="flex items-center justify-between p-3 bg-muted/30 rounded-xl">
-                  <span className="text-sm font-medium text-foreground">
-                    Halaman {currentPage + 1} dari {docConfig.pages.length}
-                  </span>
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
-                      disabled={currentPage === 0}
-                      className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-muted disabled:opacity-50 transition-colors"
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => setCurrentPage(p => Math.min(docConfig.pages.length - 1, p + 1))}
-                      disabled={currentPage === docConfig.pages.length - 1}
-                      className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-muted disabled:opacity-50 transition-colors"
-                    >
-                      <ChevronRight className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-                <div className="bg-background rounded-xl border border-border p-4 min-h-[300px] shadow-sm">
-                  <h3 className="text-base font-semibold mb-3 text-foreground pb-2 border-b border-border">
-                    {docConfig.pages[currentPage]?.title}
-                  </h3>
-                  <pre className="text-sm text-foreground whitespace-pre-wrap font-sans leading-relaxed">
-                    {docConfig.pages[currentPage]?.content}
-                  </pre>
-                </div>
-              </div>
-            ) : null}
+            )}
           </div>
         </ScrollArea>
+        </div>
       </div>
     </TooltipProvider>
   );
