@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, FileText, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, CheckCircle2, AlertCircle, HelpCircle, Sparkles, Target, Eye, Brain, ArrowRight, Ban, Info, XCircle, Braces, Copy, Download, ChevronDownSquare, ChevronUpSquare, Search, BookOpen, Link2 } from "lucide-react";
+import { X, FileText, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, CheckCircle2, AlertCircle, HelpCircle, Sparkles, Target, Eye, Brain, ArrowRight, Ban, Info, XCircle, Braces, Copy, Download, ChevronDownSquare, ChevronUpSquare, Search, BookOpen, Link2, ZoomIn, ZoomOut, Maximize2, Highlighter } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
@@ -53,67 +53,480 @@ const documentConfig = {
   TBC: {
     title: "TBC - To be Concern Hazard",
     fileName: "SOP-TBC-Guidelines-2024.pdf",
+    code: "SOP-TBC-001",
+    type: "SOP",
+    totalPages: 22,
     pages: [
       {
         page: 1,
         title: "Daftar Isi",
-        content: `DAFTAR ISI
+        content: `STANDAR OPERASIONAL PROSEDUR
+IDENTIFIKASI TO BE CONCERN (TBC) HAZARD
 
-1. Pendahuluan ................................................ 3
-2. Definisi dan Istilah ...................................... 5
-3. Prosedur Keselamatan Kerja ........................ 7
-4. Pelanggaran dan Sanksi ............................... 12
-5. Tata Cara Pelaporan .................................... 18
-6. Lampiran ..................................................... 22`
+Dokumen No: SOP-TBC-001
+Revisi: 03
+Tanggal Efektif: 1 Januari 2024
+Halaman: 1 dari 22
+
+═══════════════════════════════════════════════════════════════
+
+DAFTAR ISI
+
+1. Pendahuluan ............................................................. 3
+   1.1 Latar Belakang
+   1.2 Tujuan
+   1.3 Ruang Lingkup
+
+2. Definisi dan Istilah .................................................. 5
+   2.1 To Be Concern (TBC)
+   2.2 Hazard Classification
+   2.3 Risk Assessment
+
+3. Prosedur Identifikasi TBC ......................................... 7
+   3.1 Tahapan Identifikasi
+   3.2 Kriteria TBC
+   3.3 Metode Pelaporan
+
+4. Kategori Deviasi ...................................................... 12
+   4.1 Deviasi Pengoperasian Kendaraan
+   4.2 Deviasi Prosedur Kerja
+   4.3 Deviasi Penggunaan APD
+
+5. Tindakan Korektif ..................................................... 18
+   5.1 Prosedur Penanganan
+   5.2 Eskalasi Temuan
+   5.3 Dokumentasi
+
+6. Lampiran .................................................................. 22`
       },
       {
         page: 2,
+        title: "Pendahuluan",
+        content: `BAB 1. PENDAHULUAN
+
+═══════════════════════════════════════════════════════════════
+
+1.1 LATAR BELAKANG
+
+Dalam operasional pertambangan, identifikasi potensi bahaya (hazard) 
+merupakan langkah kritis dalam memastikan keselamatan kerja. Sistem 
+To Be Concern (TBC) dikembangkan sebagai mekanisme early warning 
+untuk mendeteksi kondisi atau perilaku yang berpotensi menimbulkan 
+kecelakaan kerja.
+
+1.2 TUJUAN
+
+Standar Operasional Prosedur ini bertujuan untuk:
+
+  a) Memberikan panduan sistematis dalam mengidentifikasi kondisi 
+     atau perilaku yang termasuk kategori TBC
+  
+  b) Menetapkan kriteria dan klasifikasi TBC berdasarkan tingkat 
+     risiko dan potensi dampak
+  
+  c) Mendefinisikan prosedur pelaporan, dokumentasi, dan tindak 
+     lanjut temuan TBC
+
+1.3 RUANG LINGKUP
+
+SOP ini berlaku untuk:
+  • Seluruh area operasional tambang
+  • Semua personel yang terlibat dalam operasi
+  • Kontraktor dan subkontraktor
+  • Visitor dengan izin kerja khusus`
+      },
+      {
+        page: 3,
         title: "Kategori Deviasi",
-        content: `KATEGORI DEVIASI PENGOPERASIAN KENDARAAN/UNIT
+        content: `BAB 4. KATEGORI DEVIASI PENGOPERASIAN KENDARAAN/UNIT
+
+═══════════════════════════════════════════════════════════════
+
+4.1 DEVIASI PENGOPERASIAN KENDARAAN
 
 Kategori 1: Deviasi Pengoperasian Kendaraan/Unit
 
-Definisi:
-Setiap temuan yang berkaitan dengan pengoperasian kendaraan atau unit yang tidak sesuai dengan standar operasional prosedur yang telah ditetapkan.
+┌─────────────────────────────────────────────────────────────┐
+│ DEFINISI                                                     │
+├─────────────────────────────────────────────────────────────┤
+│ Setiap temuan yang berkaitan dengan pengoperasian kendaraan │
+│ atau unit yang tidak sesuai dengan standar operasional      │
+│ prosedur yang telah ditetapkan.                             │
+└─────────────────────────────────────────────────────────────┘
 
-Contoh:
-• Fatigue (menguap, microsleep, mata tertutup)
-• Menggunakan handphone saat mengoperasikan unit
-• Tidak menggunakan sabuk pengaman`
+CONTOH DEVIASI:
+
+  ▸ Fatigue (menguap, microsleep, mata tertutup)
+  ▸ Menggunakan handphone saat mengoperasikan unit
+  ▸ Tidak menggunakan sabuk pengaman
+  ▸ Melebihi batas kecepatan yang ditetapkan
+  ▸ Tidak mematuhi rambu lalu lintas area tambang
+  ▸ Mengoperasikan unit tanpa sertifikasi valid
+
+KLASIFIKASI RISIKO:
+  
+  ⚠️  TINGGI   : Potensi fatality atau cedera serius
+  ⚡  SEDANG   : Potensi cedera ringan atau kerusakan unit
+  ℹ️  RENDAH   : Pelanggaran prosedur minor`
+      },
+      {
+        page: 4,
+        title: "Prosedur Pelaporan",
+        content: `BAB 5. PROSEDUR PELAPORAN TBC
+
+═══════════════════════════════════════════════════════════════
+
+5.1 ALUR PELAPORAN
+
+  ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+  │  TEMUAN     │ ──▶ │  VALIDASI   │ ──▶ │  ESKALASI   │
+  │  LAPANGAN   │     │  SUPERVISOR │     │  MANAJEMEN  │
+  └─────────────┘     └─────────────┘     └─────────────┘
+         │                   │                   │
+         ▼                   ▼                   ▼
+  ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+  │ INPUT DATA  │     │  ANALISIS   │     │  KEPUTUSAN  │
+  │  SISTEM     │     │   RISIKO    │     │  TINDAKAN   │
+  └─────────────┘     └─────────────┘     └─────────────┘
+
+5.2 WAKTU PELAPORAN
+
+  • Temuan TINGGI  : Segera (< 30 menit)
+  • Temuan SEDANG  : < 4 jam
+  • Temuan RENDAH  : < 24 jam (akhir shift)
+
+5.3 INFORMASI WAJIB
+
+  1. Tanggal dan waktu kejadian
+  2. Lokasi spesifik (area, pit, workshop)
+  3. Deskripsi kondisi/perilaku
+  4. Foto/video pendukung
+  5. Identitas pihak terlibat
+  6. Rekomendasi awal`
       }
     ]
   },
   GR: {
     title: "GR - Golden Rules",
     fileName: "Safety-Golden-Rules-2024.pdf",
+    code: "REG-GR-001",
+    type: "Regulasi",
+    totalPages: 18,
     pages: [
       {
         page: 1,
         title: "Daftar Isi",
-        content: `DAFTAR ISI
+        content: `GOLDEN RULES KESELAMATAN KERJA
+PANDUAN WAJIB SELURUH PERSONEL
 
-1. Golden Rules Overview ................................ 3
-2. Rule #1: PPE Compliance ............................ 5
-3. Rule #2: Vehicle Operation .......................... 8
-4. Rule #3: Work at Height .............................. 12
-5. Lampiran ..................................................... 18`
+Dokumen No: REG-GR-001
+Revisi: 05
+Tanggal Efektif: 1 Januari 2024
+Halaman: 1 dari 18
+
+═══════════════════════════════════════════════════════════════
+
+DAFTAR ISI
+
+1. Golden Rules Overview .............................................. 3
+   1.1 Prinsip Dasar
+   1.2 Komitmen Keselamatan
+   1.3 Konsekuensi Pelanggaran
+
+2. Rule #1: PPE Compliance ........................................... 5
+   2.1 Jenis APD Wajib
+   2.2 Standar Kualitas APD
+   2.3 Pemeriksaan Harian
+
+3. Rule #2: Vehicle Operation ....................................... 8
+   3.1 Pre-Start Check
+   3.2 Batas Kecepatan
+   3.3 Sabuk Pengaman
+
+4. Rule #3: Work at Height ........................................... 12
+   4.1 Definisi Ketinggian
+   4.2 Full Body Harness
+   4.3 Anchor Point
+
+5. Rule #4: Confined Space .......................................... 15
+
+6. Lampiran ................................................................ 18`
+      },
+      {
+        page: 2,
+        title: "Golden Rules Overview",
+        content: `BAB 1. GOLDEN RULES OVERVIEW
+
+═══════════════════════════════════════════════════════════════
+
+1.1 PRINSIP DASAR
+
+Golden Rules adalah seperangkat aturan keselamatan yang WAJIB 
+dipatuhi tanpa pengecualian oleh seluruh personel di area kerja.
+
+┌─────────────────────────────────────────────────────────────┐
+│                    "ZERO TOLERANCE POLICY"                   │
+│                                                              │
+│   Pelanggaran Golden Rules dapat mengakibatkan pemutusan    │
+│   hubungan kerja tanpa peringatan sebelumnya.               │
+└─────────────────────────────────────────────────────────────┘
+
+1.2 DAFTAR GOLDEN RULES
+
+  ★ RULE 1: Selalu gunakan APD sesuai standar
+  ★ RULE 2: Patuhi prosedur pengoperasian kendaraan
+  ★ RULE 3: Gunakan full body harness di ketinggian > 1.8m
+  ★ RULE 4: Ikuti prosedur confined space entry
+  ★ RULE 5: Lakukan LOTO sebelum maintenance
+  ★ RULE 6: Tidak bekerja di bawah pengaruh alkohol/obat
+
+1.3 KONSEKUENSI PELANGGARAN
+
+  Level 1: Pembinaan dan dokumentasi
+  Level 2: Surat Peringatan + training ulang
+  Level 3: PEMUTUSAN HUBUNGAN KERJA`
+      },
+      {
+        page: 3,
+        title: "Vehicle Operation",
+        content: `BAB 3. RULE #2: VEHICLE OPERATION
+
+═══════════════════════════════════════════════════════════════
+
+3.1 PRE-START CHECK (WAJIB)
+
+Sebelum mengoperasikan kendaraan/unit, operator WAJIB:
+
+  ☑ Memeriksa kondisi rem dan sistem pengereman
+  ☑ Memeriksa tekanan dan kondisi ban
+  ☑ Memeriksa level oli dan cairan pendingin
+  ☑ Memeriksa fungsi lampu dan klakson
+  ☑ Memeriksa sabuk pengaman dan cermin
+  ☑ Mengisi checklist harian
+
+3.2 BATAS KECEPATAN
+
+  ┌────────────────────────┬─────────────────┐
+  │ AREA                   │ BATAS KECEPATAN │
+  ├────────────────────────┼─────────────────┤
+  │ Workshop               │ 10 km/jam       │
+  │ Area Loading          │ 15 km/jam       │
+  │ Hauling Road (Empty)  │ 40 km/jam       │
+  │ Hauling Road (Loaded) │ 30 km/jam       │
+  │ Ramp                  │ 20 km/jam       │
+  └────────────────────────┴─────────────────┘
+
+3.3 SABUK PENGAMAN
+
+  ⚠️ WAJIB menggunakan sabuk pengaman setiap saat
+  ⚠️ Pastikan sabuk terpasang dengan benar
+  ⚠️ Laporkan sabuk pengaman yang rusak/tidak berfungsi`
+      },
+      {
+        page: 4,
+        title: "Work at Height",
+        content: `BAB 4. RULE #3: WORK AT HEIGHT
+
+═══════════════════════════════════════════════════════════════
+
+4.1 DEFINISI KETINGGIAN
+
+Pekerjaan di ketinggian (Work at Height) adalah setiap pekerjaan 
+yang dilakukan pada ketinggian ≥ 1.8 meter dari permukaan.
+
+┌─────────────────────────────────────────────────────────────┐
+│ KRITERIA WORK AT HEIGHT                                      │
+├─────────────────────────────────────────────────────────────┤
+│ • Bekerja di scaffolding                                    │
+│ • Bekerja di atas atap                                      │
+│ • Bekerja di tangga > 1.8m                                  │
+│ • Bekerja di platform elevated                              │
+│ • Bekerja di dekat lubang/bukaan                           │
+└─────────────────────────────────────────────────────────────┘
+
+4.2 FULL BODY HARNESS (MANDATORY)
+
+  ✓ Gunakan full body harness yang tersertifikasi
+  ✓ Pastikan harness dalam kondisi baik (tidak sobek/aus)
+  ✓ Kaitkan lanyard ke anchor point yang kokoh
+  ✓ Double lanyard untuk perpindahan posisi
+
+4.3 ANCHOR POINT
+
+  • Anchor point harus mampu menahan beban min. 22 kN
+  • Gunakan anchor point yang sudah diverifikasi
+  • DILARANG menggunakan pipa, kabel, atau struktur sementara`
       }
     ]
   },
   PSPP: {
     title: "PSPP - Peraturan Sanksi",
     fileName: "PSPP-Regulasi-Keselamatan-2024.pdf",
+    code: "INT-PSPP-001",
+    type: "Internal",
+    totalPages: 20,
     pages: [
       {
         page: 1,
         title: "Daftar Isi",
-        content: `DAFTAR ISI
+        content: `PERATURAN SANKSI PELANGGARAN PROSEDUR (PSPP)
+PEDOMAN INTERNAL PERUSAHAAN
 
-1. Pendahuluan ................................................ 3
-2. Definisi Pelanggaran .................................... 5
-3. Kategori Sanksi ........................................... 8
-4. Prosedur Penanganan .................................. 14
-5. Lampiran ..................................................... 20`
+Dokumen No: INT-PSPP-001
+Revisi: 04
+Tanggal Efektif: 1 Januari 2024
+Halaman: 1 dari 20
+
+═══════════════════════════════════════════════════════════════
+
+DAFTAR ISI
+
+1. Pendahuluan ............................................................. 3
+   1.1 Dasar Hukum
+   1.2 Tujuan Peraturan
+   1.3 Ruang Lingkup
+
+2. Definisi Pelanggaran ................................................. 5
+   2.1 Pelanggaran Ringan
+   2.2 Pelanggaran Sedang
+   2.3 Pelanggaran Berat
+
+3. Kategori Sanksi ......................................................... 8
+   3.1 Sanksi Administratif
+   3.2 Sanksi Operasional
+   3.3 Sanksi Pemutusan
+
+4. Prosedur Penanganan .................................................. 14
+   4.1 Investigasi
+   4.2 Hearing
+   4.3 Keputusan
+
+5. Banding dan Review ................................................... 18
+
+6. Lampiran ................................................................... 20`
+      },
+      {
+        page: 2,
+        title: "Kategori Pelanggaran",
+        content: `BAB 2. DEFINISI PELANGGARAN
+
+═══════════════════════════════════════════════════════════════
+
+2.1 PELANGGARAN RINGAN
+
+Pelanggaran yang tidak secara langsung membahayakan keselamatan 
+namun menyimpang dari prosedur standar.
+
+  CONTOH:
+  • Tidak melengkapi dokumentasi/checklist
+  • Keterlambatan pelaporan non-kritikal
+  • Ketidaksesuaian minor terhadap SOP
+
+  SANKSI: Teguran lisan, coaching, dokumentasi
+
+2.2 PELANGGARAN SEDANG
+
+Pelanggaran yang berpotensi menimbulkan risiko keselamatan 
+atau kerugian operasional.
+
+  CONTOH:
+  • Tidak menggunakan APD di area wajib APD
+  • Mengabaikan prosedur pre-start check
+  • Bekerja tanpa izin kerja yang valid
+
+  SANKSI: Surat Peringatan I/II, training ulang, suspension
+
+2.3 PELANGGARAN BERAT
+
+┌─────────────────────────────────────────────────────────────┐
+│ ⚠️  PELANGGARAN YANG MENGAKIBATKAN ATAU BERPOTENSI          │
+│     MENGAKIBATKAN FATALITY, CEDERA SERIUS, ATAU             │
+│     KERUSAKAN BESAR                                         │
+└─────────────────────────────────────────────────────────────┘
+
+  CONTOH:
+  • Pelanggaran Golden Rules
+  • Bekerja di bawah pengaruh alkohol/narkoba
+  • Pemalsuan dokumen keselamatan
+  • Mengoperasikan unit tanpa sertifikasi
+
+  SANKSI: PEMUTUSAN HUBUNGAN KERJA`
+      },
+      {
+        page: 3,
+        title: "Prosedur Penanganan",
+        content: `BAB 4. PROSEDUR PENANGANAN PELANGGARAN
+
+═══════════════════════════════════════════════════════════════
+
+4.1 ALUR INVESTIGASI
+
+  ┌─────────────────────────────────────────────────────────┐
+  │ 1. LAPORAN MASUK                                        │
+  │    ↓                                                    │
+  │ 2. VERIFIKASI AWAL (24 jam)                            │
+  │    ↓                                                    │
+  │ 3. PENGUMPULAN BUKTI                                   │
+  │    • Foto/Video                                        │
+  │    • Witness statement                                 │
+  │    • Dokumen pendukung                                 │
+  │    ↓                                                    │
+  │ 4. INTERVIEW TERLAPOR                                  │
+  │    ↓                                                    │
+  │ 5. ANALISIS & KESIMPULAN                              │
+  │    ↓                                                    │
+  │ 6. REKOMENDASI SANKSI                                  │
+  └─────────────────────────────────────────────────────────┘
+
+4.2 HEARING (SIDANG)
+
+Untuk pelanggaran SEDANG dan BERAT, wajib dilakukan hearing:
+
+  • Komposisi Panel: HR, Safety, Supervisor, Perwakilan Pekerja
+  • Terlapor berhak didampingi
+  • Durasi maksimal: 5 hari kerja dari laporan
+  • Keputusan tertulis dalam 3 hari kerja
+
+4.3 HAK BANDING
+
+Terlapor berhak mengajukan banding dalam waktu 7 hari kerja 
+setelah keputusan diterbitkan.`
+      },
+      {
+        page: 4,
+        title: "Matriks Sanksi",
+        content: `BAB 3. MATRIKS KATEGORI SANKSI
+
+═══════════════════════════════════════════════════════════════
+
+TABEL MATRIKS SANKSI
+
+┌─────────────────────┬──────────────┬──────────────┬──────────────┐
+│ JENIS PELANGGARAN   │ PELANGGARAN  │ PELANGGARAN  │ PELANGGARAN  │
+│                     │ PERTAMA      │ KEDUA        │ KETIGA       │
+├─────────────────────┼──────────────┼──────────────┼──────────────┤
+│ RINGAN              │ Teguran      │ SP-1         │ SP-2         │
+│                     │ Lisan        │              │              │
+├─────────────────────┼──────────────┼──────────────┼──────────────┤
+│ SEDANG              │ SP-1         │ SP-2         │ SP-3/PHK     │
+│                     │ + Training   │ + Suspension │              │
+├─────────────────────┼──────────────┼──────────────┼──────────────┤
+│ BERAT               │ SP-3/PHK     │ PHK          │ PHK          │
+│                     │              │              │              │
+├─────────────────────┼──────────────┼──────────────┼──────────────┤
+│ GOLDEN RULES        │ PHK          │ -            │ -            │
+│                     │ LANGSUNG     │              │              │
+└─────────────────────┴──────────────┴──────────────┴──────────────┘
+
+KETERANGAN:
+  SP-1 : Surat Peringatan Pertama (berlaku 6 bulan)
+  SP-2 : Surat Peringatan Kedua (berlaku 6 bulan)
+  SP-3 : Surat Peringatan Ketiga (berlaku 6 bulan)
+  PHK  : Pemutusan Hubungan Kerja
+
+CATATAN PENTING:
+  ⚠️ Pelanggaran Golden Rules = PHK langsung tanpa SP
+  ⚠️ Masa berlaku SP tidak menghapus catatan historis`
       }
     ]
   }
@@ -126,6 +539,10 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
   const [contentView, setContentView] = useState<'detail' | 'dokumen'>('detail');
   const [drawerMode, setDrawerMode] = useState<'none' | 'dokumen' | 'ontologi'>('none');
   const [jsonExpanded, setJsonExpanded] = useState(false);
+  const [docCurrentPage, setDocCurrentPage] = useState(1);
+  const [docZoom, setDocZoom] = useState(100);
+  const [docSearchQuery, setDocSearchQuery] = useState('');
+  const [highlightRelevant, setHighlightRelevant] = useState(true);
 
   // Update active tab when initialTab changes
   useEffect(() => {
@@ -321,36 +738,263 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
 
   const analysisData = getAnalysisData(currentSource, !isCurrentActive);
 
-  // Calculate panel widths based on drawer state
-  const mainPanelWidth = drawerMode !== 'none' ? 'w-[480px]' : 'w-[480px]';
-  const extensionPanelWidth = 'w-[420px]';
+  // Reset doc page when tab changes
+  useEffect(() => {
+    setDocCurrentPage(1);
+  }, [activeTab]);
+
+  // Get current document page content
+  const currentDocPage = docConfig.pages.find(p => p.page === docCurrentPage) || docConfig.pages[0];
   
   return (
     <TooltipProvider>
       {/* Container for both panels */}
       <div className="fixed top-0 right-0 bottom-0 flex z-50 animate-in slide-in-from-right duration-300">
-        {/* Extension Panel for Dokumen / Ontologi - appears on the LEFT of main panel */}
-        {drawerMode !== 'none' && (
-          <div className={`${extensionPanelWidth} bg-card border-l border-border shadow-xl flex flex-col animate-in slide-in-from-right duration-200`}>
-            {/* Extension Panel Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30">
-              <div className="flex items-center gap-2.5">
+        {/* Wide Document Preview Panel - appears on the LEFT of main panel */}
+        {drawerMode === 'dokumen' && (
+          <div className="w-[55vw] max-w-[900px] min-w-[600px] bg-card border-l border-border shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-3 border-b border-border bg-muted/30">
+              <div className="flex items-center gap-3">
                 <div className={cn(
-                  "w-8 h-8 rounded-lg flex items-center justify-center",
-                  drawerMode === 'dokumen' ? "bg-primary/10" : "bg-amber-500/10"
+                  "w-10 h-10 rounded-xl flex items-center justify-center",
+                  config.iconBg
                 )}>
-                  {drawerMode === 'dokumen' 
-                    ? <BookOpen className="w-4 h-4 text-primary" />
-                    : <Braces className="w-4 h-4 text-amber-600" />
-                  }
+                  <FileText className={cn("w-5 h-5", config.text)} />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-foreground">
-                    {drawerMode === 'dokumen' ? 'Dokumen Rujukan' : 'Raw Ontology JSON'}
-                  </p>
-                  <p className="text-[10px] text-muted-foreground">
-                    {drawerMode === 'dokumen' ? 'Referensi SOP & Regulasi' : 'Struktur data klasifikasi AI'}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-base font-semibold text-foreground">Preview Dokumen</p>
+                    <span className={cn(
+                      "text-[10px] px-2 py-0.5 rounded-full font-bold",
+                      config.bg, config.text
+                    )}>
+                      {activeTab}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="text-xs text-muted-foreground">{docConfig.fileName}</span>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-medium">{docConfig.code}</span>
+                    <span className={cn(
+                      "text-[10px] px-1.5 py-0.5 rounded font-medium",
+                      docConfig.type === 'SOP' ? "bg-primary/10 text-primary" :
+                      docConfig.type === 'Regulasi' ? "bg-emerald-500/10 text-emerald-600" :
+                      "bg-amber-500/10 text-amber-600"
+                    )}>
+                      {docConfig.type}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-8 w-8 p-0">
+                      <Maximize2 className="w-4 h-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Buka Penuh</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-8 w-8 p-0">
+                      <Download className="w-4 h-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Unduh Dokumen</TooltipContent>
+                </Tooltip>
+                <button
+                  onClick={() => setDrawerMode('none')}
+                  className="w-8 h-8 rounded-lg hover:bg-muted flex items-center justify-center transition-colors"
+                >
+                  <X className="w-4 h-4 text-muted-foreground" />
+                </button>
+              </div>
+            </div>
+
+            {/* PDF-like Toolbar */}
+            <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-muted/20">
+              {/* Page Navigation */}
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 w-8 p-0"
+                  disabled={docCurrentPage <= 1}
+                  onClick={() => setDocCurrentPage(p => Math.max(1, p - 1))}
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-card border border-border rounded-lg">
+                  <input
+                    type="number"
+                    value={docCurrentPage}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value);
+                      if (val >= 1 && val <= docConfig.totalPages) {
+                        setDocCurrentPage(val);
+                      }
+                    }}
+                    className="w-8 text-center text-sm font-medium bg-transparent focus:outline-none"
+                    min={1}
+                    max={docConfig.totalPages}
+                  />
+                  <span className="text-sm text-muted-foreground">/</span>
+                  <span className="text-sm font-medium text-muted-foreground">{docConfig.totalPages}</span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 w-8 p-0"
+                  disabled={docCurrentPage >= docConfig.totalPages}
+                  onClick={() => setDocCurrentPage(p => Math.min(docConfig.totalPages, p + 1))}
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
+
+              {/* Zoom Controls */}
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 w-8 p-0"
+                  onClick={() => setDocZoom(z => Math.max(50, z - 10))}
+                >
+                  <ZoomOut className="w-4 h-4" />
+                </Button>
+                <select
+                  value={docZoom}
+                  onChange={(e) => setDocZoom(parseInt(e.target.value))}
+                  className="h-8 px-2 text-xs font-medium bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30"
+                >
+                  <option value={50}>50%</option>
+                  <option value={75}>75%</option>
+                  <option value={100}>Auto Fit</option>
+                  <option value={125}>125%</option>
+                  <option value={150}>150%</option>
+                </select>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 w-8 p-0"
+                  onClick={() => setDocZoom(z => Math.min(200, z + 10))}
+                >
+                  <ZoomIn className="w-4 h-4" />
+                </Button>
+              </div>
+
+              {/* Search & Highlight */}
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <input
+                    type="text"
+                    placeholder="Cari dalam dokumen..."
+                    value={docSearchQuery}
+                    onChange={(e) => setDocSearchQuery(e.target.value)}
+                    className="h-8 w-44 pl-8 pr-3 text-xs bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50"
+                  />
+                </div>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant={highlightRelevant ? "default" : "outline"}
+                      size="sm"
+                      className={cn("h-8 gap-1.5 text-xs", highlightRelevant && "bg-amber-500 hover:bg-amber-600")}
+                      onClick={() => setHighlightRelevant(!highlightRelevant)}
+                    >
+                      <Highlighter className="w-3.5 h-3.5" />
+                      Highlight
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Highlight Pasal Relevan</TooltipContent>
+                </Tooltip>
+              </div>
+            </div>
+
+            {/* Document Content Area - PDF-like */}
+            <ScrollArea className="flex-1 bg-muted/30">
+              <div className="flex justify-center py-6 px-4">
+                <div 
+                  className="bg-white shadow-xl rounded-sm border border-border overflow-hidden"
+                  style={{ 
+                    width: `${Math.min(800, 600 * (docZoom / 100))}px`,
+                    transform: `scale(${docZoom / 100})`,
+                    transformOrigin: 'top center'
+                  }}
+                >
+                  {/* Page Content */}
+                  <div className="p-10 min-h-[800px]">
+                    {/* Page Header */}
+                    <div className="flex items-center justify-between mb-6 pb-4 border-b border-border/50">
+                      <div className="flex items-center gap-2">
+                        <span className={cn(
+                          "text-xs px-2 py-1 rounded font-bold",
+                          config.bg, config.text
+                        )}>
+                          {activeTab}
+                        </span>
+                        <span className="text-xs text-muted-foreground">Halaman {docCurrentPage}</span>
+                      </div>
+                      <span className="text-xs text-muted-foreground font-mono">{docConfig.code}</span>
+                    </div>
+
+                    {/* Document Text Content */}
+                    <pre 
+                      className="font-mono text-sm leading-relaxed text-foreground whitespace-pre-wrap break-words"
+                      style={{ fontSize: `${12 * (docZoom / 100)}px` }}
+                    >
+                      {currentDocPage?.content || 'Halaman tidak ditemukan'}
+                    </pre>
+                  </div>
+
+                  {/* Page Footer */}
+                  <div className="px-10 py-4 border-t border-border/50 bg-muted/20">
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span>{docConfig.fileName}</span>
+                      <span>Halaman {docCurrentPage} dari {docConfig.totalPages}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </ScrollArea>
+
+            {/* Quick Page Navigation */}
+            <div className="px-4 py-3 border-t border-border bg-muted/20">
+              <div className="flex items-center gap-2 overflow-x-auto">
+                <span className="text-xs text-muted-foreground shrink-0">Halaman:</span>
+                {docConfig.pages.map((page) => (
+                  <button
+                    key={page.page}
+                    onClick={() => setDocCurrentPage(page.page)}
+                    className={cn(
+                      "shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all",
+                      docCurrentPage === page.page
+                        ? cn(config.activeBg, config.activeText)
+                        : "bg-card border border-border hover:border-primary/30 text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    {page.page}. {page.title}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Ontology JSON Panel */}
+        {drawerMode === 'ontologi' && (
+          <div className="w-[480px] bg-card border-l border-border shadow-xl flex flex-col animate-in slide-in-from-right duration-200">
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-amber-500/10">
+                  <Braces className="w-4 h-4 text-amber-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">Raw Ontology JSON</p>
+                  <p className="text-[10px] text-muted-foreground">Struktur data klasifikasi AI</p>
                 </div>
               </div>
               <button
@@ -361,198 +1005,129 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
               </button>
             </div>
             
-            {/* Extension Panel Content */}
+            {/* Content */}
             <ScrollArea className="flex-1">
-              <div className="p-4">
-                {drawerMode === 'dokumen' ? (
-                  /* Dokumen Rujukan Content */
-                  <div className="space-y-3">
-                    {/* Search */}
-                    <div className="relative">
-                      <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                      <input 
-                        type="text"
-                        placeholder="Cari dokumen..."
-                        className="w-full h-9 pl-9 pr-3 text-sm bg-muted/50 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50"
-                      />
-                    </div>
-                    
-                    {/* Document List */}
-                    {documentReferences.map((doc, idx) => (
-                      <div 
-                        key={idx}
-                        className="bg-card border border-border rounded-xl p-3 hover:shadow-md transition-shadow"
-                      >
-                        <div className="flex items-start gap-3">
-                          <div className={cn(
-                            "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
-                            doc.type === 'SOP' ? "bg-primary/10" :
-                            doc.type === 'Regulasi' ? "bg-emerald-500/10" :
-                            "bg-amber-500/10"
-                          )}>
-                            <FileText className={cn(
-                              "w-4 h-4",
-                              doc.type === 'SOP' ? "text-primary" :
-                              doc.type === 'Regulasi' ? "text-emerald-600" :
-                              "text-amber-600"
-                            )} />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className={cn(
-                                "text-[10px] px-1.5 py-0.5 rounded font-semibold",
-                                doc.type === 'SOP' ? "bg-primary/10 text-primary" :
-                                doc.type === 'Regulasi' ? "bg-emerald-500/10 text-emerald-600" :
-                                "bg-amber-500/10 text-amber-600"
-                              )}>
-                                {doc.type}
-                              </span>
-                              <span className="text-[10px] text-muted-foreground">{doc.reference}</span>
-                            </div>
-                            <p className="text-sm font-medium text-foreground truncate">{doc.title}</p>
-                            <div className="flex items-center gap-1.5 mt-1.5">
-                              {doc.sections.map((section, sIdx) => (
-                                <span 
-                                  key={sIdx}
-                                  className="text-[10px] px-1.5 py-0.5 bg-muted rounded text-muted-foreground"
-                                >
-                                  {section}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                          <button className="w-6 h-6 rounded hover:bg-muted flex items-center justify-center shrink-0">
-                            <Link2 className="w-3.5 h-3.5 text-muted-foreground" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  /* Ontologi JSON Content */
-                  <div className="space-y-3">
-                    {/* Action Buttons */}
-                    <div className="flex gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="flex-1 h-8 text-xs gap-1.5"
-                        onClick={handleCopyJson}
-                      >
-                        <Copy className="w-3.5 h-3.5" />
-                        Copy JSON
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="flex-1 h-8 text-xs gap-1.5"
-                        onClick={handleDownloadJson}
-                      >
-                        <Download className="w-3.5 h-3.5" />
-                        Download
-                      </Button>
-                    </div>
-                    
-                    {/* Expand/Collapse Toggle */}
-                    <button 
-                      onClick={() => setJsonExpanded(!jsonExpanded)}
-                      className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                    >
+              <div className="p-4 space-y-3">
+                {/* Action Buttons */}
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex-1 h-8 text-xs gap-1.5"
+                    onClick={handleCopyJson}
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                    Copy JSON
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex-1 h-8 text-xs gap-1.5"
+                    onClick={handleDownloadJson}
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    Download
+                  </Button>
+                </div>
+                
+                {/* Expand/Collapse Toggle */}
+                <button 
+                  onClick={() => setJsonExpanded(!jsonExpanded)}
+                  className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {jsonExpanded ? (
+                    <>
+                      <ChevronUpSquare className="w-3.5 h-3.5" />
+                      Collapse All
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDownSquare className="w-3.5 h-3.5" />
+                      Expand All
+                    </>
+                  )}
+                </button>
+                
+                {/* JSON Code Viewer */}
+                <div className="bg-slate-950 rounded-xl p-4 overflow-x-auto">
+                  <pre className="text-xs font-mono leading-relaxed">
+                    <code className="text-slate-300">
                       {jsonExpanded ? (
-                        <>
-                          <ChevronUpSquare className="w-3.5 h-3.5" />
-                          Collapse All
-                        </>
+                        JSON.stringify(ontologyData, null, 2).split('\n').map((line, i) => (
+                          <div key={i} className="hover:bg-slate-800/50 px-1 -mx-1 rounded">
+                            <span className="text-slate-600 select-none mr-4">{String(i + 1).padStart(3, ' ')}</span>
+                            {line.includes(':') ? (
+                              <>
+                                <span className="text-cyan-400">{line.split(':')[0]}</span>
+                                <span className="text-slate-400">:</span>
+                                <span className={cn(
+                                  line.includes('true') ? "text-emerald-400" :
+                                  line.includes('false') ? "text-rose-400" :
+                                  line.includes('"') ? "text-amber-300" :
+                                  "text-purple-400"
+                                )}>{line.split(':').slice(1).join(':')}</span>
+                              </>
+                            ) : (
+                              <span className="text-slate-400">{line}</span>
+                            )}
+                          </div>
+                        ))
                       ) : (
                         <>
-                          <ChevronDownSquare className="w-3.5 h-3.5" />
-                          Expand All
+                          <div className="hover:bg-slate-800/50 px-1 -mx-1 rounded">
+                            <span className="text-slate-600 select-none mr-4">  1</span>
+                            <span className="text-slate-400">{'{'}</span>
+                          </div>
+                          <div className="hover:bg-slate-800/50 px-1 -mx-1 rounded">
+                            <span className="text-slate-600 select-none mr-4">  2</span>
+                            <span className="text-cyan-400">  "report_id"</span>
+                            <span className="text-slate-400">: </span>
+                            <span className="text-amber-300">"{ontologyData.report_id}"</span>
+                            <span className="text-slate-400">,</span>
+                          </div>
+                          <div className="hover:bg-slate-800/50 px-1 -mx-1 rounded">
+                            <span className="text-slate-600 select-none mr-4">  3</span>
+                            <span className="text-cyan-400">  "classification"</span>
+                            <span className="text-slate-400">: </span>
+                            <span className="text-slate-500">{'{ ... }'}</span>
+                            <span className="text-slate-400">,</span>
+                          </div>
+                          <div className="hover:bg-slate-800/50 px-1 -mx-1 rounded">
+                            <span className="text-slate-600 select-none mr-4">  4</span>
+                            <span className="text-cyan-400">  "extracted_entities"</span>
+                            <span className="text-slate-400">: </span>
+                            <span className="text-slate-500">{'{ ... }'}</span>
+                            <span className="text-slate-400">,</span>
+                          </div>
+                          <div className="hover:bg-slate-800/50 px-1 -mx-1 rounded">
+                            <span className="text-slate-600 select-none mr-4">  5</span>
+                            <span className="text-cyan-400">  "visual_analysis"</span>
+                            <span className="text-slate-400">: </span>
+                            <span className="text-slate-500">{'{ ... }'}</span>
+                            <span className="text-slate-400">,</span>
+                          </div>
+                          <div className="hover:bg-slate-800/50 px-1 -mx-1 rounded">
+                            <span className="text-slate-600 select-none mr-4">  6</span>
+                            <span className="text-cyan-400">  "timestamp"</span>
+                            <span className="text-slate-400">: </span>
+                            <span className="text-amber-300">"..."</span>
+                          </div>
+                          <div className="hover:bg-slate-800/50 px-1 -mx-1 rounded">
+                            <span className="text-slate-600 select-none mr-4">  7</span>
+                            <span className="text-slate-400">{'}'}</span>
+                          </div>
                         </>
                       )}
-                    </button>
-                    
-                    {/* JSON Code Viewer */}
-                    <div className="bg-slate-950 rounded-xl p-4 overflow-x-auto">
-                      <pre className="text-xs font-mono leading-relaxed">
-                        <code className="text-slate-300">
-                          {jsonExpanded ? (
-                            JSON.stringify(ontologyData, null, 2).split('\n').map((line, i) => (
-                              <div key={i} className="hover:bg-slate-800/50 px-1 -mx-1 rounded">
-                                <span className="text-slate-600 select-none mr-4">{String(i + 1).padStart(3, ' ')}</span>
-                                {line.includes(':') ? (
-                                  <>
-                                    <span className="text-cyan-400">{line.split(':')[0]}</span>
-                                    <span className="text-slate-400">:</span>
-                                    <span className={cn(
-                                      line.includes('true') ? "text-emerald-400" :
-                                      line.includes('false') ? "text-rose-400" :
-                                      line.includes('"') ? "text-amber-300" :
-                                      "text-purple-400"
-                                    )}>{line.split(':').slice(1).join(':')}</span>
-                                  </>
-                                ) : (
-                                  <span className="text-slate-400">{line}</span>
-                                )}
-                              </div>
-                            ))
-                          ) : (
-                            <>
-                              <div className="hover:bg-slate-800/50 px-1 -mx-1 rounded">
-                                <span className="text-slate-600 select-none mr-4">  1</span>
-                                <span className="text-slate-400">{'{'}</span>
-                              </div>
-                              <div className="hover:bg-slate-800/50 px-1 -mx-1 rounded">
-                                <span className="text-slate-600 select-none mr-4">  2</span>
-                                <span className="text-cyan-400">  "report_id"</span>
-                                <span className="text-slate-400">: </span>
-                                <span className="text-amber-300">"{ontologyData.report_id}"</span>
-                                <span className="text-slate-400">,</span>
-                              </div>
-                              <div className="hover:bg-slate-800/50 px-1 -mx-1 rounded">
-                                <span className="text-slate-600 select-none mr-4">  3</span>
-                                <span className="text-cyan-400">  "classification"</span>
-                                <span className="text-slate-400">: </span>
-                                <span className="text-slate-500">{'{ ... }'}</span>
-                                <span className="text-slate-400">,</span>
-                              </div>
-                              <div className="hover:bg-slate-800/50 px-1 -mx-1 rounded">
-                                <span className="text-slate-600 select-none mr-4">  4</span>
-                                <span className="text-cyan-400">  "extracted_entities"</span>
-                                <span className="text-slate-400">: </span>
-                                <span className="text-slate-500">{'{ ... }'}</span>
-                                <span className="text-slate-400">,</span>
-                              </div>
-                              <div className="hover:bg-slate-800/50 px-1 -mx-1 rounded">
-                                <span className="text-slate-600 select-none mr-4">  5</span>
-                                <span className="text-cyan-400">  "visual_analysis"</span>
-                                <span className="text-slate-400">: </span>
-                                <span className="text-slate-500">{'{ ... }'}</span>
-                                <span className="text-slate-400">,</span>
-                              </div>
-                              <div className="hover:bg-slate-800/50 px-1 -mx-1 rounded">
-                                <span className="text-slate-600 select-none mr-4">  6</span>
-                                <span className="text-cyan-400">  "timestamp"</span>
-                                <span className="text-slate-400">: </span>
-                                <span className="text-amber-300">"..."</span>
-                              </div>
-                              <div className="hover:bg-slate-800/50 px-1 -mx-1 rounded">
-                                <span className="text-slate-600 select-none mr-4">  7</span>
-                                <span className="text-slate-400">{'}'}</span>
-                              </div>
-                            </>
-                          )}
-                        </code>
-                      </pre>
-                    </div>
-                  </div>
-                )}
+                    </code>
+                  </pre>
+                </div>
               </div>
             </ScrollArea>
           </div>
         )}
         
         {/* Main Analysis Panel */}
-        <div className={`${mainPanelWidth} max-w-[40vw] min-w-[400px] bg-card border-l border-border shadow-2xl flex flex-col`}>
+        <div className="w-[480px] max-w-[40vw] min-w-[400px] bg-card border-l border-border shadow-2xl flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-card">
           <div className="flex items-center gap-3">
