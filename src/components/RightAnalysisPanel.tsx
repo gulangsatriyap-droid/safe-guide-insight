@@ -1127,7 +1127,7 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
         )}
         
         {/* Main Analysis Panel */}
-        <div className="w-[480px] max-w-[40vw] min-w-[400px] bg-card border-l border-border shadow-2xl flex flex-col">
+        <div className="w-[520px] min-w-[420px] bg-card border-l border-border shadow-lg flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-card">
           <div className="flex items-center gap-3">
@@ -1294,20 +1294,20 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
                   </div>
                   
                   {/* Card Body */}
-                  <div className="p-4 space-y-3 bg-card">
+                  <div className="p-5 space-y-4 bg-card">
                     {/* Label */}
-                    <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 rounded-md bg-muted/50 flex items-center justify-center shrink-0 mt-0.5">
-                        <span className="text-xs font-bold text-muted-foreground">L</span>
+                    <div className="flex items-start gap-4">
+                      <div className="w-8 h-8 rounded-lg bg-muted/50 flex items-center justify-center shrink-0 mt-0.5">
+                        <span className="text-sm font-bold text-muted-foreground">L</span>
                       </div>
                       <div className="flex-1">
-                        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Label</span>
-                        <div className="flex items-center gap-2 mt-0.5">
-                          <p className="text-sm font-bold text-foreground">
+                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Label</span>
+                        <div className="flex items-center gap-2 mt-1">
+                          <p className="text-base font-bold text-foreground">
                             {activeTab}
                           </p>
                           {!isCurrentActive && (
-                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-medium">Not Matched</span>
+                            <span className="text-[10px] px-2 py-0.5 rounded bg-muted text-muted-foreground font-medium">Not Matched</span>
                           )}
                         </div>
                       </div>
@@ -1316,13 +1316,13 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
                     <div className="h-px bg-border" />
 
                     {/* Tipe Deviasi */}
-                    <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 rounded-md bg-muted/50 flex items-center justify-center shrink-0 mt-0.5">
-                        <Eye className="w-3.5 h-3.5 text-muted-foreground" />
+                    <div className="flex items-start gap-4">
+                      <div className="w-8 h-8 rounded-lg bg-muted/50 flex items-center justify-center shrink-0 mt-0.5">
+                        <Eye className="w-4 h-4 text-muted-foreground" />
                       </div>
                       <div className="flex-1">
-                        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Tipe Deviasi</span>
-                        <p className="text-sm font-semibold text-foreground mt-0.5">
+                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Tipe Deviasi</span>
+                        <p className="text-base font-semibold text-foreground mt-1">
                           {analysisData.deviationType}
                         </p>
                       </div>
@@ -1331,13 +1331,13 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
                     <div className="h-px bg-border" />
 
                     {/* Note Deviasi */}
-                    <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 rounded-md bg-muted/50 flex items-center justify-center shrink-0 mt-0.5">
-                        <Info className="w-3.5 h-3.5 text-muted-foreground" />
+                    <div className="flex items-start gap-4">
+                      <div className="w-8 h-8 rounded-lg bg-muted/50 flex items-center justify-center shrink-0 mt-0.5">
+                        <Info className="w-4 h-4 text-muted-foreground" />
                       </div>
                       <div className="flex-1">
-                        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Note Deviasi</span>
-                        <p className="text-sm text-foreground mt-0.5">
+                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Note Deviasi</span>
+                        <p className="text-sm text-foreground mt-1 leading-relaxed">
                           {analysisData.deviationNotes}
                         </p>
                       </div>
@@ -1346,13 +1346,13 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
                     <div className="h-px bg-border" />
 
                     {/* Alasan AI */}
-                    <div className="flex items-start gap-3">
-                      <div className={`w-6 h-6 rounded-md ${isCurrentActive ? 'bg-primary/10' : 'bg-muted/50'} flex items-center justify-center shrink-0 mt-0.5`}>
-                        <Brain className={`w-3.5 h-3.5 ${isCurrentActive ? 'text-primary' : 'text-muted-foreground'}`} />
+                    <div className="flex items-start gap-4">
+                      <div className={`w-8 h-8 rounded-lg ${isCurrentActive ? 'bg-primary/10' : 'bg-muted/50'} flex items-center justify-center shrink-0 mt-0.5`}>
+                        <Brain className={`w-4 h-4 ${isCurrentActive ? 'text-primary' : 'text-muted-foreground'}`} />
                       </div>
                       <div className="flex-1">
-                        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Alasan AI</span>
-                        <div className={`mt-2 p-3 rounded-lg border ${isCurrentActive ? 'bg-primary/5 border-primary/10' : 'bg-muted/30 border-border'}`}>
+                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Alasan AI</span>
+                        <div className={`mt-2 p-4 rounded-xl border ${isCurrentActive ? 'bg-primary/5 border-primary/10' : 'bg-muted/30 border-border'}`}>
                           <p className="text-sm text-foreground leading-relaxed">
                             {analysisData.reason}
                           </p>
