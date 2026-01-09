@@ -551,6 +551,11 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
     }
   }, [initialTab]);
 
+  // Reset doc page when tab changes
+  useEffect(() => {
+    setDocCurrentPage(1);
+  }, [activeTab]);
+
   // Sample ontology JSON data
   const ontologyData = {
     report_id: "TBC-VEH-004",
@@ -737,11 +742,6 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
   };
 
   const analysisData = getAnalysisData(currentSource, !isCurrentActive);
-
-  // Reset doc page when tab changes
-  useEffect(() => {
-    setDocCurrentPage(1);
-  }, [activeTab]);
 
   // Get current document page content
   const currentDocPage = docConfig.pages.find(p => p.page === docCurrentPage) || docConfig.pages[0];
