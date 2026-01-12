@@ -346,7 +346,7 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
 
               {/* Right Column - AI Output, Status, Pengendalian */}
               <div className="lg:col-span-4 flex flex-col gap-4">
-                {/* AI Labeled Section - Simplified */}
+                {/* AI Labeled Section */}
                 <div className="bg-card rounded-xl p-4 border border-border shadow-sm">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
@@ -362,84 +362,152 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
                     </button>
                   </div>
                   
-                  {/* Label Pills Row */}
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {(['TBC', 'GR', 'PSPP'] as const).map((label) => {
-                      const isActive = activeLabels.includes(label);
-                      const colorMap = {
-                        TBC: { active: 'bg-primary text-primary-foreground', inactive: 'border-muted-foreground/30 text-muted-foreground' },
-                        GR: { active: 'bg-emerald-500 text-white', inactive: 'border-muted-foreground/30 text-muted-foreground' },
-                        PSPP: { active: 'bg-amber-500 text-white', inactive: 'border-muted-foreground/30 text-muted-foreground' }
-                      };
-                      return (
-                        <button
-                          key={label}
-                          onClick={() => openAnalysisPanelWithTab(label)}
-                          className={cn(
-                            "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all",
-                            isActive 
-                              ? colorMap[label].active
-                              : `border ${colorMap[label].inactive} bg-muted/30 hover:bg-muted`
-                          )}
-                        >
-                          {!isActive && <X className="w-3 h-3 text-destructive/70" />}
-                          {label}
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  {/* Active Labels Detail Cards */}
                   <div className="space-y-2">
-                    {activeLabels.includes('TBC') && (() => {
+                    {/* TBC Card */}
+                    {(() => {
                       const tbcSource = aiSources.find(s => s.type === 'TBC');
+                      const isTbcActive = activeLabels.includes('TBC');
                       return (
                         <div 
-                          className="cursor-pointer rounded-lg p-3 bg-primary/5 border border-primary/20 hover:bg-primary/10 transition-all"
+                          className={cn(
+                            "cursor-pointer rounded-xl p-3 transition-all",
+                            isTbcActive 
+                              ? "bg-primary/5 border border-primary/20 hover:bg-primary/10 hover:border-primary/40"
+                              : "bg-muted/20 border-2 border-dashed border-muted-foreground/20 hover:bg-muted/30"
+                          )}
                           onClick={() => openAnalysisPanelWithTab('TBC')}
                         >
-                          <p className="text-sm font-semibold text-foreground mb-0.5">
-                            {tbcSource?.category || 'Deviasi pengoperasian kendaraan/unit'}
+                          <div className="flex items-center gap-2 mb-2">
+                            {isTbcActive ? (
+                              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-primary text-primary-foreground">
+                                TBC
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border border-muted-foreground/30 bg-muted/50 text-muted-foreground">
+                                <X className="w-3 h-3 text-muted-foreground" />
+                                TBC
+                              </span>
+                            )}
+                            <div className="flex items-center gap-1 px-1.5 py-0.5 rounded border bg-muted/50 border-muted-foreground/20">
+                              <Sparkles className="w-2.5 h-2.5 text-muted-foreground" />
+                              <span className="text-[10px] font-medium text-muted-foreground">AI</span>
+                            </div>
+                          </div>
+                          <p className={cn(
+                            "text-sm font-semibold mb-0.5",
+                            isTbcActive ? "text-foreground" : "text-muted-foreground"
+                          )}>
+                            {isTbcActive ? (tbcSource?.category || 'Deviasi pengoperasian kendaraan/unit') : 'Hazard Non TBC'}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            <span className="font-medium text-primary">Tipe:</span>{' '}
-                            {tbcSource?.deviationType || 'Pekerjaan tidak sesuai DOP / tidak ada DOP'}
+                            {isTbcActive ? (
+                              <>
+                                <span className="font-medium text-primary">Tipe:</span>{' '}
+                                {tbcSource?.deviationType || 'Pekerjaan tidak sesuai DOP / tidak ada DOP'}
+                              </>
+                            ) : (
+                              'Tidak ada rule TBC yang cocok pada laporan ini'
+                            )}
                           </p>
                         </div>
                       );
                     })()}
 
-                    {activeLabels.includes('GR') && (() => {
+                    {/* GR Card */}
+                    {(() => {
                       const grSource = aiSources.find(s => s.type === 'GR');
+                      const isGrActive = activeLabels.includes('GR');
                       return (
                         <div 
-                          className="cursor-pointer rounded-lg p-3 bg-emerald-500/5 border border-emerald-500/20 hover:bg-emerald-500/10 transition-all"
+                          className={cn(
+                            "cursor-pointer rounded-xl p-3 transition-all",
+                            isGrActive 
+                              ? "bg-emerald-500/5 border border-emerald-500/20 hover:bg-emerald-500/10 hover:border-emerald-500/40"
+                              : "bg-muted/20 border-2 border-dashed border-muted-foreground/20 hover:bg-muted/30"
+                          )}
                           onClick={() => openAnalysisPanelWithTab('GR')}
                         >
-                          <p className="text-sm font-semibold text-foreground mb-0.5">
-                            {grSource?.category || 'Pengoperasian Kendaraan & Unit'}
+                          <div className="flex items-center gap-2 mb-2">
+                            {isGrActive ? (
+                              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500 text-white">
+                                GR
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border border-muted-foreground/30 bg-muted/50 text-muted-foreground">
+                                <X className="w-3 h-3 text-muted-foreground" />
+                                GR
+                              </span>
+                            )}
+                            <div className="flex items-center gap-1 px-1.5 py-0.5 rounded border bg-muted/50 border-muted-foreground/20">
+                              <Sparkles className="w-2.5 h-2.5 text-muted-foreground" />
+                              <span className="text-[10px] font-medium text-muted-foreground">AI</span>
+                            </div>
+                          </div>
+                          <p className={cn(
+                            "text-sm font-semibold mb-0.5",
+                            isGrActive ? "text-foreground" : "text-muted-foreground"
+                          )}>
+                            {isGrActive ? (grSource?.category || 'Pengoperasian Kendaraan & Unit') : 'Hazard Non Golden Rules'}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            <span className="font-medium text-emerald-600">Tipe:</span>{' '}
-                            {grSource?.deviationType || 'Bekerja di ketinggian > 1.8 m tanpa full body harness'}
+                            {isGrActive ? (
+                              <>
+                                <span className="font-medium text-emerald-600">Tipe:</span>{' '}
+                                {grSource?.deviationType || 'Bekerja di ketinggian > 1.8 m tanpa full body harness'}
+                              </>
+                            ) : (
+                              'Tidak ada rule Golden Rules yang cocok pada laporan ini'
+                            )}
                           </p>
                         </div>
                       );
                     })()}
 
-                    {activeLabels.includes('PSPP') && (() => {
+                    {/* PSPP Card */}
+                    {(() => {
                       const psppSource = aiSources.find(s => s.type === 'PSPP');
+                      const isPsppActive = activeLabels.includes('PSPP');
                       return (
                         <div 
-                          className="cursor-pointer rounded-lg p-3 bg-amber-500/5 border border-amber-500/20 hover:bg-amber-500/10 transition-all"
+                          className={cn(
+                            "cursor-pointer rounded-xl p-3 transition-all",
+                            isPsppActive 
+                              ? "bg-amber-500/5 border border-amber-500/20 hover:bg-amber-500/10 hover:border-amber-500/40"
+                              : "bg-muted/20 border-2 border-dashed border-muted-foreground/20 hover:bg-muted/30"
+                          )}
                           onClick={() => openAnalysisPanelWithTab('PSPP')}
                         >
-                          <p className="text-sm font-semibold text-foreground mb-0.5">
-                            {psppSource?.category || 'Pelanggaran Prosedur Keselamatan'}
+                          <div className="flex items-center gap-2 mb-2">
+                            {isPsppActive ? (
+                              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500 text-white">
+                                PSPP
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border border-muted-foreground/30 bg-muted/50 text-muted-foreground">
+                                <X className="w-3 h-3 text-muted-foreground" />
+                                PSPP
+                              </span>
+                            )}
+                            <div className="flex items-center gap-1 px-1.5 py-0.5 rounded border bg-muted/50 border-muted-foreground/20">
+                              <Sparkles className="w-2.5 h-2.5 text-muted-foreground" />
+                              <span className="text-[10px] font-medium text-muted-foreground">AI</span>
+                            </div>
+                          </div>
+                          <p className={cn(
+                            "text-sm font-semibold mb-0.5",
+                            isPsppActive ? "text-foreground" : "text-muted-foreground"
+                          )}>
+                            {isPsppActive ? (psppSource?.category || 'Pelanggaran Prosedur Keselamatan') : 'Hazard Non PSPP'}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            <span className="font-medium text-amber-600">Tipe:</span>{' '}
-                            {psppSource?.deviationType || 'Hand rail tidak ada pada dudukan tandon profil'}
+                            {isPsppActive ? (
+                              <>
+                                <span className="font-medium text-amber-600">Tipe:</span>{' '}
+                                {psppSource?.deviationType || 'Hand rail tidak ada pada dudukan tandon profil'}
+                              </>
+                            ) : (
+                              'Tidak ada rule PSPP yang cocok pada laporan ini'
+                            )}
                           </p>
                         </div>
                       );
