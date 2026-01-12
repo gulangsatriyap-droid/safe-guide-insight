@@ -79,6 +79,7 @@ export interface HazardReport {
   evaluatorName?: string;
   slaStatus?: SLAStatus;
   slaDueDate?: string;
+  tanggalEvaluasi?: string;
   assignedTo?: string;
 }
 
