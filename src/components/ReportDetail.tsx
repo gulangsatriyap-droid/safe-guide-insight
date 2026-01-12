@@ -172,11 +172,29 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
                 <h1 className="text-xl font-bold text-foreground">ID: {report.id}</h1>
                 {evalStatus && (
                   <div className={cn(
-                    "flex items-center gap-2 px-3 py-1.5 rounded-lg",
-                    evalStatus.bg
+                    "flex items-center gap-3 px-3 py-1.5 rounded-lg",
+                    report.evaluationStatus === "SELESAI" 
+                      ? "bg-success/10 border border-success/20" 
+                      : "bg-warning/10 border border-warning/20"
                   )}>
-                    <evalStatus.icon className={cn("w-4 h-4", evalStatus.color)} />
-                    <span className={cn("text-sm font-medium", evalStatus.color)}>{evalStatus.label}</span>
+                    <div className="flex items-center gap-2">
+                      <evalStatus.icon className={cn(
+                        "w-4 h-4", 
+                        report.evaluationStatus === "SELESAI" ? "text-success" : "text-warning"
+                      )} />
+                      <span className={cn(
+                        "text-sm font-medium", 
+                        report.evaluationStatus === "SELESAI" ? "text-success" : "text-warning"
+                      )}>
+                        {evalStatus.label}
+                      </span>
+                    </div>
+                    <span className="text-xs text-muted-foreground">
+                      {report.evaluationStatus === "SELESAI" 
+                        ? `Dievaluasi: ${report.tanggalEvaluasi || "10 Des 2025"}`
+                        : `SLA Due: ${report.slaDueDate || "15 Des 2025"}`
+                      }
+                    </span>
                   </div>
                 )}
               </div>
