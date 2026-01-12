@@ -1,4 +1,4 @@
-import { ArrowLeft, ChevronLeft, ChevronRight, Sparkles, Clock, CheckCircle2, AlertCircle, RotateCcw, MapPin, ExternalLink, X, Lock, Ban, Info } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Sparkles, Clock, CheckCircle2, AlertCircle, RotateCcw, MapPin, ExternalLink, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { HazardReport, similarReports, EvaluationStatus, AIKnowledgeSource } from "@/data/hazardReports";
 import VLMInspectionPanel from "./VLMInspectionPanel";
@@ -166,14 +166,19 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
               <span className="font-semibold text-foreground">Detail Laporan</span>
             </div>
 
-            {/* Report ID with AI Label */}
+            {/* Report ID with Status Laporan */}
             <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-4">
                 <h1 className="text-xl font-bold text-foreground">ID: {report.id}</h1>
-                <div className="flex items-center gap-1.5 px-2 py-1 bg-primary/10 rounded-md border border-primary/20">
-                  <Sparkles className="w-3.5 h-3.5 text-primary" />
-                  <span className="text-xs font-medium text-primary">AI Labeled</span>
-                </div>
+                {evalStatus && (
+                  <div className={cn(
+                    "flex items-center gap-2 px-3 py-1.5 rounded-lg",
+                    evalStatus.bg
+                  )}>
+                    <evalStatus.icon className={cn("w-4 h-4", evalStatus.color)} />
+                    <span className={cn("text-sm font-medium", evalStatus.color)}>{evalStatus.label}</span>
+                  </div>
+                )}
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-sm text-muted-foreground">{currentIndex} of {totalReports}</span>
@@ -323,7 +328,7 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
 
               {/* Right Column - AI Output, Status, Pengendalian */}
               <div className="lg:col-span-4 flex flex-col gap-4">
-                {/* AI Labeled Section */}
+                {/* AI Labeled Section - Simplified */}
                 <div className="bg-card rounded-xl p-4 border border-border shadow-sm">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
@@ -339,197 +344,84 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
                     </button>
                   </div>
                   
+                  {/* Label Pills Row */}
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {(['TBC', 'GR', 'PSPP'] as const).map((label) => {
+                      const isActive = activeLabels.includes(label);
+                      const colorMap = {
+                        TBC: { active: 'bg-primary text-primary-foreground', inactive: 'border-muted-foreground/30 text-muted-foreground' },
+                        GR: { active: 'bg-emerald-500 text-white', inactive: 'border-muted-foreground/30 text-muted-foreground' },
+                        PSPP: { active: 'bg-amber-500 text-white', inactive: 'border-muted-foreground/30 text-muted-foreground' }
+                      };
+                      return (
+                        <button
+                          key={label}
+                          onClick={() => openAnalysisPanelWithTab(label)}
+                          className={cn(
+                            "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all",
+                            isActive 
+                              ? colorMap[label].active
+                              : `border ${colorMap[label].inactive} bg-muted/30 hover:bg-muted`
+                          )}
+                        >
+                          {!isActive && <X className="w-3 h-3 text-destructive/70" />}
+                          {label}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Active Labels Detail Cards */}
                   <div className="space-y-2">
-                    {/* TBC Card */}
-                    {(() => {
+                    {activeLabels.includes('TBC') && (() => {
                       const tbcSource = aiSources.find(s => s.type === 'TBC');
-                      const isTbcActive = activeLabels.includes('TBC');
                       return (
                         <div 
-                          className={cn(
-                            "cursor-pointer rounded-xl p-3 transition-all",
-                            isTbcActive 
-                              ? "bg-primary/5 border border-primary/20 hover:bg-primary/10 hover:border-primary/40"
-                              : "bg-muted/20 border-2 border-dashed border-muted-foreground/20 hover:bg-destructive/5 hover:border-destructive/30 group"
-                          )}
+                          className="cursor-pointer rounded-lg p-3 bg-primary/5 border border-primary/20 hover:bg-primary/10 transition-all"
                           onClick={() => openAnalysisPanelWithTab('TBC')}
                         >
-                          <div className="flex items-center gap-2 mb-2">
-                            {isTbcActive ? (
-                              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-primary text-primary-foreground">
-                                TBC
-                              </span>
-                            ) : (
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border-2 border-dashed border-muted-foreground/40 bg-muted/50 text-muted-foreground group-hover:border-destructive/50 group-hover:bg-destructive/10 transition-all">
-                                    <X className="w-3.5 h-3.5 text-destructive" />
-                                    TBC
-                                  </span>
-                                </TooltipTrigger>
-                                <TooltipContent side="top" className="max-w-[200px]">
-                                  <p className="text-xs">Tidak ada rule TBC yang cocok pada laporan ini.</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            )}
-                            <div className={cn(
-                              "flex items-center gap-1 px-1.5 py-0.5 rounded border transition-all",
-                              isTbcActive 
-                                ? "bg-primary/10 border-primary/20"
-                                : "bg-muted/50 border-muted-foreground/20 group-hover:bg-muted"
-                            )}>
-                              <Sparkles className={cn("w-2.5 h-2.5", isTbcActive ? "text-primary" : "text-muted-foreground")} />
-                              <span className={cn("text-[10px] font-medium", isTbcActive ? "text-primary" : "text-muted-foreground")}>AI</span>
-                            </div>
-                          </div>
-                          <p className={cn(
-                            "text-sm font-semibold mb-0.5 transition-colors",
-                            isTbcActive ? "text-foreground" : "text-muted-foreground/70 group-hover:text-muted-foreground"
-                          )}>
-                            {isTbcActive ? (tbcSource?.category || 'Deviasi pengoperasian kendaraan/unit') : 'Tidak Terdeteksi'}
+                          <p className="text-sm font-semibold text-foreground mb-0.5">
+                            {tbcSource?.category || 'Deviasi pengoperasian kendaraan/unit'}
                           </p>
-                          <p className={cn(
-                            "text-xs transition-colors",
-                            isTbcActive ? "text-muted-foreground" : "text-muted-foreground/50 group-hover:text-muted-foreground/70"
-                          )}>
-                            {isTbcActive ? (
-                              <>
-                                <span className="font-medium text-primary">Tipe:</span>{' '}
-                                {tbcSource?.deviationType || 'Pekerjaan tidak sesuai DOP / tidak ada DOP'}
-                              </>
-                            ) : (
-                              'Tidak ada rule yang cocok pada laporan ini'
-                            )}
+                          <p className="text-xs text-muted-foreground">
+                            <span className="font-medium text-primary">Tipe:</span>{' '}
+                            {tbcSource?.deviationType || 'Pekerjaan tidak sesuai DOP / tidak ada DOP'}
                           </p>
                         </div>
                       );
                     })()}
 
-                    {/* GR Card */}
-                    {(() => {
+                    {activeLabels.includes('GR') && (() => {
                       const grSource = aiSources.find(s => s.type === 'GR');
-                      const isGrActive = activeLabels.includes('GR');
                       return (
                         <div 
-                          className={cn(
-                            "cursor-pointer rounded-xl p-3 transition-all",
-                            isGrActive 
-                              ? "bg-emerald-500/5 border border-emerald-500/20 hover:bg-emerald-500/10 hover:border-emerald-500/40"
-                              : "bg-muted/20 border-2 border-dashed border-muted-foreground/20 hover:bg-destructive/5 hover:border-destructive/30 group"
-                          )}
+                          className="cursor-pointer rounded-lg p-3 bg-emerald-500/5 border border-emerald-500/20 hover:bg-emerald-500/10 transition-all"
                           onClick={() => openAnalysisPanelWithTab('GR')}
                         >
-                          <div className="flex items-center gap-2 mb-2">
-                            {isGrActive ? (
-                              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500 text-white">
-                                GR
-                              </span>
-                            ) : (
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border-2 border-dashed border-muted-foreground/40 bg-muted/50 text-muted-foreground group-hover:border-destructive/50 group-hover:bg-destructive/10 transition-all">
-                                    <X className="w-3.5 h-3.5 text-destructive" />
-                                    GR
-                                  </span>
-                                </TooltipTrigger>
-                                <TooltipContent side="top" className="max-w-[200px]">
-                                  <p className="text-xs">Tidak ada rule GR yang cocok pada laporan ini.</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            )}
-                            <div className={cn(
-                              "flex items-center gap-1 px-1.5 py-0.5 rounded border transition-all",
-                              isGrActive 
-                                ? "bg-primary/10 border-primary/20"
-                                : "bg-muted/50 border-muted-foreground/20 group-hover:bg-muted"
-                            )}>
-                              <Sparkles className={cn("w-2.5 h-2.5", isGrActive ? "text-primary" : "text-muted-foreground")} />
-                              <span className={cn("text-[10px] font-medium", isGrActive ? "text-primary" : "text-muted-foreground")}>AI</span>
-                            </div>
-                          </div>
-                          <p className={cn(
-                            "text-sm font-semibold mb-0.5 transition-colors",
-                            isGrActive ? "text-foreground" : "text-muted-foreground/70 group-hover:text-muted-foreground"
-                          )}>
-                            {isGrActive ? (grSource?.category || 'Pengoperasian Kendaraan & Unit') : 'Tidak Terdeteksi'}
+                          <p className="text-sm font-semibold text-foreground mb-0.5">
+                            {grSource?.category || 'Pengoperasian Kendaraan & Unit'}
                           </p>
-                          <p className={cn(
-                            "text-xs transition-colors",
-                            isGrActive ? "text-muted-foreground" : "text-muted-foreground/50 group-hover:text-muted-foreground/70"
-                          )}>
-                            {isGrActive ? (
-                              <>
-                                <span className="font-medium text-emerald-600">Tipe:</span>{' '}
-                                {grSource?.deviationType || 'Bekerja di ketinggian > 1.8 m tanpa full body harness'}
-                              </>
-                            ) : (
-                              'Tidak ada rule yang cocok pada laporan ini'
-                            )}
+                          <p className="text-xs text-muted-foreground">
+                            <span className="font-medium text-emerald-600">Tipe:</span>{' '}
+                            {grSource?.deviationType || 'Bekerja di ketinggian > 1.8 m tanpa full body harness'}
                           </p>
                         </div>
                       );
                     })()}
 
-                    {/* PSPP Card */}
-                    {(() => {
+                    {activeLabels.includes('PSPP') && (() => {
                       const psppSource = aiSources.find(s => s.type === 'PSPP');
-                      const isPsppActive = activeLabels.includes('PSPP');
                       return (
                         <div 
-                          className={cn(
-                            "cursor-pointer rounded-xl p-3 transition-all",
-                            isPsppActive 
-                              ? "bg-amber-500/5 border border-amber-500/20 hover:bg-amber-500/10 hover:border-amber-500/40"
-                              : "bg-muted/20 border-2 border-dashed border-muted-foreground/20 hover:bg-destructive/5 hover:border-destructive/30 group"
-                          )}
+                          className="cursor-pointer rounded-lg p-3 bg-amber-500/5 border border-amber-500/20 hover:bg-amber-500/10 transition-all"
                           onClick={() => openAnalysisPanelWithTab('PSPP')}
                         >
-                          <div className="flex items-center gap-2 mb-2">
-                            {isPsppActive ? (
-                              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500 text-white">
-                                PSPP
-                              </span>
-                            ) : (
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border-2 border-dashed border-muted-foreground/40 bg-muted/50 text-muted-foreground group-hover:border-destructive/50 group-hover:bg-destructive/10 transition-all">
-                                    <X className="w-3.5 h-3.5 text-destructive" />
-                                    PSPP
-                                  </span>
-                                </TooltipTrigger>
-                                <TooltipContent side="top" className="max-w-[200px]">
-                                  <p className="text-xs">Tidak ada rule PSPP yang cocok pada laporan ini.</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            )}
-                            <div className={cn(
-                              "flex items-center gap-1 px-1.5 py-0.5 rounded border transition-all",
-                              isPsppActive 
-                                ? "bg-primary/10 border-primary/20"
-                                : "bg-muted/50 border-muted-foreground/20 group-hover:bg-muted"
-                            )}>
-                              <Sparkles className={cn("w-2.5 h-2.5", isPsppActive ? "text-primary" : "text-muted-foreground")} />
-                              <span className={cn("text-[10px] font-medium", isPsppActive ? "text-primary" : "text-muted-foreground")}>AI</span>
-                            </div>
-                          </div>
-                          <p className={cn(
-                            "text-sm font-semibold mb-0.5 transition-colors",
-                            isPsppActive ? "text-foreground" : "text-muted-foreground/70 group-hover:text-muted-foreground"
-                          )}>
-                            {isPsppActive ? (psppSource?.category || 'Pelanggaran Prosedur Keselamatan') : 'Tidak Terdeteksi'}
+                          <p className="text-sm font-semibold text-foreground mb-0.5">
+                            {psppSource?.category || 'Pelanggaran Prosedur Keselamatan'}
                           </p>
-                          <p className={cn(
-                            "text-xs transition-colors",
-                            isPsppActive ? "text-muted-foreground" : "text-muted-foreground/50 group-hover:text-muted-foreground/70"
-                          )}>
-                            {isPsppActive ? (
-                              <>
-                                <span className="font-medium text-amber-600">Tipe:</span>{' '}
-                                {psppSource?.deviationType || 'Hand rail tidak ada pada dudukan tandon profil'}
-                              </>
-                            ) : (
-                              'Tidak ada rule yang cocok pada laporan ini'
-                            )}
+                          <p className="text-xs text-muted-foreground">
+                            <span className="font-medium text-amber-600">Tipe:</span>{' '}
+                            {psppSource?.deviationType || 'Hand rail tidak ada pada dudukan tandon profil'}
                           </p>
                         </div>
                       );
@@ -538,34 +430,9 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
                 </div>
 
 
-                {/* Status Laporan - Locked */}
-                <div className="bg-card rounded-xl p-4 border border-border shadow-sm relative">
-                  <div className="flex items-center gap-2 mb-3">
-                    <h3 className="font-semibold text-foreground text-sm">Status Laporan</h3>
-                    <Lock className="w-3.5 h-3.5 text-muted-foreground/60" />
-                  </div>
-                  <div className="opacity-50 pointer-events-none">
-                    {evalStatus && (
-                      <div className={`flex items-center gap-2 p-3 rounded-lg ${evalStatus.bg}`}>
-                        <evalStatus.icon className={`w-4 h-4 ${evalStatus.color}`} />
-                        <div>
-                          <p className={`text-sm font-medium ${evalStatus.color}`}>{evalStatus.label}</p>
-                          <p className="text-xs text-muted-foreground">SLA Due <span className="text-destructive font-medium">10 Des 2025</span></p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  <p className="text-[10px] text-muted-foreground mt-2 italic">
-                    🔒 Fitur ini akan aktif pada phase berikutnya
-                  </p>
-                </div>
-
-                {/* Pengendalian Section - Locked */}
+                {/* Pengendalian Section */}
                 <div className="bg-card rounded-xl p-4 border border-border shadow-sm">
-                  <div className="flex items-center gap-2 mb-3">
-                    <h3 className="font-semibold text-foreground text-sm">Pengendalian</h3>
-                    <Lock className="w-3.5 h-3.5 text-muted-foreground/60" />
-                  </div>
+                  <h3 className="font-semibold text-foreground text-sm mb-3">Pengendalian</h3>
                   <div className="space-y-3 opacity-50 pointer-events-none">
                     <div>
                       <p className="text-xs text-muted-foreground mb-1.5">Pilih konfirmasi</p>
@@ -584,8 +451,8 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
                       Selesaikan Evaluasi
                     </Button>
                   </div>
-                  <p className="text-[10px] text-muted-foreground mt-2 italic">
-                    🔒 Fitur ini akan aktif pada phase berikutnya
+                  <p className="text-[10px] text-muted-foreground mt-3 italic text-center">
+                    Fitur ini akan aktif pada phase berikutnya
                   </p>
                 </div>
               </div>
