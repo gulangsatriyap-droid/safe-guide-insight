@@ -147,10 +147,10 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
   return (
     <TooltipProvider>
       <div className="flex h-full">
-        {/* Main Content Area - Full width, panel floats over */}
+      {/* Main Content Area - Shrinks when VLM panel is open */}
         <div className={cn(
-          "flex-1 overflow-y-auto bg-background",
-          ""
+          "flex-1 overflow-y-auto bg-background transition-all duration-300",
+          showVLMPanel && "mr-0"
         )}>
           <div className="animate-fade-in p-6">
             {/* Breadcrumb */}
@@ -555,12 +555,14 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
           initialTab={analysisPanelInitialTab}
         />
 
-        {/* VLM Inspection Panel */}
-        <VLMInspectionPanel
-          isOpen={showVLMPanel}
-          onClose={() => setShowVLMPanel(false)}
-          imageUrl="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1200&h=800&fit=crop"
-        />
+        {/* VLM Inspection Panel - Now a side panel */}
+        {showVLMPanel && (
+          <VLMInspectionPanel
+            isOpen={showVLMPanel}
+            onClose={() => setShowVLMPanel(false)}
+            imageUrl="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1200&h=800&fit=crop"
+          />
+        )}
 
         {/* Pin Point Location Modal */}
         <Dialog open={showPinPoint} onOpenChange={setShowPinPoint}>

@@ -1,5 +1,5 @@
-import { X, ZoomIn, ZoomOut, Image, Layers, Users, Car, TrafficCone, Building, Cloud, ChevronRight, Sparkles } from "lucide-react";
-import { useState } from "react";
+import { X, ZoomIn, ZoomOut, Image, Layers, Users, Car, TrafficCone, Building, Cloud, Sparkles, Hand, MousePointer2 } from "lucide-react";
+import { useState, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -14,6 +14,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { cn } from "@/lib/utils";
 
 interface VLMExtractionCategory {
   id: string;
@@ -124,143 +125,222 @@ const VLMInspectionPanel = ({
 }: VLMInspectionPanelProps) => {
   const [zoomLevel, setZoomLevel] = useState(1);
   const [viewMode, setViewMode] = useState<"table" | "json">("table");
-
-  if (!isOpen) return null;
+  const [toolMode, setToolMode] = useState<"select" | "pan">("pan");
+  
+  // Pan state
+  const [isPanning, setIsPanning] = useState(false);
+  const [panPosition, setPanPosition] = useState({ x: 0, y: 0 });
+  const [startPan, setStartPan] = useState({ x: 0, y: 0 });
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const handleZoomIn = () => setZoomLevel(prev => Math.min(prev + 0.25, 3));
   const handleZoomOut = () => setZoomLevel(prev => Math.max(prev - 0.25, 0.5));
 
+  // Pan handlers
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    if (toolMode !== "pan") return;
+    e.preventDefault();
+    setIsPanning(true);
+    setStartPan({
+      x: e.clientX - panPosition.x,
+      y: e.clientY - panPosition.y
+    });
+  }, [toolMode, panPosition]);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!isPanning || toolMode !== "pan") return;
+    setPanPosition({
+      x: e.clientX - startPan.x,
+      y: e.clientY - startPan.y
+    });
+  }, [isPanning, toolMode, startPan]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsPanning(false);
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    setIsPanning(false);
+  }, []);
+
+  // Reset pan when zoom changes
+  const handleResetView = () => {
+    setZoomLevel(1);
+    setPanPosition({ x: 0, y: 0 });
+  };
+
+  if (!isOpen) return null;
+
   return (
-    <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm">
-      <div className="fixed inset-4 bg-card rounded-xl border border-border shadow-xl overflow-hidden flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-lg">
-              <Sparkles className="w-4 h-4 text-primary" />
-              <span className="text-sm font-semibold text-primary">VLM Inspection</span>
-            </div>
-            <span className="text-sm text-muted-foreground">AI Image Analysis & Extraction</span>
+    <div 
+      className="w-[520px] h-full border-l border-border bg-card flex flex-col animate-slide-in-right"
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-primary/10 rounded-lg">
+            <Sparkles className="w-3.5 h-3.5 text-primary" />
+            <span className="text-xs font-semibold text-primary">VLM Inspection</span>
           </div>
-          <button
-            onClick={onClose}
-            className="w-9 h-9 rounded-lg hover:bg-muted flex items-center justify-center transition-colors"
+        </div>
+        <button
+          onClick={onClose}
+          className="w-7 h-7 rounded-lg hover:bg-muted flex items-center justify-center transition-colors"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* Image Viewer Section */}
+      <div className="flex flex-col shrink-0">
+        {/* Zoom & Tool Controls */}
+        <div className="flex items-center justify-between px-3 py-2 border-b border-border bg-muted/30">
+          <div className="flex items-center gap-1">
+            {/* Tool Mode Toggle */}
+            <Button 
+              variant={toolMode === "select" ? "secondary" : "ghost"} 
+              size="icon" 
+              className="h-7 w-7"
+              onClick={() => setToolMode("select")}
+              title="Select Tool"
+            >
+              <MousePointer2 className="w-3.5 h-3.5" />
+            </Button>
+            <Button 
+              variant={toolMode === "pan" ? "secondary" : "ghost"} 
+              size="icon" 
+              className="h-7 w-7"
+              onClick={() => setToolMode("pan")}
+              title="Pan Tool (Drag to move)"
+            >
+              <Hand className="w-3.5 h-3.5" />
+            </Button>
+            <div className="w-px h-5 bg-border mx-1" />
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleZoomOut} title="Zoom Out">
+              <ZoomOut className="w-3.5 h-3.5" />
+            </Button>
+            <span className="text-[10px] text-muted-foreground w-10 text-center font-medium">
+              {Math.round(zoomLevel * 100)}%
+            </span>
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleZoomIn} title="Zoom In">
+              <ZoomIn className="w-3.5 h-3.5" />
+            </Button>
+          </div>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="h-6 text-[10px] px-2"
+            onClick={handleResetView}
           >
-            <X className="w-5 h-5" />
-          </button>
+            Reset
+          </Button>
         </div>
 
-        {/* Content */}
-        <div className="flex-1 flex overflow-hidden">
-          {/* Left - Image Viewer */}
-          <div className="flex-1 flex flex-col bg-muted/30">
-            {/* Zoom Controls */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-card/50">
-              <span className="text-sm text-muted-foreground">Image Preview</span>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground mr-2">{Math.round(zoomLevel * 100)}%</span>
-                <Button variant="outline" size="icon" className="h-8 w-8" onClick={handleZoomOut}>
-                  <ZoomOut className="w-4 h-4" />
-                </Button>
-                <Button variant="outline" size="icon" className="h-8 w-8" onClick={handleZoomIn}>
-                  <ZoomIn className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-
-            {/* Image */}
-            <div className="flex-1 overflow-auto p-6 flex items-center justify-center">
-              <div 
-                className="relative transition-transform duration-200 ease-out"
-                style={{ transform: `scale(${zoomLevel})` }}
-              >
-                <img
-                  src={imageUrl}
-                  alt="VLM Inspection"
-                  className="max-w-full max-h-[70vh] object-contain rounded-lg shadow-lg"
-                />
-              </div>
-            </div>
+        {/* Image */}
+        <div 
+          ref={containerRef}
+          className={cn(
+            "h-[220px] overflow-hidden bg-muted/50 relative",
+            toolMode === "pan" ? "cursor-grab" : "cursor-default",
+            isPanning && "cursor-grabbing"
+          )}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseLeave}
+        >
+          <div 
+            className="w-full h-full flex items-center justify-center transition-transform duration-75"
+            style={{ 
+              transform: `scale(${zoomLevel}) translate(${panPosition.x / zoomLevel}px, ${panPosition.y / zoomLevel}px)`,
+            }}
+          >
+            <img
+              src={imageUrl}
+              alt="VLM Inspection"
+              className="max-w-full max-h-full object-contain select-none pointer-events-none"
+              draggable={false}
+            />
           </div>
+        </div>
+      </div>
 
-          {/* Right - Extraction Results */}
-          <div className="w-[420px] border-l border-border flex flex-col bg-card">
-            {/* AI Analysis Header */}
-            <div className="px-5 py-4 border-b border-border">
-              <div className="flex items-center justify-between mb-1">
-                <h3 className="font-semibold text-foreground">AI Analysis</h3>
-                <Button variant="outline" size="sm" className="h-7 text-xs">
-                  Trace
-                </Button>
-              </div>
-              <p className="text-xs text-muted-foreground">Skor kualitas dan ekstraksi metadata</p>
-            </div>
-
-            {/* Information Extraction Header */}
-            <div className="px-5 py-3 border-b border-border flex items-center justify-between">
-              <div>
-                <h4 className="text-sm font-medium text-foreground">Information Extraction</h4>
-                <p className="text-xs text-muted-foreground">Source: Extraction engine v1</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">View as</span>
-                <Select value={viewMode} onValueChange={(v: "table" | "json") => setViewMode(v)}>
-                  <SelectTrigger className="h-8 w-24 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="table">Table</SelectItem>
-                    <SelectItem value="json">JSON</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {/* Extraction Categories */}
-            <div className="flex-1 overflow-auto">
-              {viewMode === "table" ? (
-                <Accordion type="single" collapsible className="px-3 py-2">
-                  {extractionData.map((category) => (
-                    <AccordionItem key={category.id} value={category.id} className="border-none">
-                      <AccordionTrigger className="hover:no-underline py-3 px-3 rounded-lg hover:bg-muted/50 data-[state=open]:bg-primary/5">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                            <category.icon className="w-4 h-4 text-primary" />
-                          </div>
-                          <span className="text-sm font-medium text-foreground">{category.label}</span>
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent className="px-3 pb-2">
-                        <div className="bg-muted/30 rounded-lg p-3 space-y-2">
-                          {Object.entries(category.data).map(([key, value]) => (
-                            <div key={key} className="flex items-center justify-between text-sm">
-                              <span className="text-muted-foreground">{key}</span>
-                              <span className="font-medium text-foreground">
-                                {Array.isArray(value) ? value.join(", ") : String(value)}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
-              ) : (
-                <div className="p-4">
-                  <pre className="bg-muted/50 rounded-lg p-4 text-xs overflow-auto max-h-[500px] text-foreground">
-                    {JSON.stringify(
-                      extractionData.reduce((acc, cat) => ({
-                        ...acc,
-                        [cat.id]: cat.data
-                      }), {}),
-                      null,
-                      2
-                    )}
-                  </pre>
-                </div>
-              )}
-            </div>
+      {/* AI Analysis Section */}
+      <div className="flex-1 flex flex-col overflow-hidden border-t border-border">
+        {/* AI Analysis Header */}
+        <div className="px-4 py-3 border-b border-border shrink-0">
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold text-sm text-foreground">AI Analysis</h3>
+            <Button variant="outline" size="sm" className="h-6 text-[10px] px-2">
+              Trace
+            </Button>
           </div>
+          <p className="text-[10px] text-muted-foreground mt-0.5">Skor kualitas dan ekstraksi metadata</p>
+        </div>
+
+        {/* Information Extraction Header */}
+        <div className="px-4 py-2 border-b border-border flex items-center justify-between shrink-0">
+          <div>
+            <h4 className="text-xs font-medium text-foreground">Information Extraction</h4>
+            <p className="text-[10px] text-muted-foreground">Source: Extraction engine v1</p>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] text-muted-foreground">View as</span>
+            <Select value={viewMode} onValueChange={(v: "table" | "json") => setViewMode(v)}>
+              <SelectTrigger className="h-6 w-16 text-[10px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="table">Table</SelectItem>
+                <SelectItem value="json">JSON</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Extraction Categories */}
+        <div className="flex-1 overflow-auto">
+          {viewMode === "table" ? (
+            <Accordion type="single" collapsible className="px-2 py-1">
+              {extractionData.map((category) => (
+                <AccordionItem key={category.id} value={category.id} className="border-none">
+                  <AccordionTrigger className="hover:no-underline py-2 px-2 rounded-lg hover:bg-muted/50 data-[state=open]:bg-primary/5">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center">
+                        <category.icon className="w-3 h-3 text-primary" />
+                      </div>
+                      <span className="text-xs font-medium text-foreground">{category.label}</span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-2 pb-1">
+                    <div className="bg-muted/30 rounded-lg p-2 space-y-1.5">
+                      {Object.entries(category.data).map(([key, value]) => (
+                        <div key={key} className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">{key}</span>
+                          <span className="font-medium text-foreground">
+                            {Array.isArray(value) ? value.join(", ") : String(value)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          ) : (
+            <div className="p-3">
+              <pre className="bg-muted/50 rounded-lg p-3 text-[10px] overflow-auto max-h-[300px] text-foreground">
+                {JSON.stringify(
+                  extractionData.reduce((acc, cat) => ({
+                    ...acc,
+                    [cat.id]: cat.data
+                  }), {}),
+                  null,
+                  2
+                )}
+              </pre>
+            </div>
+          )}
         </div>
       </div>
     </div>
