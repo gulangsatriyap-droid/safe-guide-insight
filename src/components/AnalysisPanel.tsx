@@ -1,12 +1,8 @@
 import { useState } from "react";
-import { 
-  X, FileText, AlertTriangle, Image, Sparkles, Eye, HelpCircle, ArrowRight,
-  ShieldAlert, Camera, FileImage, Scale, FileSearch, CheckCircle2, XCircle,
-  ChevronRight, Layers
-} from "lucide-react";
+import { X, FileText, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, CheckCircle2, AlertCircle, HelpCircle, Sparkles, Target, Eye, Brain, ArrowRight } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Button } from "@/components/ui/button";
 
 interface AnalysisPanelProps {
   isOpen: boolean;
@@ -49,20 +45,23 @@ const labelConfig = {
   TBC: { 
     bg: "bg-primary/10", 
     text: "text-primary",
-    activeBg: "bg-primary",
-    activeText: "text-primary-foreground"
+    border: "border-primary/20",
+    accent: "bg-gradient-to-r from-primary/5 to-primary/10",
+    iconBg: "bg-primary/10"
   },
   PSPP: { 
     bg: "bg-amber-500/10", 
     text: "text-amber-600",
-    activeBg: "bg-amber-500",
-    activeText: "text-white"
+    border: "border-amber-500/20",
+    accent: "bg-gradient-to-r from-amber-500/5 to-amber-500/10",
+    iconBg: "bg-amber-500/10"
   },
   GR: { 
     bg: "bg-emerald-500/10", 
     text: "text-emerald-600",
-    activeBg: "bg-emerald-500",
-    activeText: "text-white"
+    border: "border-emerald-500/20",
+    accent: "bg-gradient-to-r from-emerald-500/5 to-emerald-500/10",
+    iconBg: "bg-emerald-500/10"
   }
 };
 
@@ -149,36 +148,18 @@ Contoh:
 };
 
 const AnalysisPanel = ({ isOpen, onClose, type, analysisData }: AnalysisPanelProps) => {
-  const [activeTab, setActiveTab] = useState<'TBC' | 'GR' | 'PSPP'>(type);
-  const [expandedSections, setExpandedSections] = useState<string[]>([]);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [showExpandedAnalysis, setShowExpandedAnalysis] = useState(false);
+  const config = labelConfig[type];
+  const docConfig = documentConfig[type];
 
   if (!isOpen) return null;
 
-  // AI Reasons as bullet points
-  const aiReasons = [
-    "Tidak memakai helm dan APD lainnya",
-    "Konteks visual: pekerja sedang istirahat",
-    "Bukan aktivitas kerja aktif",
-    "Sinyal deviasi cocok dengan TBC"
-  ];
-
-  // Extracted Content data
-  const extractedContent = {
-    actors: analysisData.extractedContext.actors,
-    objects: analysisData.extractedContext.objects,
-    activities: analysisData.extractedContext.activities,
-    workContext: analysisData.extractedContext.workContext,
-    visualSignals: analysisData.extractedContext.visualSignals,
-  };
-
-  // Evidence Matching data
-  const evidenceMatching = {
-    actorMatch: analysisData.evidence.actorMatch,
-    objectMatch: analysisData.evidence.objectMatch,
-    activityMatch: analysisData.evidence.activityMatch,
-    contextMatch: analysisData.evidence.contextMatch,
-    matchedSignals: analysisData.evidence.matchedSignals,
-    missingSignals: analysisData.evidence.missingSignals,
+  const MatchIcon = ({ match }: { match: boolean | string }) => {
+    if (match === true || match === "Match" || match === "Ya") {
+      return <CheckCircle2 className="w-4 h-4 text-emerald-500" />;
+    }
+    return <AlertCircle className="w-4 h-4 text-amber-500" />;
   };
 
   return (
@@ -190,319 +171,304 @@ const AnalysisPanel = ({ isOpen, onClose, type, analysisData }: AnalysisPanelPro
       />
       
       {/* Panel */}
-      <div className="relative ml-auto w-full max-w-md bg-card border-l border-border shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
+      <div className="relative ml-auto w-full max-w-2xl bg-card border-l border-border shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-amber-500" />
-            <span className="text-sm font-semibold text-foreground">Detail Analisis</span>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-gradient-to-r from-muted/30 to-muted/10">
+          <div className="flex items-center gap-4">
+            <div className={`w-12 h-12 rounded-xl ${config.iconBg} flex items-center justify-center shadow-sm`}>
+              <FileText className={`w-6 h-6 ${config.text}`} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className={`px-2.5 py-1 rounded-md text-xs font-bold ${config.bg} ${config.text}`}>
+                  {type}
+                </span>
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Sparkles className="w-3 h-3" />
+                  <span>AI Analysis</span>
+                </div>
+              </div>
+              <p className="text-sm font-medium text-foreground">{docConfig.title}</p>
+            </div>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-lg hover:bg-muted flex items-center justify-center transition-all"
+            className="w-10 h-10 rounded-xl hover:bg-muted flex items-center justify-center transition-all hover:scale-105"
           >
-            <X className="w-4 h-4 text-muted-foreground" />
+            <X className="w-5 h-5 text-muted-foreground" />
           </button>
         </div>
 
-        <ScrollArea className="flex-1">
-          <div className="p-4 space-y-4">
-            {/* Title Section */}
-            <div>
-              <h3 className="text-base font-semibold text-foreground">
-                {activeTab} - {activeTab === 'TBC' ? 'To be Concern Hazard' : activeTab === 'GR' ? 'Golden Rules' : 'PSPP'}
-              </h3>
-              <div className="flex items-center gap-2 mt-1">
-                <span className="text-xs text-primary font-medium">Pengoperasian Kendaraan / Unit</span>
-                <span className="text-xs text-muted-foreground">•</span>
-                <span className="text-xs text-muted-foreground">Foto</span>
-              </div>
-            </div>
-
-            {/* Tab Pills */}
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setActiveTab('TBC')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                  activeTab === 'TBC' 
-                    ? 'bg-primary text-primary-foreground' 
-                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                }`}
+        {/* Tabs */}
+        <Tabs defaultValue="detail" className="flex-1 flex flex-col overflow-hidden">
+          <div className="px-6 pt-4 pb-2">
+            <TabsList className="w-full grid grid-cols-2 h-11 bg-muted/50 p-1 rounded-xl">
+              <TabsTrigger 
+                value="detail" 
+                className="rounded-lg text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all"
               >
-                {activeTab === 'TBC' && <span className="text-xs">✓</span>}
-                TBC
-              </button>
-              <button
-                onClick={() => setActiveTab('GR')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                  activeTab === 'GR' 
-                    ? 'bg-emerald-500 text-white' 
-                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                }`}
+                Detail Analisis
+              </TabsTrigger>
+              <TabsTrigger 
+                value="dokumen" 
+                className="rounded-lg text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all"
               >
-                × GR
-                <span className="px-1.5 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded">FALSE</span>
-              </button>
-              <button
-                onClick={() => setActiveTab('PSPP')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                  activeTab === 'PSPP' 
-                    ? 'bg-amber-500 text-white' 
-                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                }`}
-              >
-                × PSPP
-                <span className="px-1.5 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded">FALSE</span>
-              </button>
-            </div>
-
-            {/* Icon Buttons */}
-            <div className="flex items-center gap-2">
-              <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border bg-muted/30 text-xs text-muted-foreground hover:bg-muted/50 transition-colors">
-                <FileText className="w-3.5 h-3.5" />
-                Aa
-              </button>
-              <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border bg-muted/30 text-xs text-muted-foreground hover:bg-muted/50 transition-colors">
-                {"{ }"}
-              </button>
-            </div>
-
-            {/* Yellow Warning Card - Deviasi with Hazard Icon */}
-            <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20">
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-500/20 flex items-center justify-center shrink-0">
-                  <ShieldAlert className="w-4 h-4 text-amber-600" />
-                </div>
-                <div className="flex-1">
-                  <h4 className="text-sm font-semibold text-foreground">
-                    Deviasi pengoperasian kendaraan/unit
-                  </h4>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Tipe: <span className="text-primary">Akses Area yang Tidak Aktif Belum Ditutup</span>
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Tipe Deviasi Card with Photo Icon */}
-            <div className="p-3 rounded-xl bg-muted/30 border border-border">
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-500/20 flex items-center justify-center shrink-0">
-                  <Camera className="w-4 h-4 text-blue-600" />
-                </div>
-                <div className="flex-1">
-                  <h4 className="text-sm font-medium text-foreground">
-                    Tipe Deviasi : <span className="text-muted-foreground">Foto</span>
-                  </h4>
-                  <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
-                    <FileImage className="w-3 h-3" />
-                    Deskripsi dan foto konsisten, sinyal deviasi dan objek cocok dengan TBC
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Bobot Deviasi Card */}
-            <div className="p-3 rounded-xl bg-muted/30 border border-border">
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-500/20 flex items-center justify-center shrink-0">
-                  <Scale className="w-4 h-4 text-purple-600" />
-                </div>
-                <div className="flex-1">
-                  <h4 className="text-sm font-medium text-foreground">
-                    Bobot Deviasi : <span className="text-amber-600 font-semibold">Medium</span>
-                  </h4>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Tingkat keparahan berdasarkan evaluasi risiko dan dampak potensial
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Orange AI Reason Card */}
-            <Collapsible defaultOpen className="rounded-xl overflow-hidden">
-              <CollapsibleTrigger className="w-full p-4 rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-500/10 dark:to-orange-500/10 border border-amber-200 dark:border-amber-500/20 hover:from-amber-100 hover:to-orange-100 dark:hover:from-amber-500/15 dark:hover:to-orange-500/15 transition-colors">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-amber-600" />
-                    <span className="text-sm font-semibold text-amber-700 dark:text-amber-400">ALASAN AI</span>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-amber-600 transition-transform duration-200 group-data-[state=open]:rotate-90" />
-                </div>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="p-4 pt-0 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-500/10 dark:to-orange-500/10 border-x border-b border-amber-200 dark:border-amber-500/20 rounded-b-xl -mt-3">
-                <ul className="space-y-2 pt-3">
-                  {aiReasons.map((reason, idx) => (
-                    <li key={idx} className="flex items-start gap-2 text-sm text-foreground">
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-2 shrink-0" />
-                      {reason}
-                    </li>
-                  ))}
-                </ul>
-              </CollapsibleContent>
-            </Collapsible>
-
-            {/* Accordion Sections */}
-            <Accordion type="multiple" className="space-y-2" value={expandedSections} onValueChange={setExpandedSections}>
-              {/* Observed Fact with nested sub-sections */}
-              <AccordionItem value="observed-fact" className="border border-border rounded-xl overflow-hidden bg-card">
-                <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-muted/30 transition-colors [&[data-state=open]]:bg-muted/30">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-500/20 flex items-center justify-center">
-                      <Eye className="w-4 h-4 text-blue-600" />
-                    </div>
-                    <span className="text-sm font-medium text-foreground">Observed Fact</span>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="px-4 pb-4">
-                  <div className="space-y-3 mt-2">
-                    {/* Facts list */}
-                    <ul className="space-y-2">
-                      {analysisData.observedFacts.map((fact, idx) => (
-                        <li key={idx} className="flex items-start gap-3 text-sm text-foreground">
-                          <span className="w-5 h-5 rounded-full bg-blue-500/10 text-blue-600 text-xs font-medium flex items-center justify-center shrink-0 mt-0.5">
-                            {idx + 1}
-                          </span>
-                          {fact}
-                        </li>
-                      ))}
-                    </ul>
-
-                    {/* Nested: Extracted Content */}
-                    <Collapsible className="border border-border/50 rounded-lg bg-muted/20">
-                      <CollapsibleTrigger className="w-full px-3 py-2.5 flex items-center justify-between hover:bg-muted/30 transition-colors rounded-lg">
-                        <div className="flex items-center gap-2">
-                          <FileSearch className="w-4 h-4 text-indigo-500" />
-                          <span className="text-xs font-medium text-foreground">Extracted Content</span>
-                        </div>
-                        <ChevronRight className="w-3.5 h-3.5 text-muted-foreground transition-transform duration-200 [[data-state=open]_&]:rotate-90" />
-                      </CollapsibleTrigger>
-                      <CollapsibleContent className="px-3 pb-3">
-                        <div className="space-y-2 text-xs">
-                          <div className="flex items-start gap-2">
-                            <span className="text-muted-foreground min-w-[70px]">Actors:</span>
-                            <span className="text-foreground">{extractedContent.actors.join(", ")}</span>
-                          </div>
-                          <div className="flex items-start gap-2">
-                            <span className="text-muted-foreground min-w-[70px]">Objects:</span>
-                            <span className="text-foreground">{extractedContent.objects.join(", ")}</span>
-                          </div>
-                          <div className="flex items-start gap-2">
-                            <span className="text-muted-foreground min-w-[70px]">Activities:</span>
-                            <span className="text-foreground">{extractedContent.activities.join(", ")}</span>
-                          </div>
-                          <div className="flex items-start gap-2">
-                            <span className="text-muted-foreground min-w-[70px]">Context:</span>
-                            <span className="text-foreground">{extractedContent.workContext}</span>
-                          </div>
-                          <div className="flex items-start gap-2">
-                            <span className="text-muted-foreground min-w-[70px]">Signals:</span>
-                            <span className="text-foreground">{extractedContent.visualSignals.join(", ")}</span>
-                          </div>
-                        </div>
-                      </CollapsibleContent>
-                    </Collapsible>
-
-                    {/* Nested: Evidence Matching */}
-                    <Collapsible className="border border-border/50 rounded-lg bg-muted/20">
-                      <CollapsibleTrigger className="w-full px-3 py-2.5 flex items-center justify-between hover:bg-muted/30 transition-colors rounded-lg">
-                        <div className="flex items-center gap-2">
-                          <Layers className="w-4 h-4 text-emerald-500" />
-                          <span className="text-xs font-medium text-foreground">Evidence Matching</span>
-                        </div>
-                        <ChevronRight className="w-3.5 h-3.5 text-muted-foreground transition-transform duration-200 [[data-state=open]_&]:rotate-90" />
-                      </CollapsibleTrigger>
-                      <CollapsibleContent className="px-3 pb-3">
-                        <div className="space-y-2 text-xs">
-                          <div className="flex items-center gap-2">
-                            {evidenceMatching.actorMatch ? 
-                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> : 
-                              <XCircle className="w-3.5 h-3.5 text-red-500" />
-                            }
-                            <span className="text-foreground">Actor Match: {evidenceMatching.actorMatch ? 'Yes' : 'No'}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            {evidenceMatching.objectMatch ? 
-                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> : 
-                              <XCircle className="w-3.5 h-3.5 text-red-500" />
-                            }
-                            <span className="text-foreground">Object Match: {evidenceMatching.objectMatch ? 'Yes' : 'No'}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            {evidenceMatching.activityMatch ? 
-                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> : 
-                              <XCircle className="w-3.5 h-3.5 text-red-500" />
-                            }
-                            <span className="text-foreground">Activity Match: {evidenceMatching.activityMatch ? 'Yes' : 'No'}</span>
-                          </div>
-                          <div className="flex items-start gap-2 mt-2 pt-2 border-t border-border/50">
-                            <span className="text-muted-foreground">Context:</span>
-                            <span className="text-foreground">{evidenceMatching.contextMatch}</span>
-                          </div>
-                          {evidenceMatching.matchedSignals.length > 0 && (
-                            <div className="flex flex-wrap gap-1 mt-2">
-                              {evidenceMatching.matchedSignals.map((signal, idx) => (
-                                <span key={idx} className="px-2 py-0.5 bg-emerald-500/10 text-emerald-600 text-[10px] rounded-full">
-                                  {signal}
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </CollapsibleContent>
-                    </Collapsible>
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-
-              {/* Assumptions & Unknowns */}
-              <AccordionItem value="assumptions" className="border border-border rounded-xl overflow-hidden bg-card">
-                <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-muted/30 transition-colors [&[data-state=open]]:bg-muted/30">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-500/20 flex items-center justify-center">
-                      <AlertTriangle className="w-4 h-4 text-amber-600" />
-                    </div>
-                    <span className="text-sm font-medium text-foreground">Assumptions & Unknowns</span>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="px-4 pb-4">
-                  <ul className="space-y-2 mt-2">
-                    {analysisData.assumptions.map((item, idx) => (
-                      <li key={idx} className="flex items-start gap-2 text-sm text-muted-foreground">
-                        <HelpCircle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                </AccordionContent>
-              </AccordionItem>
-
-              {/* Recommended Next Steps */}
-              <AccordionItem value="recommendations" className="border border-border rounded-xl overflow-hidden bg-card">
-                <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-muted/30 transition-colors [&[data-state=open]]:bg-muted/30">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <ArrowRight className="w-4 h-4 text-primary" />
-                    </div>
-                    <span className="text-sm font-medium text-foreground">Recommended Next Steps</span>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="px-4 pb-4">
-                  <ul className="space-y-2 mt-2">
-                    {analysisData.recommendations.map((rec, idx) => (
-                      <li key={idx} className="flex items-start gap-3 text-sm text-foreground p-2 bg-muted/20 rounded-lg">
-                        <span className="w-5 h-5 rounded-full bg-emerald-500/10 text-emerald-600 text-xs font-bold flex items-center justify-center shrink-0">
-                          {idx + 1}
-                        </span>
-                        {rec}
-                      </li>
-                    ))}
-                  </ul>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
+                Dokumen
+              </TabsTrigger>
+            </TabsList>
           </div>
-        </ScrollArea>
+
+          {/* Detail Analisis Tab */}
+          <TabsContent value="detail" className="flex-1 overflow-hidden m-0">
+            <ScrollArea className="h-full">
+              <div className="px-6 py-4 space-y-5">
+                {/* Main Analysis Card */}
+                <div className={`rounded-xl border ${config.border} overflow-hidden`}>
+                  {/* Card Header */}
+                  <div className={`px-5 py-4 ${config.accent} border-b ${config.border}`}>
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-lg ${config.iconBg} flex items-center justify-center`}>
+                        <Target className={`w-5 h-5 ${config.text}`} />
+                      </div>
+                      <div>
+                        <h4 className="text-base font-semibold text-foreground">
+                          Deviasi Pengoperasian Kendaraan/Unit
+                        </h4>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          Hasil klasifikasi otomatis oleh AI
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Card Body */}
+                  <div className="p-5 space-y-4 bg-card">
+                    {/* Kategori */}
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-muted/50 flex items-center justify-center shrink-0 mt-0.5">
+                        <span className="text-sm font-bold text-muted-foreground">1</span>
+                      </div>
+                      <div className="flex-1">
+                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Kategori</span>
+                        <p className="text-sm font-semibold text-foreground mt-1">
+                          {analysisData.category}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="h-px bg-border" />
+
+                    {/* Tipe */}
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-muted/50 flex items-center justify-center shrink-0 mt-0.5">
+                        <Eye className="w-4 h-4 text-muted-foreground" />
+                      </div>
+                      <div className="flex-1">
+                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Tipe Deviasi</span>
+                        <p className="text-sm font-semibold text-foreground mt-1">
+                          {analysisData.deviationType}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="h-px bg-border" />
+
+                    {/* Alasan */}
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                        <Brain className="w-4 h-4 text-primary" />
+                      </div>
+                      <div className="flex-1">
+                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Alasan AI</span>
+                        <div className="mt-2 p-4 bg-muted/30 rounded-lg border border-border">
+                          <p className="text-sm text-foreground leading-relaxed">
+                            {analysisData.reason}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Expand Analysis Button */}
+                <Button
+                  variant="outline"
+                  onClick={() => setShowExpandedAnalysis(!showExpandedAnalysis)}
+                  className="w-full h-12 justify-between rounded-xl border-dashed hover:border-primary hover:bg-primary/5 transition-all group"
+                >
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                    <span className="text-sm font-medium">Expand Full Analysis</span>
+                  </div>
+                  {showExpandedAnalysis ? (
+                    <ChevronUp className="w-4 h-4 text-muted-foreground" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                  )}
+                </Button>
+
+                {/* Expanded Analysis Content */}
+                {showExpandedAnalysis && (
+                  <div className="space-y-4 animate-in slide-in-from-top-2 duration-300">
+                    {/* Observed Facts */}
+                    <div className="rounded-xl border border-border overflow-hidden">
+                      <div className="px-4 py-3 bg-muted/30 border-b border-border">
+                        <h4 className="text-xs font-semibold text-foreground uppercase tracking-wide flex items-center gap-2">
+                          <Eye className="w-3.5 h-3.5 text-primary" />
+                          Observed Facts
+                        </h4>
+                      </div>
+                      <div className="p-4">
+                        <ul className="space-y-2">
+                          {analysisData.observedFacts.map((fact, idx) => (
+                            <li key={idx} className="flex items-start gap-3 text-sm text-foreground">
+                              <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-medium flex items-center justify-center shrink-0 mt-0.5">
+                                {idx + 1}
+                              </span>
+                              {fact}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+
+                    {/* Extracted Context */}
+                    <div className="rounded-xl border border-border overflow-hidden">
+                      <div className="px-4 py-3 bg-muted/30 border-b border-border">
+                        <h4 className="text-xs font-semibold text-foreground uppercase tracking-wide flex items-center gap-2">
+                          <Brain className="w-3.5 h-3.5 text-primary" />
+                          Extracted Context
+                        </h4>
+                      </div>
+                      <div className="p-4 grid grid-cols-2 gap-3">
+                        <div className="p-3 bg-muted/20 rounded-lg">
+                          <span className="text-xs font-medium text-muted-foreground block mb-1">Actors</span>
+                          <span className="text-sm text-foreground">{analysisData.extractedContext.actors.join(", ")}</span>
+                        </div>
+                        <div className="p-3 bg-muted/20 rounded-lg">
+                          <span className="text-xs font-medium text-muted-foreground block mb-1">Objects</span>
+                          <span className="text-sm text-foreground">{analysisData.extractedContext.objects.join(", ")}</span>
+                        </div>
+                        <div className="p-3 bg-muted/20 rounded-lg">
+                          <span className="text-xs font-medium text-muted-foreground block mb-1">Activities</span>
+                          <span className="text-sm text-foreground">{analysisData.extractedContext.activities.join(", ")}</span>
+                        </div>
+                        <div className="p-3 bg-muted/20 rounded-lg">
+                          <span className="text-xs font-medium text-muted-foreground block mb-1">Work Context</span>
+                          <span className="text-sm text-foreground">{analysisData.extractedContext.workContext}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Assumptions */}
+                    <div className="rounded-xl border border-border overflow-hidden">
+                      <div className="px-4 py-3 bg-amber-500/5 border-b border-amber-500/20">
+                        <h4 className="text-xs font-semibold text-foreground uppercase tracking-wide flex items-center gap-2">
+                          <HelpCircle className="w-3.5 h-3.5 text-amber-500" />
+                          Assumptions & Unknowns
+                        </h4>
+                      </div>
+                      <div className="p-4">
+                        <ul className="space-y-2">
+                          {analysisData.assumptions.map((item, idx) => (
+                            <li key={idx} className="flex items-start gap-2 text-sm text-muted-foreground">
+                              <AlertCircle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                              {item}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+
+                    {/* Evidence Matching */}
+                    <div className="rounded-xl border border-border overflow-hidden">
+                      <div className="px-4 py-3 bg-muted/30 border-b border-border">
+                        <h4 className="text-xs font-semibold text-foreground uppercase tracking-wide flex items-center gap-2">
+                          <Target className="w-3.5 h-3.5 text-primary" />
+                          Evidence Matching
+                        </h4>
+                      </div>
+                      <div className="p-4 grid grid-cols-4 gap-3">
+                        {[
+                          { label: "Actor", match: analysisData.evidence.actorMatch },
+                          { label: "Object", match: analysisData.evidence.objectMatch },
+                          { label: "Activity", match: analysisData.evidence.activityMatch },
+                          { label: "Context", match: analysisData.evidence.contextMatch }
+                        ].map((item, idx) => (
+                          <div key={idx} className="p-3 bg-muted/20 rounded-lg text-center">
+                            <div className="flex justify-center mb-2">
+                              <MatchIcon match={item.match} />
+                            </div>
+                            <span className="text-xs font-medium text-muted-foreground">{item.label}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Recommendations */}
+                    <div className="rounded-xl border border-border overflow-hidden">
+                      <div className="px-4 py-3 bg-emerald-500/5 border-b border-emerald-500/20">
+                        <h4 className="text-xs font-semibold text-foreground uppercase tracking-wide flex items-center gap-2">
+                          <ArrowRight className="w-3.5 h-3.5 text-emerald-500" />
+                          Recommended Next Steps
+                        </h4>
+                      </div>
+                      <div className="p-4">
+                        <ul className="space-y-2">
+                          {analysisData.recommendations.map((rec, idx) => (
+                            <li key={idx} className="flex items-start gap-3 text-sm text-foreground p-3 bg-muted/20 rounded-lg">
+                              <span className="w-5 h-5 rounded-full bg-emerald-500/10 text-emerald-600 text-xs font-bold flex items-center justify-center shrink-0">
+                                {idx + 1}
+                              </span>
+                              {rec}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+          </TabsContent>
+
+          {/* Dokumen Tab */}
+          <TabsContent value="dokumen" className="flex-1 overflow-hidden m-0">
+            <div className="h-full flex flex-col px-6 py-4">
+              <div className="flex items-center justify-between mb-4 p-3 bg-muted/30 rounded-xl">
+                <span className="text-sm font-medium text-foreground">
+                  Halaman {currentPage + 1} dari {docConfig.pages.length}
+                </span>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
+                    disabled={currentPage === 0}
+                    className="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-muted disabled:opacity-50 transition-colors"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setCurrentPage(p => Math.min(docConfig.pages.length - 1, p + 1))}
+                    disabled={currentPage === docConfig.pages.length - 1}
+                    className="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-muted disabled:opacity-50 transition-colors"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+              <ScrollArea className="flex-1">
+                <div className="bg-background rounded-xl border border-border p-6 min-h-[400px] shadow-sm">
+                  <h3 className="text-lg font-semibold mb-4 text-foreground pb-3 border-b border-border">
+                    {docConfig.pages[currentPage]?.title}
+                  </h3>
+                  <pre className="text-sm text-foreground whitespace-pre-wrap font-sans leading-relaxed">
+                    {docConfig.pages[currentPage]?.content}
+                  </pre>
+                </div>
+              </ScrollArea>
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
