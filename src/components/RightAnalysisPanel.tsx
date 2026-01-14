@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { X, FileText, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, CheckCircle2, AlertCircle, HelpCircle, Sparkles, Target, Eye, Brain, ArrowRight, Ban, Info, XCircle, Braces, Copy, Download, ChevronDownSquare, ChevronUpSquare, Search, BookOpen, Link2, ZoomIn, ZoomOut, Maximize2, Highlighter } from "lucide-react";
+import { X, FileText, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, CheckCircle2, AlertCircle, HelpCircle, Sparkles, Target, Eye, Brain, ArrowRight, Ban, Info, XCircle, Braces, Copy, Download, ChevronDownSquare, ChevronUpSquare, Search, BookOpen, Link2, ZoomIn, ZoomOut, Maximize2, Highlighter, AlertTriangle, Image, Video, FileType, Users, Car, MapPin } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { AIKnowledgeSource } from "@/data/hazardReports";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -49,9 +50,116 @@ const labelConfig = {
   }
 };
 
+// TBC Candidates sample data
+const tbcCandidates = [
+  {
+    id: 1,
+    title: "Pelanggaran APD di Area Workshop",
+    relevance: 85,
+    source: "Foto",
+    deviationType: "Akses Area yang Tidak Aktif Belum Ditutup",
+    isPrimary: true,
+    aiReasoning: [
+      "Tidak memakai helm dan APD lainnya",
+      "Konteks visual: pekerja sedang istirahat",
+      "Bukan aktivitas kerja aktif",
+      "Sinyal deviasi cocok dengan TBC"
+    ],
+    observedFact: {
+      extractedContent: {
+        objects: ["Helm", "Sepatu safety", "Rompi"],
+        actions: ["Berjalan tanpa APD", "Area tidak tertutup"],
+        sceneContext: "Area workshop dengan aktivitas maintenance"
+      },
+      evidenceMatching: {
+        imageTextConsistency: "Match",
+        objectDeviationMapping: "Partial Match",
+        confidenceNotes: "Objek APD terdeteksi tidak digunakan"
+      }
+    },
+    assumptions: [
+      "Aktivitas sebenarnya sebelum foto diambil tidak diketahui",
+      "Tidak ada timestamp aktivitas kerja aktif",
+      "Tidak terlihat supervisor di area"
+    ],
+    recommendations: [
+      "Verifikasi status aktivitas kerja",
+      "Konfirmasi area aktif atau non-aktif",
+      "Validasi penggunaan APD sesuai SOP"
+    ]
+  },
+  {
+    id: 2,
+    title: "Penggunaan Alat Tidak Standar",
+    relevance: 72,
+    source: "Foto",
+    deviationType: "Penggunaan Peralatan Kerja Non-Standar",
+    isPrimary: false,
+    aiReasoning: [
+      "Alat yang digunakan tidak sesuai SOP",
+      "Tidak ada label inspeksi pada alat",
+      "Potensi risiko kecelakaan kerja"
+    ],
+    observedFact: {
+      extractedContent: {
+        objects: ["Alat non-standar", "Kabel", "Peralatan"],
+        actions: ["Penggunaan alat improvisasi"],
+        sceneContext: "Area kerja dengan peralatan"
+      },
+      evidenceMatching: {
+        imageTextConsistency: "Match",
+        objectDeviationMapping: "Match",
+        confidenceNotes: "Alat tidak memiliki label inspeksi"
+      }
+    },
+    assumptions: [
+      "Tidak diketahui apakah alat sudah diinspeksi",
+      "Tidak ada informasi approval penggunaan"
+    ],
+    recommendations: [
+      "Verifikasi status inspeksi alat",
+      "Konfirmasi approval penggunaan alat"
+    ]
+  },
+  {
+    id: 3,
+    title: "Area Kerja Tidak Rapi",
+    relevance: 68,
+    source: "Video",
+    deviationType: "Housekeeping Tidak Sesuai Standar",
+    isPrimary: false,
+    aiReasoning: [
+      "Material berserakan di area kerja",
+      "Jalur evakuasi terhalang",
+      "Potensi trip hazard"
+    ],
+    observedFact: {
+      extractedContent: {
+        objects: ["Material", "Peralatan", "Jalur evakuasi"],
+        actions: ["Penempatan material tidak teratur"],
+        sceneContext: "Area kerja dengan kondisi tidak rapi"
+      },
+      evidenceMatching: {
+        imageTextConsistency: "Match",
+        objectDeviationMapping: "Partial Match",
+        confidenceNotes: "Kondisi housekeeping perlu perbaikan"
+      }
+    },
+    assumptions: [
+      "Tidak diketahui jadwal pembersihan area",
+      "Tidak ada informasi supervisor area"
+    ],
+    recommendations: [
+      "Lakukan housekeeping segera",
+      "Bersihkan jalur evakuasi"
+    ]
+  }
+];
+
 const documentConfig = {
   TBC: {
     title: "TBC - To be Concern Hazard",
+    subtitle: "Pengoperasian Kendaraan / Unit",
     fileName: "SOP-TBC-Guidelines-2024.pdf",
     code: "SOP-TBC-001",
     type: "SOP",
@@ -208,6 +316,7 @@ KLASIFIKASI RISIKO:
   },
   GR: {
     title: "GR - Golden Rules",
+    subtitle: "Keselamatan Kerja",
     fileName: "Safety-Golden-Rules-2024.pdf",
     code: "REG-GR-001",
     type: "Regulasi",
@@ -361,6 +470,7 @@ yang dilakukan pada ketinggian ≥ 1.8 meter dari permukaan.
   },
   PSPP: {
     title: "PSPP - Peraturan Sanksi",
+    subtitle: "Pelanggaran Prosedur",
     fileName: "PSPP-Regulasi-Keselamatan-2024.pdf",
     code: "INT-PSPP-001",
     type: "Internal",
@@ -534,15 +644,21 @@ CATATAN PENTING:
 
 const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialTab }: RightAnalysisPanelProps) => {
   const [activeTab, setActiveTab] = useState<'TBC' | 'GR' | 'PSPP'>(initialTab || 'TBC');
-  const [showExpandedAnalysis, setShowExpandedAnalysis] = useState(false);
-  const [currentPage, setCurrentPage] = useState(0);
-  const [contentView, setContentView] = useState<'detail' | 'dokumen'>('detail');
   const [drawerMode, setDrawerMode] = useState<'none' | 'dokumen' | 'ontologi'>('none');
   const [jsonExpanded, setJsonExpanded] = useState(false);
   const [docCurrentPage, setDocCurrentPage] = useState(1);
   const [docZoom, setDocZoom] = useState(100);
   const [docSearchQuery, setDocSearchQuery] = useState('');
   const [highlightRelevant, setHighlightRelevant] = useState(true);
+  
+  // Collapsible states
+  const [candidateListOpen, setCandidateListOpen] = useState(true);
+  const [selectedCandidate, setSelectedCandidate] = useState<number | null>(null);
+  const [observedFactOpen, setObservedFactOpen] = useState(false);
+  const [extractedContentOpen, setExtractedContentOpen] = useState(false);
+  const [evidenceMatchingOpen, setEvidenceMatchingOpen] = useState(false);
+  const [assumptionsOpen, setAssumptionsOpen] = useState(false);
+  const [recommendationsOpen, setRecommendationsOpen] = useState(false);
 
   // Update active tab when initialTab changes
   useEffect(() => {
@@ -611,28 +727,6 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
     toast.success("JSON berhasil diunduh");
   };
 
-  // Document references data
-  const documentReferences = [
-    {
-      title: "SOP Keselamatan Pengoperasian Kendaraan",
-      type: "SOP",
-      reference: "SOP-KPK-001",
-      sections: ["Pasal 4.2", "Pasal 5.1"]
-    },
-    {
-      title: "Regulasi K3 Pertambangan",
-      type: "Regulasi",
-      reference: "REG-K3P-2024",
-      sections: ["Bab III", "Pasal 12"]
-    },
-    {
-      title: "Panduan Internal Safety",
-      type: "Internal",
-      reference: "INT-SAF-003",
-      sections: ["Section 2.4", "Section 3.1"]
-    }
-  ];
-
   if (!isOpen) return null;
 
   const config = labelConfig[activeTab];
@@ -642,106 +736,24 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
   const currentSource = aiSources.find(s => s.type === activeTab);
   const isCurrentActive = activeLabels.includes(activeTab);
 
-  const MatchIcon = ({ match }: { match: boolean | string }) => {
-    if (match === true || match === "Match" || match === "Ya") {
-      return <CheckCircle2 className="w-4 h-4 text-emerald-500" />;
+  // Get current candidate (primary or selected)
+  const currentCandidate = selectedCandidate !== null 
+    ? tbcCandidates.find(c => c.id === selectedCandidate) 
+    : tbcCandidates.find(c => c.isPrimary);
+
+  // Get source icon
+  const getSourceIcon = (source: string) => {
+    switch (source.toLowerCase()) {
+      case 'foto':
+        return <Image className="w-3.5 h-3.5" />;
+      case 'video':
+        return <Video className="w-3.5 h-3.5" />;
+      case 'text':
+        return <FileType className="w-3.5 h-3.5" />;
+      default:
+        return <Image className="w-3.5 h-3.5" />;
     }
-    return <AlertCircle className="w-4 h-4 text-amber-500" />;
   };
-
-  // Generate analysis data for the current source
-  const getAnalysisData = (source: AIKnowledgeSource | undefined, isFalse: boolean = false) => {
-    if (!source && !isFalse) return null;
-    
-    // Default data for FALSE states
-    const defaultData = {
-      id: `${activeTab}-VEH-004`,
-      category: activeTab === 'TBC' ? 'Deviasi Pengoperasian Kendaraan/Unit' : 
-                activeTab === 'GR' ? 'Golden Rules - Keselamatan Kerja' : 
-                'Pelanggaran Prosedur Keselamatan',
-      label: activeTab,
-      relevanceScore: 0,
-      classification: "No Match",
-      reason: `AI tidak menemukan kecocokan ${activeTab === 'GR' ? 'Golden Rules' : activeTab} yang relevan dengan temuan ini berdasarkan analisis deskripsi dan visual.`,
-      deviationType: "Tidak teridentifikasi",
-      deviationNotes: `Tidak ada deviasi ${activeTab} yang terdeteksi pada laporan ini.`,
-      extractedContext: {
-        actors: ["Tidak teridentifikasi"],
-        objects: ["Tidak teridentifikasi"],
-        activities: ["Tidak teridentifikasi"],
-        workContext: "Tidak jelas",
-        visualSignals: [],
-        textSignals: [],
-        imageQuality: "Clear",
-        visibility: "Tidak ada"
-      },
-      evidence: {
-        actorMatch: false,
-        objectMatch: false,
-        activityMatch: false,
-        contextMatch: "No Match",
-        matchedSignals: [],
-        missingSignals: ["Tidak ada sinyal yang cocok untuk kategori " + activeTab]
-      },
-      observedFacts: [
-        "Tidak ditemukan indikasi pelanggaran " + activeTab + " pada laporan ini"
-      ],
-      assumptions: [
-        "Mungkin memerlukan review manual untuk konfirmasi"
-      ],
-      recommendations: [
-        "Review laporan secara manual jika diperlukan",
-        "Cek kategori lain yang mungkin relevan"
-      ]
-    };
-
-    if (!source) return defaultData;
-    
-    return {
-      id: `${source.type}-VEH-004`,
-      category: source.category,
-      label: source.citation.content,
-      relevanceScore: source.confidence / 100,
-      classification: "Match",
-      reason: source.reasoning,
-      deviationType: source.deviationType || "Pengoperasian Kendaraan / Unit",
-      deviationNotes: "Deskripsi dan foto konsisten, sinyal deviasi dan objek cocok dengan " + source.type,
-      extractedContext: {
-        actors: ["Maintenance", "Inspector"],
-        objects: ["Hauler", "Tire", "Workshop Tyre"],
-        activities: ["Equipment inspection", "Maintenance observation"],
-        workContext: "Work",
-        visualSignals: ["Visual tyre damage"],
-        textSignals: ["Text unfit for operation"],
-        imageQuality: "Clear",
-        visibility: "Tidak ada"
-      },
-      evidence: {
-        actorMatch: true,
-        objectMatch: true,
-        activityMatch: true,
-        contextMatch: "Match",
-        matchedSignals: ["Visual tyre damage", "Text unfit for operation"],
-        missingSignals: ["Depth of damage", "Internal tyre integrity", "Unit operational status"]
-      },
-      observedFacts: [
-        "Kerusakan terlihat pada ban sisi ketiga (side wall cut)",
-        "Foto menunjukkan permukaan ban dengan kerusakan",
-        "Dinyatakan potensi bocor dan unit dilanjutkan setelah diperbaiki"
-      ],
-      assumptions: [
-        "Tidak diketahui apakah ban masih digunakan saat pengambilan foto",
-        "Belum ada informasi hasil inspeksi resmi atau standar pabrikan"
-      ],
-      recommendations: [
-        "Status operasional ban/unit saat observasi",
-        "Hasil inspeksi teknis resmi dari tim maintenance",
-        "Batas toleransi kerusakan ban sesuai standar pabrikan"
-      ]
-    };
-  };
-
-  const analysisData = getAnalysisData(currentSource, !isCurrentActive);
 
   // Get current document page content
   const currentDocPage = docConfig.pages.find(p => p.page === docCurrentPage) || docConfig.pages[0];
@@ -750,7 +762,7 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
     <TooltipProvider>
       {/* Container for both panels */}
       <div className="fixed top-0 right-0 bottom-0 flex z-50 animate-in slide-in-from-right duration-300">
-        {/* Wide Document Preview Panel - appears on the LEFT of main panel */}
+        {/* Wide Document Preview Panel */}
         {drawerMode === 'dokumen' && (
           <div className="w-[55vw] max-w-[900px] min-w-[600px] bg-card border-l border-border shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
             {/* Header */}
@@ -863,17 +875,7 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
                 >
                   <ZoomOut className="w-4 h-4" />
                 </Button>
-                <select
-                  value={docZoom}
-                  onChange={(e) => setDocZoom(parseInt(e.target.value))}
-                  className="h-8 px-2 text-xs font-medium bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30"
-                >
-                  <option value={50}>50%</option>
-                  <option value={75}>75%</option>
-                  <option value={100}>Auto Fit</option>
-                  <option value={125}>125%</option>
-                  <option value={150}>150%</option>
-                </select>
+                <span className="text-xs font-medium text-muted-foreground w-12 text-center">{docZoom}%</span>
                 <Button
                   variant="outline"
                   size="sm"
@@ -884,16 +886,16 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
                 </Button>
               </div>
 
-              {/* Search & Highlight */}
+              {/* Search */}
               <div className="flex items-center gap-2">
                 <div className="relative">
-                  <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                   <input
                     type="text"
                     placeholder="Cari dalam dokumen..."
                     value={docSearchQuery}
                     onChange={(e) => setDocSearchQuery(e.target.value)}
-                    className="h-8 w-44 pl-8 pr-3 text-xs bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50"
+                    className="h-8 w-48 pl-8 pr-3 text-xs border border-border rounded-lg bg-card focus:outline-none focus:ring-1 focus:ring-primary"
                   />
                 </div>
                 <Tooltip>
@@ -901,100 +903,43 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
                     <Button
                       variant={highlightRelevant ? "default" : "outline"}
                       size="sm"
-                      className={cn("h-8 gap-1.5 text-xs", highlightRelevant && "bg-amber-500 hover:bg-amber-600")}
+                      className="h-8 gap-1.5"
                       onClick={() => setHighlightRelevant(!highlightRelevant)}
                     >
                       <Highlighter className="w-3.5 h-3.5" />
-                      Highlight
+                      <span className="text-xs">Highlight</span>
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>Highlight Pasal Relevan</TooltipContent>
+                  <TooltipContent>Highlight pasal relevan</TooltipContent>
                 </Tooltip>
               </div>
             </div>
 
-            {/* Document Content Area - PDF-like */}
-            <ScrollArea className="flex-1 bg-muted/30">
-              <div className="flex justify-center py-6 px-4">
-                <div 
-                  className="bg-white shadow-xl rounded-sm border border-border overflow-hidden"
-                  style={{ 
-                    width: `${Math.min(800, 600 * (docZoom / 100))}px`,
-                    transform: `scale(${docZoom / 100})`,
-                    transformOrigin: 'top center'
-                  }}
-                >
-                  {/* Page Content */}
-                  <div className="p-10 min-h-[800px]">
-                    {/* Page Header */}
-                    <div className="flex items-center justify-between mb-6 pb-4 border-b border-border/50">
-                      <div className="flex items-center gap-2">
-                        <span className={cn(
-                          "text-xs px-2 py-1 rounded font-bold",
-                          config.bg, config.text
-                        )}>
-                          {activeTab}
-                        </span>
-                        <span className="text-xs text-muted-foreground">Halaman {docCurrentPage}</span>
-                      </div>
-                      <span className="text-xs text-muted-foreground font-mono">{docConfig.code}</span>
-                    </div>
-
-                    {/* Document Text Content */}
-                    <pre 
-                      className="font-mono text-sm leading-relaxed text-foreground whitespace-pre-wrap break-words"
-                      style={{ fontSize: `${12 * (docZoom / 100)}px` }}
-                    >
-                      {currentDocPage?.content || 'Halaman tidak ditemukan'}
-                    </pre>
-                  </div>
-
-                  {/* Page Footer */}
-                  <div className="px-10 py-4 border-t border-border/50 bg-muted/20">
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span>{docConfig.fileName}</span>
-                      <span>Halaman {docCurrentPage} dari {docConfig.totalPages}</span>
-                    </div>
-                  </div>
+            {/* Document Content */}
+            <ScrollArea className="flex-1">
+              <div className="p-6" style={{ fontSize: `${docZoom}%` }}>
+                <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-lg p-8 min-h-[80vh]">
+                  <pre className="whitespace-pre-wrap font-mono text-sm text-slate-800 leading-relaxed">
+                    {currentDocPage.content}
+                  </pre>
                 </div>
               </div>
             </ScrollArea>
-
-            {/* Quick Page Navigation */}
-            <div className="px-4 py-3 border-t border-border bg-muted/20">
-              <div className="flex items-center gap-2 overflow-x-auto">
-                <span className="text-xs text-muted-foreground shrink-0">Halaman:</span>
-                {docConfig.pages.map((page) => (
-                  <button
-                    key={page.page}
-                    onClick={() => setDocCurrentPage(page.page)}
-                    className={cn(
-                      "shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all",
-                      docCurrentPage === page.page
-                        ? cn(config.activeBg, config.activeText)
-                        : "bg-card border border-border hover:border-primary/30 text-muted-foreground hover:text-foreground"
-                    )}
-                  >
-                    {page.page}. {page.title}
-                  </button>
-                ))}
-              </div>
-            </div>
           </div>
         )}
 
         {/* Ontology JSON Panel */}
         {drawerMode === 'ontologi' && (
-          <div className="w-[480px] bg-card border-l border-border shadow-xl flex flex-col animate-in slide-in-from-right duration-200">
+          <div className="w-[380px] bg-card border-l border-border shadow-xl flex flex-col animate-in slide-in-from-right duration-300">
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-amber-500/10">
-                  <Braces className="w-4 h-4 text-amber-600" />
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Braces className="w-4 h-4 text-primary" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-foreground">Raw Ontology JSON</p>
-                  <p className="text-[10px] text-muted-foreground">Struktur data klasifikasi AI</p>
+                  <p className="text-sm font-semibold text-foreground">Ontologi JSON</p>
+                  <p className="text-[10px] text-muted-foreground">Raw classification data</p>
                 </div>
               </div>
               <button
@@ -1128,410 +1073,494 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
         
         {/* Main Analysis Panel */}
         <div className="w-[520px] min-w-[420px] bg-card border-l border-border shadow-lg flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-card">
-          <div className="flex items-center gap-3">
-            <div className={`w-9 h-9 rounded-lg ${config.iconBg} flex items-center justify-center`}>
-              <FileText className={`w-5 h-5 ${config.text}`} />
-            </div>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-primary" />
-                <span className="text-xs font-medium text-muted-foreground">Detail Analisis</span>
-              </div>
-              <p className="text-sm font-semibold text-foreground">{docConfig.title}</p>
-            </div>
-          </div>
-          {/* Close Button */}
-          <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-lg hover:bg-muted flex items-center justify-center transition-colors"
-          >
-            <X className="w-4 h-4 text-muted-foreground" />
-          </button>
-        </div>
-
-        {/* Segmented Tabs - Order: TBC → GR → PSPP with bold colors */}
-        <div className="px-4 py-3 border-b border-border bg-muted/30">
-          <div className="flex gap-1 p-1 bg-muted/50 rounded-xl">
-            {(['TBC', 'GR', 'PSPP'] as const).map((type) => {
-              const isActive = activeTab === type;
-              const isLabelActive = activeLabels.includes(type);
-              const typeConfig = labelConfig[type];
-              
-              return (
-                <Tooltip key={type}>
-                  <TooltipTrigger asChild>
-                    <button
-                      onClick={() => {
-                        setActiveTab(type);
-                        setShowExpandedAnalysis(false);
-                        setCurrentPage(0);
-                      }}
-                      className={cn(
-                        "flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-sm font-bold transition-all duration-200",
-                        isActive 
-                          ? `${typeConfig.activeBg} ${typeConfig.activeText} shadow-md`
-                          : isLabelActive
-                            ? `${typeConfig.bg} ${typeConfig.text} border ${typeConfig.border} hover:opacity-80`
-                            : "bg-muted/80 text-muted-foreground/60 hover:text-muted-foreground hover:bg-muted border border-transparent"
-                      )}
-                    >
-                      {!isLabelActive && (
-                        <XCircle className="w-3.5 h-3.5 text-destructive/60" />
-                      )}
-                      {isLabelActive && isActive && (
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                      )}
-                      {type}
-                      {!isLabelActive && !isActive && (
-                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-destructive/10 text-destructive font-bold ml-0.5">FALSE</span>
-                      )}
-                    </button>
-                  </TooltipTrigger>
-                  {!isLabelActive && (
-                    <TooltipContent side="bottom" className="max-w-[200px]">
-                      <p className="text-xs">
-                        {type === 'GR' 
-                          ? "Tidak ada rule GR yang cocok pada laporan ini."
-                          : `Tidak ditemukan kecocokan ${type} pada laporan ini.`
-                        }
-                      </p>
-                    </TooltipContent>
-                  )}
-                </Tooltip>
-              );
-            })}
-          </div>
-          
-          {/* Dokumen & Ontologi Toggle Buttons */}
-          <div className="flex gap-2 mt-3">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={() => setDrawerMode(drawerMode === 'dokumen' ? 'none' : 'dokumen')}
-                  className={cn(
-                    "flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all border",
-                    drawerMode === 'dokumen' 
-                      ? "bg-primary text-primary-foreground border-primary shadow-sm" 
-                      : "bg-card hover:bg-muted text-muted-foreground border-border hover:border-primary/30"
-                  )}
-                >
-                  <BookOpen className="w-4 h-4" />
-                  <span className="font-semibold">Aa</span>
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                <p className="text-xs">{drawerMode === 'dokumen' ? 'Dokumen (open)' : 'Dokumen'}</p>
-              </TooltipContent>
-            </Tooltip>
-            
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={() => setDrawerMode(drawerMode === 'ontologi' ? 'none' : 'ontologi')}
-                  className={cn(
-                    "flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all border",
-                    drawerMode === 'ontologi' 
-                      ? "bg-primary text-primary-foreground border-primary shadow-sm" 
-                      : "bg-card hover:bg-muted text-muted-foreground border-border hover:border-primary/30"
-                  )}
-                >
-                  <Braces className="w-4 h-4" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                <p className="text-xs">{drawerMode === 'ontologi' ? 'Ontologi (open)' : 'Ontologi (JSON)'}</p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-        </div>
-
-        {/* FALSE Status Banner - Show when current tab is FALSE */}
-        {!isCurrentActive && (
-          <div className="px-4 py-2 bg-destructive/10 border-b border-destructive/20">
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-destructive/15 border border-destructive/30">
-                <XCircle className="w-3.5 h-3.5 text-destructive" />
-                <span className="text-xs font-bold text-destructive">FALSE</span>
-              </div>
-              <span className="text-xs text-muted-foreground">
-                Status: Tidak memenuhi kriteria {activeTab}
-              </span>
-            </div>
-          </div>
-        )}
-
-
-        {/* Content Area */}
-        <ScrollArea className="flex-1">
-          <div className="px-4 py-4">
-            {analysisData && (
-              /* Detail Analysis Content - Always show, even for FALSE states */
-              <div className="space-y-4 animate-in fade-in slide-in-from-right-2 duration-200">
-                {/* Main Analysis Card */}
-                <div className={`rounded-xl border ${isCurrentActive ? config.border : 'border-border'} overflow-hidden`}>
-                  {/* Card Header */}
-                  <div className={`px-4 py-3 ${isCurrentActive ? config.accent : 'bg-muted/30'} border-b ${isCurrentActive ? config.border : 'border-border'}`}>
-                    <div className="flex items-center gap-3">
-                      <div className={`w-9 h-9 rounded-lg ${isCurrentActive ? config.iconBg : 'bg-muted/50'} flex items-center justify-center`}>
-                        <Target className={`w-4 h-4 ${isCurrentActive ? config.text : 'text-muted-foreground'}`} />
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <h4 className="text-sm font-semibold text-foreground">
-                            {analysisData.category}
-                          </h4>
-                          {!isCurrentActive && (
-                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-destructive/10 text-destructive font-bold">FALSE</span>
-                          )}
-                        </div>
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          Hasil klasifikasi otomatis oleh AI
-                        </p>
-                      </div>
-                    </div>
+          {/* SECTION 1: HEADER */}
+          <div className="px-4 py-3 border-b border-border bg-card">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center", config.activeBg)}>
+                  <span className={cn("text-base font-bold", config.activeText)}>T</span>
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-base font-semibold text-foreground">Detail Analisis</h2>
                   </div>
-                  
-                  {/* Card Body */}
-                  <div className="p-5 space-y-4 bg-card">
-                    {/* Label */}
-                    <div className="flex items-start gap-4">
-                      <div className="w-8 h-8 rounded-lg bg-muted/50 flex items-center justify-center shrink-0 mt-0.5">
-                        <span className="text-sm font-bold text-muted-foreground">L</span>
-                      </div>
-                      <div className="flex-1">
-                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Label</span>
-                        <div className="flex items-center gap-2 mt-1">
-                          <p className="text-base font-bold text-foreground">
-                            {activeTab}
-                          </p>
-                          {!isCurrentActive && (
-                            <span className="text-[10px] px-2 py-0.5 rounded bg-muted text-muted-foreground font-medium">Not Matched</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
+                  <p className="text-sm text-muted-foreground">{docConfig.title}</p>
+                </div>
+              </div>
+              <button
+                onClick={onClose}
+                className="w-8 h-8 rounded-lg hover:bg-muted flex items-center justify-center transition-colors"
+              >
+                <X className="w-4 h-4 text-muted-foreground" />
+              </button>
+            </div>
+            
+            {/* Context line */}
+            <div className="flex items-center gap-2 mt-3 text-xs text-muted-foreground">
+              <span>{docConfig.subtitle}</span>
+              <span>•</span>
+              <div className="flex items-center gap-1">
+                {getSourceIcon(currentCandidate?.source || 'Foto')}
+                <span>{currentCandidate?.source || 'Foto'}</span>
+              </div>
+            </div>
 
-                    <div className="h-px bg-border" />
+            {/* Status Chips (segmented) */}
+            <div className="flex gap-2 mt-3">
+              {(['TBC', 'GR', 'PSPP'] as const).map((type) => {
+                const isActive = activeTab === type;
+                const isLabelActive = activeLabels.includes(type);
+                const typeConfig = labelConfig[type];
+                
+                return (
+                  <button
+                    key={type}
+                    onClick={() => {
+                      setActiveTab(type);
+                      setSelectedCandidate(null);
+                    }}
+                    className={cn(
+                      "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all",
+                      isActive 
+                        ? `${typeConfig.activeBg} ${typeConfig.activeText}`
+                        : isLabelActive
+                          ? `${typeConfig.bg} ${typeConfig.text} border ${typeConfig.border}`
+                          : "bg-muted text-muted-foreground border border-border"
+                    )}
+                  >
+                    {isLabelActive && isActive && (
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                    )}
+                    {!isLabelActive && (
+                      <X className="w-3 h-3" />
+                    )}
+                    {type}
+                    {!isLabelActive && (
+                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-destructive/10 text-destructive font-bold">FALSE</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
 
-                    {/* Tipe Deviasi */}
-                    <div className="flex items-start gap-4">
-                      <div className="w-8 h-8 rounded-lg bg-muted/50 flex items-center justify-center shrink-0 mt-0.5">
-                        <Eye className="w-4 h-4 text-muted-foreground" />
+          {/* Toolbar: Dokumen & Ontologi buttons */}
+          <div className="px-4 py-2 border-b border-border bg-muted/20">
+            <div className="flex gap-2">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => setDrawerMode(drawerMode === 'dokumen' ? 'none' : 'dokumen')}
+                    className={cn(
+                      "flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all border",
+                      drawerMode === 'dokumen' 
+                        ? "bg-primary text-primary-foreground border-primary shadow-sm" 
+                        : "bg-card hover:bg-muted text-muted-foreground border-border hover:border-primary/30"
+                    )}
+                  >
+                    <BookOpen className="w-4 h-4" />
+                    <span className="font-semibold">Aa</span>
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  <p className="text-xs">{drawerMode === 'dokumen' ? 'Dokumen (open)' : 'Dokumen'}</p>
+                </TooltipContent>
+              </Tooltip>
+              
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => setDrawerMode(drawerMode === 'ontologi' ? 'none' : 'ontologi')}
+                    className={cn(
+                      "flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all border",
+                      drawerMode === 'ontologi' 
+                        ? "bg-primary text-primary-foreground border-primary shadow-sm" 
+                        : "bg-card hover:bg-muted text-muted-foreground border-border hover:border-primary/30"
+                    )}
+                  >
+                    <Braces className="w-4 h-4" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  <p className="text-xs">{drawerMode === 'ontologi' ? 'Ontologi (open)' : 'Ontologi (JSON)'}</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          </div>
+
+          {/* Content Area */}
+          <ScrollArea className="flex-1">
+            <div className="px-4 py-4 space-y-4">
+              
+              {/* SECTION 2: PRIMARY TBC CARD */}
+              {currentCandidate && (
+                <div className={cn(
+                  "rounded-xl border overflow-hidden",
+                  isCurrentActive ? config.border : "border-border"
+                )}>
+                  {/* Card Header */}
+                  <div className={cn(
+                    "px-4 py-3 border-b",
+                    isCurrentActive ? `${config.accent} ${config.border}` : "bg-muted/30 border-border"
+                  )}>
+                    <div className="flex items-start gap-3">
+                      <div className={cn(
+                        "w-9 h-9 rounded-lg flex items-center justify-center shrink-0",
+                        isCurrentActive ? "bg-amber-500/20" : "bg-muted"
+                      )}>
+                        <AlertTriangle className={cn(
+                          "w-5 h-5",
+                          isCurrentActive ? "text-amber-500" : "text-muted-foreground"
+                        )} />
                       </div>
-                      <div className="flex-1">
-                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Tipe Deviasi</span>
-                        <p className="text-base font-semibold text-foreground mt-1">
-                          {analysisData.deviationType}
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-sm font-semibold text-foreground">
+                          Deviasi {docConfig.subtitle?.toLowerCase()}
+                        </h4>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          Tipe: {currentCandidate.deviationType}
                         </p>
-                      </div>
-                    </div>
-
-                    <div className="h-px bg-border" />
-
-                    {/* Note Deviasi */}
-                    <div className="flex items-start gap-4">
-                      <div className="w-8 h-8 rounded-lg bg-muted/50 flex items-center justify-center shrink-0 mt-0.5">
-                        <Info className="w-4 h-4 text-muted-foreground" />
-                      </div>
-                      <div className="flex-1">
-                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Note Deviasi</span>
-                        <p className="text-sm text-foreground mt-1 leading-relaxed">
-                          {analysisData.deviationNotes}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="h-px bg-border" />
-
-                    {/* Alasan AI */}
-                    <div className="flex items-start gap-4">
-                      <div className={`w-8 h-8 rounded-lg ${isCurrentActive ? 'bg-primary/10' : 'bg-muted/50'} flex items-center justify-center shrink-0 mt-0.5`}>
-                        <Brain className={`w-4 h-4 ${isCurrentActive ? 'text-primary' : 'text-muted-foreground'}`} />
-                      </div>
-                      <div className="flex-1">
-                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Alasan AI</span>
-                        <div className={`mt-2 p-4 rounded-xl border ${isCurrentActive ? 'bg-primary/5 border-primary/10' : 'bg-muted/30 border-border'}`}>
-                          <p className="text-sm text-foreground leading-relaxed">
-                            {analysisData.reason}
-                          </p>
-                        </div>
+                        {/* Relevance Score Badge */}
+                        {isCurrentActive && (
+                          <div className="flex items-center gap-2 mt-2">
+                            <span className={cn(
+                              "text-[10px] px-2 py-1 rounded-md font-semibold",
+                              currentCandidate.isPrimary ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+                            )}>
+                              {currentCandidate.isPrimary ? "Primary Match" : "Candidate"} • {currentCandidate.relevance}% relevance
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
                 </div>
+              )}
 
-                {/* Quick Navigation for FALSE states */}
-                {!isCurrentActive && activeLabels.length > 0 && (
-                  <div className="p-3 bg-muted/30 rounded-xl border border-border">
-                    <p className="text-xs text-muted-foreground mb-2">Lihat kategori yang terdeteksi:</p>
-                    <div className="flex gap-2 flex-wrap">
-                      {activeLabels.map(label => {
-                        const lConfig = labelConfig[label];
-                        return (
-                          <Button
-                            key={label}
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setActiveTab(label)}
-                            className={cn(
-                              "gap-1.5 h-8 text-xs font-bold",
-                              lConfig.bg, lConfig.text, `border ${lConfig.border}`
-                            )}
-                          >
-                            <CheckCircle2 className="w-3.5 h-3.5" />
-                            {label}
-                            <ArrowRight className="w-3 h-3" />
-                          </Button>
-                        );
-                      })}
-                    </div>
+              {/* SECTION 3: DEVIATION META */}
+              <div className="space-y-2">
+                {/* Tipe Deviasi */}
+                <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg border border-border">
+                  <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                    <Target className="w-4 h-4 text-muted-foreground" />
                   </div>
-                )}
-
-                {/* Expand Analysis Accordion */}
-                <Button
-                  variant="outline"
-                  onClick={() => setShowExpandedAnalysis(!showExpandedAnalysis)}
-                  className="w-full h-11 justify-between rounded-xl border-dashed hover:border-primary hover:bg-primary/5 transition-all group"
-                >
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                    <span className="text-sm font-medium">Expand Full Analysis</span>
+                  <div className="flex-1 min-w-0">
+                    <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Tipe Deviasi</span>
+                    <p className="text-sm font-medium text-foreground truncate">
+                      {currentCandidate?.deviationType || "Tidak teridentifikasi"}
+                    </p>
                   </div>
-                  {showExpandedAnalysis ? (
-                    <ChevronUp className="w-4 h-4 text-muted-foreground" />
-                  ) : (
-                    <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                  )}
-                </Button>
+                </div>
 
-                {/* Expanded Analysis Content */}
-                {showExpandedAnalysis && (
-                  <div className="space-y-3 animate-in slide-in-from-top-2 duration-300">
-                    {/* Observed Facts */}
-                    <div className="rounded-xl border border-border overflow-hidden">
-                      <div className="px-3 py-2 bg-muted/30 border-b border-border">
-                        <h4 className="text-xs font-semibold text-foreground uppercase tracking-wide flex items-center gap-2">
-                          <Eye className="w-3.5 h-3.5 text-primary" />
-                          Observed Facts
-                        </h4>
+                {/* Sumber Bukti */}
+                <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg border border-border">
+                  <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                    {getSourceIcon(currentCandidate?.source || 'Foto')}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Sumber Bukti</span>
+                    <p className="text-sm font-medium text-foreground">
+                      {currentCandidate?.source || "Foto"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Deskripsi */}
+                <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg border border-border">
+                  <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                    <FileText className="w-4 h-4 text-muted-foreground" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Deskripsi</span>
+                    <p className="text-xs text-foreground leading-relaxed">
+                      Deskripsi dan foto konsisten, sinyal deviasi dan objek cocok dengan {activeTab}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* SECTION 4: TBC CANDIDATE LIST */}
+              {activeTab === 'TBC' && isCurrentActive && (
+                <Collapsible open={candidateListOpen} onOpenChange={setCandidateListOpen}>
+                  <CollapsibleTrigger className="flex items-center justify-between w-full p-3 bg-muted/30 rounded-lg border border-border hover:bg-muted/50 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <Users className="w-4 h-4 text-primary" />
                       </div>
-                      <div className="p-3">
-                        <ul className="space-y-2">
-                          {analysisData.observedFacts.map((fact, idx) => (
-                            <li key={idx} className="flex items-start gap-2 text-xs text-foreground">
-                              <span className="w-4 h-4 rounded-full bg-primary/10 text-primary text-[10px] font-medium flex items-center justify-center shrink-0 mt-0.5">
-                                {idx + 1}
+                      <span className="text-sm font-semibold text-foreground">TBC Candidate</span>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary text-primary-foreground font-bold">
+                        {tbcCandidates.length}
+                      </span>
+                    </div>
+                    <ChevronRight className={cn(
+                      "w-4 h-4 text-muted-foreground transition-transform",
+                      candidateListOpen && "rotate-90"
+                    )} />
+                  </CollapsibleTrigger>
+                  
+                  <CollapsibleContent className="mt-2 space-y-2">
+                    {tbcCandidates.map((candidate) => (
+                      <button
+                        key={candidate.id}
+                        onClick={() => setSelectedCandidate(candidate.id === selectedCandidate ? null : candidate.id)}
+                        className={cn(
+                          "w-full flex items-center justify-between p-3 rounded-lg border transition-all text-left",
+                          selectedCandidate === candidate.id || (selectedCandidate === null && candidate.isPrimary)
+                            ? "bg-primary/5 border-primary/30"
+                            : "bg-card border-border hover:bg-muted/30"
+                        )}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={cn(
+                            "w-7 h-7 rounded-lg flex items-center justify-center shrink-0",
+                            candidate.isPrimary ? "bg-amber-500/20" : "bg-muted"
+                          )}>
+                            <AlertTriangle className={cn(
+                              "w-4 h-4",
+                              candidate.isPrimary ? "text-amber-500" : "text-muted-foreground"
+                            )} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-foreground truncate">{candidate.title}</p>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <span className={cn(
+                                "text-[10px] px-1.5 py-0.5 rounded font-semibold",
+                                candidate.relevance >= 80 ? "bg-emerald-500/10 text-emerald-600" :
+                                candidate.relevance >= 70 ? "bg-amber-500/10 text-amber-600" :
+                                "bg-muted text-muted-foreground"
+                              )}>
+                                {candidate.relevance}% match
                               </span>
-                              {fact}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
+                              <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                                {getSourceIcon(candidate.source)}
+                                {candidate.source}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
+                      </button>
+                    ))}
+                  </CollapsibleContent>
+                </Collapsible>
+              )}
 
-                    {/* Extracted Context */}
-                    <div className="rounded-xl border border-border overflow-hidden">
-                      <div className="px-3 py-2 bg-muted/30 border-b border-border">
-                        <h4 className="text-xs font-semibold text-foreground uppercase tracking-wide flex items-center gap-2">
-                          <Brain className="w-3.5 h-3.5 text-primary" />
-                          Extracted Context
-                        </h4>
-                      </div>
-                      <div className="p-3 grid grid-cols-2 gap-2">
-                        <div className="p-2 bg-muted/20 rounded-lg">
-                          <span className="text-[10px] font-medium text-muted-foreground block mb-0.5">Actors</span>
-                          <span className="text-xs text-foreground">{analysisData.extractedContext.actors.join(", ")}</span>
-                        </div>
-                        <div className="p-2 bg-muted/20 rounded-lg">
-                          <span className="text-[10px] font-medium text-muted-foreground block mb-0.5">Objects</span>
-                          <span className="text-xs text-foreground">{analysisData.extractedContext.objects.join(", ")}</span>
-                        </div>
-                        <div className="p-2 bg-muted/20 rounded-lg">
-                          <span className="text-[10px] font-medium text-muted-foreground block mb-0.5">Activities</span>
-                          <span className="text-xs text-foreground">{analysisData.extractedContext.activities.join(", ")}</span>
-                        </div>
-                        <div className="p-2 bg-muted/20 rounded-lg">
-                          <span className="text-[10px] font-medium text-muted-foreground block mb-0.5">Work Context</span>
-                          <span className="text-xs text-foreground">{analysisData.extractedContext.workContext}</span>
-                        </div>
-                      </div>
+              {/* SECTION 6: AI REASONING */}
+              {currentCandidate && isCurrentActive && (
+                <div className="rounded-xl border border-amber-500/30 overflow-hidden">
+                  <div className="px-4 py-3 bg-amber-500/10 border-b border-amber-500/20">
+                    <div className="flex items-center gap-2">
+                      <Brain className="w-4 h-4 text-amber-600" />
+                      <h4 className="text-sm font-semibold text-foreground">ALASAN AI</h4>
                     </div>
+                  </div>
+                  <div className="p-4 bg-amber-50/50">
+                    <ul className="space-y-2">
+                      {currentCandidate.aiReasoning.map((reason, idx) => (
+                        <li key={idx} className="flex items-start gap-2 text-sm text-foreground">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0 mt-1.5" />
+                          {reason}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              )}
 
-                    {/* Assumptions */}
-                    <div className="rounded-xl border border-border overflow-hidden">
-                      <div className="px-3 py-2 bg-amber-500/5 border-b border-amber-500/20">
-                        <h4 className="text-xs font-semibold text-foreground uppercase tracking-wide flex items-center gap-2">
-                          <HelpCircle className="w-3.5 h-3.5 text-amber-500" />
-                          Assumptions & Unknowns
-                        </h4>
-                      </div>
-                      <div className="p-3">
-                        <ul className="space-y-2">
-                          {analysisData.assumptions.map((item, idx) => (
-                            <li key={idx} className="flex items-start gap-2 text-xs text-muted-foreground">
-                              <AlertCircle className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
-                              {item}
-                            </li>
-                          ))}
-                        </ul>
+              {/* FALSE state message */}
+              {!isCurrentActive && (
+                <div className="p-4 bg-muted/30 rounded-xl border border-border text-center">
+                  <XCircle className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+                  <p className="text-sm font-medium text-foreground">Tidak Terdeteksi</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    AI tidak menemukan kecocokan {activeTab} yang relevan dengan temuan ini.
+                  </p>
+                  
+                  {/* Quick navigation to active labels */}
+                  {activeLabels.length > 0 && (
+                    <div className="mt-4">
+                      <p className="text-xs text-muted-foreground mb-2">Lihat kategori yang terdeteksi:</p>
+                      <div className="flex gap-2 justify-center flex-wrap">
+                        {activeLabels.map(label => {
+                          const lConfig = labelConfig[label];
+                          return (
+                            <Button
+                              key={label}
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setActiveTab(label)}
+                              className={cn(
+                                "gap-1.5 h-7 text-xs font-bold",
+                                lConfig.bg, lConfig.text, `border ${lConfig.border}`
+                              )}
+                            >
+                              <CheckCircle2 className="w-3 h-3" />
+                              {label}
+                            </Button>
+                          );
+                        })}
                       </div>
                     </div>
+                  )}
+                </div>
+              )}
+
+              {/* SECTION 7: OBSERVED FACT (Collapsible) */}
+              {isCurrentActive && currentCandidate && (
+                <Collapsible open={observedFactOpen} onOpenChange={setObservedFactOpen}>
+                  <CollapsibleTrigger className="flex items-center justify-between w-full p-3 bg-muted/30 rounded-lg border border-border hover:bg-muted/50 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center">
+                        <Eye className="w-4 h-4 text-muted-foreground" />
+                      </div>
+                      <span className="text-sm font-semibold text-foreground">Observed Fact</span>
+                    </div>
+                    <ChevronDown className={cn(
+                      "w-4 h-4 text-muted-foreground transition-transform",
+                      observedFactOpen && "rotate-180"
+                    )} />
+                  </CollapsibleTrigger>
+                  
+                  <CollapsibleContent className="mt-2 space-y-2 pl-4">
+                    {/* Extracted Content */}
+                    <Collapsible open={extractedContentOpen} onOpenChange={setExtractedContentOpen}>
+                      <CollapsibleTrigger className="flex items-center justify-between w-full p-2.5 bg-card rounded-lg border border-border hover:bg-muted/30 transition-colors">
+                        <div className="flex items-center gap-2">
+                          <Target className="w-3.5 h-3.5 text-muted-foreground" />
+                          <span className="text-xs font-medium text-foreground">Extracted Content</span>
+                        </div>
+                        <ChevronDown className={cn(
+                          "w-3.5 h-3.5 text-muted-foreground transition-transform",
+                          extractedContentOpen && "rotate-180"
+                        )} />
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="mt-1.5 p-3 bg-card rounded-lg border border-border">
+                        <div className="space-y-2 text-xs">
+                          <div>
+                            <span className="font-medium text-muted-foreground">Objects:</span>
+                            <span className="ml-2 text-foreground">{currentCandidate.observedFact.extractedContent.objects.join(", ")}</span>
+                          </div>
+                          <div>
+                            <span className="font-medium text-muted-foreground">Actions:</span>
+                            <span className="ml-2 text-foreground">{currentCandidate.observedFact.extractedContent.actions.join(", ")}</span>
+                          </div>
+                          <div>
+                            <span className="font-medium text-muted-foreground">Scene Context:</span>
+                            <span className="ml-2 text-foreground">{currentCandidate.observedFact.extractedContent.sceneContext}</span>
+                          </div>
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
 
                     {/* Evidence Matching */}
-                    <div className="rounded-xl border border-border overflow-hidden">
-                      <div className="px-3 py-2 bg-muted/30 border-b border-border">
-                        <h4 className="text-xs font-semibold text-foreground uppercase tracking-wide flex items-center gap-2">
-                          <Target className="w-3.5 h-3.5 text-primary" />
-                          Evidence Matching
-                        </h4>
-                      </div>
-                      <div className="p-3 grid grid-cols-4 gap-2">
-                        {[
-                          { label: "Actor", match: analysisData.evidence.actorMatch },
-                          { label: "Object", match: analysisData.evidence.objectMatch },
-                          { label: "Activity", match: analysisData.evidence.activityMatch },
-                          { label: "Context", match: analysisData.evidence.contextMatch }
-                        ].map((item, idx) => (
-                          <div key={idx} className="p-2 bg-muted/20 rounded-lg text-center">
-                            <div className="flex justify-center mb-1">
-                              <MatchIcon match={item.match} />
-                            </div>
-                            <span className="text-[10px] font-medium text-muted-foreground">{item.label}</span>
+                    <Collapsible open={evidenceMatchingOpen} onOpenChange={setEvidenceMatchingOpen}>
+                      <CollapsibleTrigger className="flex items-center justify-between w-full p-2.5 bg-card rounded-lg border border-border hover:bg-muted/30 transition-colors">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-muted-foreground" />
+                          <span className="text-xs font-medium text-foreground">Evidence Matching</span>
+                        </div>
+                        <ChevronDown className={cn(
+                          "w-3.5 h-3.5 text-muted-foreground transition-transform",
+                          evidenceMatchingOpen && "rotate-180"
+                        )} />
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="mt-1.5 p-3 bg-card rounded-lg border border-border">
+                        <div className="space-y-2 text-xs">
+                          <div className="flex items-center justify-between">
+                            <span className="font-medium text-muted-foreground">Image ↔ Text:</span>
+                            <span className={cn(
+                              "px-1.5 py-0.5 rounded text-[10px] font-medium",
+                              currentCandidate.observedFact.evidenceMatching.imageTextConsistency === 'Match' 
+                                ? "bg-emerald-500/10 text-emerald-600" 
+                                : "bg-amber-500/10 text-amber-600"
+                            )}>
+                              {currentCandidate.observedFact.evidenceMatching.imageTextConsistency}
+                            </span>
                           </div>
-                        ))}
-                      </div>
-                    </div>
+                          <div className="flex items-center justify-between">
+                            <span className="font-medium text-muted-foreground">Object ↔ Deviation:</span>
+                            <span className={cn(
+                              "px-1.5 py-0.5 rounded text-[10px] font-medium",
+                              currentCandidate.observedFact.evidenceMatching.objectDeviationMapping === 'Match'
+                                ? "bg-emerald-500/10 text-emerald-600"
+                                : "bg-amber-500/10 text-amber-600"
+                            )}>
+                              {currentCandidate.observedFact.evidenceMatching.objectDeviationMapping}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="font-medium text-muted-foreground">Notes:</span>
+                            <span className="ml-2 text-foreground">{currentCandidate.observedFact.evidenceMatching.confidenceNotes}</span>
+                          </div>
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  </CollapsibleContent>
+                </Collapsible>
+              )}
 
-                    {/* Recommendations */}
-                    <div className="rounded-xl border border-border overflow-hidden">
-                      <div className="px-3 py-2 bg-emerald-500/5 border-b border-emerald-500/20">
-                        <h4 className="text-xs font-semibold text-foreground uppercase tracking-wide flex items-center gap-2">
-                          <ArrowRight className="w-3.5 h-3.5 text-emerald-500" />
-                          Recommended Next Steps
-                        </h4>
+              {/* SECTION 8: ASSUMPTIONS & UNKNOWNS (Collapsible) */}
+              {isCurrentActive && currentCandidate && (
+                <Collapsible open={assumptionsOpen} onOpenChange={setAssumptionsOpen}>
+                  <CollapsibleTrigger className="flex items-center justify-between w-full p-3 bg-muted/30 rounded-lg border border-border hover:bg-muted/50 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                        <AlertTriangle className="w-4 h-4 text-amber-500" />
                       </div>
-                      <div className="p-3">
-                        <ul className="space-y-2">
-                          {analysisData.recommendations.map((rec, idx) => (
-                            <li key={idx} className="flex items-start gap-2 text-xs text-foreground p-2 bg-muted/20 rounded-lg">
-                              <span className="w-4 h-4 rounded-full bg-emerald-500/10 text-emerald-600 text-[10px] font-bold flex items-center justify-center shrink-0">
-                                {idx + 1}
-                              </span>
-                              {rec}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
+                      <span className="text-sm font-semibold text-foreground">Assumptions & Unknowns</span>
                     </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </ScrollArea>
+                    <ChevronDown className={cn(
+                      "w-4 h-4 text-muted-foreground transition-transform",
+                      assumptionsOpen && "rotate-180"
+                    )} />
+                  </CollapsibleTrigger>
+                  
+                  <CollapsibleContent className="mt-2 p-3 bg-card rounded-lg border border-border">
+                    <ul className="space-y-2">
+                      {currentCandidate.assumptions.map((item, idx) => (
+                        <li key={idx} className="flex items-start gap-2 text-xs text-muted-foreground">
+                          <AlertCircle className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </CollapsibleContent>
+                </Collapsible>
+              )}
+
+              {/* SECTION 9: RECOMMENDED NEXT STEPS (Collapsible) */}
+              {isCurrentActive && currentCandidate && (
+                <Collapsible open={recommendationsOpen} onOpenChange={setRecommendationsOpen}>
+                  <CollapsibleTrigger className="flex items-center justify-between w-full p-3 bg-muted/30 rounded-lg border border-border hover:bg-muted/50 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                        <ArrowRight className="w-4 h-4 text-emerald-500" />
+                      </div>
+                      <span className="text-sm font-semibold text-foreground">Recommended Next Steps</span>
+                    </div>
+                    <ChevronDown className={cn(
+                      "w-4 h-4 text-muted-foreground transition-transform",
+                      recommendationsOpen && "rotate-180"
+                    )} />
+                  </CollapsibleTrigger>
+                  
+                  <CollapsibleContent className="mt-2 p-3 bg-card rounded-lg border border-border">
+                    <ul className="space-y-2">
+                      {currentCandidate.recommendations.map((rec, idx) => (
+                        <li key={idx} className="flex items-start gap-2 text-xs text-foreground p-2 bg-muted/20 rounded-lg">
+                          <span className="w-4 h-4 rounded-full bg-emerald-500/10 text-emerald-600 text-[10px] font-bold flex items-center justify-center shrink-0">
+                            {idx + 1}
+                          </span>
+                          {rec}
+                        </li>
+                      ))}
+                    </ul>
+                  </CollapsibleContent>
+                </Collapsible>
+              )}
+
+            </div>
+          </ScrollArea>
         </div>
       </div>
     </TooltipProvider>
