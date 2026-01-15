@@ -644,7 +644,7 @@ CATATAN PENTING:
 
 const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialTab }: RightAnalysisPanelProps) => {
   const [activeTab, setActiveTab] = useState<'TBC' | 'GR' | 'PSPP'>(initialTab || 'TBC');
-  const [drawerMode, setDrawerMode] = useState<'none' | 'dokumen' | 'ontologi'>('none');
+  const [drawerMode, setDrawerMode] = useState<'none' | 'dokumen' | 'ontologi' | 'tbc' | 'vlm'>('none');
   const [jsonExpanded, setJsonExpanded] = useState(false);
   const [docCurrentPage, setDocCurrentPage] = useState(1);
   const [docZoom, setDocZoom] = useState(100);
@@ -652,13 +652,15 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
   const [highlightRelevant, setHighlightRelevant] = useState(true);
   
   // Collapsible states
-  const [candidatePanelOpen, setCandidatePanelOpen] = useState(false);
   const [selectedCandidate, setSelectedCandidate] = useState<number | null>(null);
   const [observedFactOpen, setObservedFactOpen] = useState(false);
   const [extractedContentOpen, setExtractedContentOpen] = useState(false);
   const [evidenceMatchingOpen, setEvidenceMatchingOpen] = useState(false);
   const [assumptionsOpen, setAssumptionsOpen] = useState(false);
   const [recommendationsOpen, setRecommendationsOpen] = useState(false);
+  
+  // VLM inspection state
+  const [vlmZoom, setVlmZoom] = useState(1);
 
   // Update active tab when initialTab changes
   useEffect(() => {
@@ -1245,8 +1247,13 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
               {/* SECTION 4: TBC CANDIDATE ROW - Opens Side Panel */}
               {activeTab === 'TBC' && isCurrentActive && (
                 <button
-                  onClick={() => setCandidatePanelOpen(true)}
-                  className="flex items-center justify-between w-full p-3 bg-muted/30 rounded-lg border border-border hover:bg-muted/50 transition-colors"
+                  onClick={() => setDrawerMode(drawerMode === 'tbc' ? 'none' : 'tbc')}
+                  className={cn(
+                    "flex items-center justify-between w-full p-3 rounded-lg border transition-colors",
+                    drawerMode === 'tbc' 
+                      ? "bg-primary/10 border-primary/30" 
+                      : "bg-muted/30 border-border hover:bg-muted/50"
+                  )}
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -1257,7 +1264,10 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
                       {tbcCandidates.length}
                     </span>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                  <ChevronRight className={cn(
+                    "w-4 h-4 text-muted-foreground transition-transform",
+                    drawerMode === 'tbc' && "rotate-180"
+                  )} />
                 </button>
               )}
 
@@ -1411,6 +1421,29 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
                         </div>
                       </CollapsibleContent>
                     </Collapsible>
+
+                    {/* VLM Inspection Button */}
+                    <button
+                      onClick={() => setDrawerMode(drawerMode === 'vlm' ? 'none' : 'vlm')}
+                      className={cn(
+                        "flex items-center justify-between w-full p-2.5 rounded-lg border transition-colors",
+                        drawerMode === 'vlm'
+                          ? "bg-primary/10 border-primary/30"
+                          : "bg-card border-border hover:bg-muted/30"
+                      )}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Sparkles className={cn(
+                          "w-3.5 h-3.5",
+                          drawerMode === 'vlm' ? "text-primary" : "text-muted-foreground"
+                        )} />
+                        <span className="text-xs font-medium text-foreground">VLM Inspection</span>
+                      </div>
+                      <ChevronRight className={cn(
+                        "w-3.5 h-3.5 text-muted-foreground transition-transform",
+                        drawerMode === 'vlm' && "rotate-180"
+                      )} />
+                    </button>
                   </CollapsibleContent>
                 </Collapsible>
               )}
@@ -1479,9 +1512,9 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
           </ScrollArea>
         </div>
 
-        {/* TBC Candidate Extension Panel */}
-        {candidatePanelOpen && (
-          <div className="w-[360px] min-w-[320px] bg-card border-l border-border shadow-lg flex flex-col animate-in slide-in-from-right duration-200">
+        {/* TBC Candidate Extension Panel - LEFT of main */}
+        {drawerMode === 'tbc' && (
+          <div className="w-[360px] min-w-[320px] bg-card border-r border-border shadow-lg flex flex-col animate-in slide-in-from-left duration-200 order-first">
             {/* Header */}
             <div className="px-4 py-3 border-b border-border bg-muted/20">
               <div className="flex items-center justify-between">
@@ -1496,7 +1529,7 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
                 </div>
                 <button
                   onClick={() => {
-                    setCandidatePanelOpen(false);
+                    setDrawerMode('none');
                     setSelectedCandidate(null);
                   }}
                   className="w-7 h-7 rounded-lg hover:bg-muted flex items-center justify-center transition-colors"
@@ -1611,6 +1644,112 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
                 ))}
               </div>
             </ScrollArea>
+          </div>
+        )}
+
+        {/* VLM Inspection Extension Panel - LEFT of main */}
+        {drawerMode === 'vlm' && (
+          <div className="w-[500px] min-w-[400px] bg-card border-r border-border shadow-lg flex flex-col animate-in slide-in-from-left duration-200 order-first">
+            {/* Header */}
+            <div className="px-4 py-3 border-b border-border bg-muted/20">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Sparkles className="w-4 h-4 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-foreground">VLM Inspection</h3>
+                    <p className="text-[10px] text-muted-foreground">AI Image Analysis</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setDrawerMode('none')}
+                  className="w-7 h-7 rounded-lg hover:bg-muted flex items-center justify-center transition-colors"
+                >
+                  <X className="w-4 h-4 text-muted-foreground" />
+                </button>
+              </div>
+            </div>
+
+            {/* Image Preview */}
+            <div className="flex-1 flex flex-col overflow-hidden">
+              {/* Zoom Controls */}
+              <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-muted/30">
+                <span className="text-xs text-muted-foreground">Image Preview</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-muted-foreground">{Math.round(vlmZoom * 100)}%</span>
+                  <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => setVlmZoom(prev => Math.max(prev - 0.25, 0.5))}>
+                    <ZoomOut className="w-3.5 h-3.5" />
+                  </Button>
+                  <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => setVlmZoom(prev => Math.min(prev + 0.25, 3))}>
+                    <ZoomIn className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Image */}
+              <div className="flex-1 overflow-auto p-4 flex items-center justify-center bg-muted/20">
+                <div 
+                  className="relative transition-transform duration-200 ease-out"
+                  style={{ transform: `scale(${vlmZoom})` }}
+                >
+                  <img
+                    src="/placeholder.svg"
+                    alt="VLM Inspection"
+                    className="max-w-full max-h-[40vh] object-contain rounded-lg shadow-lg border border-border"
+                  />
+                </div>
+              </div>
+
+              {/* Extraction Results */}
+              <div className="border-t border-border bg-card">
+                <div className="px-4 py-2 border-b border-border">
+                  <h4 className="text-xs font-semibold text-foreground">Extraction Results</h4>
+                </div>
+                <ScrollArea className="h-[250px]">
+                  <div className="p-3 space-y-2">
+                    {/* People & PPE */}
+                    <div className="p-3 bg-muted/30 rounded-lg border border-border">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Users className="w-4 h-4 text-primary" />
+                        <span className="text-xs font-semibold text-foreground">People & PPE</span>
+                      </div>
+                      <div className="space-y-1 text-xs">
+                        <div className="flex justify-between"><span className="text-muted-foreground">People Detected</span><span className="font-medium">2</span></div>
+                        <div className="flex justify-between"><span className="text-muted-foreground">Helmet Worn</span><span className="font-medium text-emerald-600">Yes</span></div>
+                        <div className="flex justify-between"><span className="text-muted-foreground">Safety Vest</span><span className="font-medium text-emerald-600">Yes</span></div>
+                      </div>
+                    </div>
+
+                    {/* Vehicles */}
+                    <div className="p-3 bg-muted/30 rounded-lg border border-border">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Car className="w-4 h-4 text-primary" />
+                        <span className="text-xs font-semibold text-foreground">Vehicles</span>
+                      </div>
+                      <div className="space-y-1 text-xs">
+                        <div className="flex justify-between"><span className="text-muted-foreground">Vehicles Detected</span><span className="font-medium">1</span></div>
+                        <div className="flex justify-between"><span className="text-muted-foreground">Type</span><span className="font-medium">Dump Truck</span></div>
+                        <div className="flex justify-between"><span className="text-muted-foreground">Status</span><span className="font-medium">Stationary</span></div>
+                      </div>
+                    </div>
+
+                    {/* Environment */}
+                    <div className="p-3 bg-muted/30 rounded-lg border border-border">
+                      <div className="flex items-center gap-2 mb-2">
+                        <MapPin className="w-4 h-4 text-primary" />
+                        <span className="text-xs font-semibold text-foreground">Environment</span>
+                      </div>
+                      <div className="space-y-1 text-xs">
+                        <div className="flex justify-between"><span className="text-muted-foreground">Scene Type</span><span className="font-medium">Mining Site</span></div>
+                        <div className="flex justify-between"><span className="text-muted-foreground">Weather</span><span className="font-medium">Clear</span></div>
+                        <div className="flex justify-between"><span className="text-muted-foreground">Visibility</span><span className="font-medium">Good</span></div>
+                      </div>
+                    </div>
+                  </div>
+                </ScrollArea>
+              </div>
+            </div>
           </div>
         )}
       </div>
