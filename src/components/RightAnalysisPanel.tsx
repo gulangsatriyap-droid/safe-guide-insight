@@ -652,7 +652,7 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
   const [highlightRelevant, setHighlightRelevant] = useState(true);
   
   // Collapsible states
-  const [candidateListOpen, setCandidateListOpen] = useState(true);
+  const [candidatePanelOpen, setCandidatePanelOpen] = useState(false);
   const [selectedCandidate, setSelectedCandidate] = useState<number | null>(null);
   const [observedFactOpen, setObservedFactOpen] = useState(false);
   const [extractedContentOpen, setExtractedContentOpen] = useState(false);
@@ -1192,7 +1192,7 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
           <ScrollArea className="flex-1">
             <div className="px-4 py-4 space-y-4">
               
-              {/* SECTION 2: PRIMARY TBC CARD */}
+              {/* SECTION 2: PRIMARY TBC CARD - Compact */}
               {currentCandidate && (
                 <div className={cn(
                   "rounded-xl border overflow-hidden",
@@ -1200,8 +1200,8 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
                 )}>
                   {/* Card Header */}
                   <div className={cn(
-                    "px-4 py-3 border-b",
-                    isCurrentActive ? `${config.accent} ${config.border}` : "bg-muted/30 border-border"
+                    "px-4 py-3",
+                    isCurrentActive ? `${config.accent}` : "bg-muted/30"
                   )}>
                     <div className="flex items-start gap-3">
                       <div className={cn(
@@ -1220,129 +1220,45 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
                         <p className="text-xs text-muted-foreground mt-0.5">
                           Tipe: {currentCandidate.deviationType}
                         </p>
-                        {/* Relevance Score Badge */}
-                        {isCurrentActive && (
-                          <div className="flex items-center gap-2 mt-2">
-                            <span className={cn(
-                              "text-[10px] px-2 py-1 rounded-md font-semibold",
-                              currentCandidate.isPrimary ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
-                            )}>
-                              {currentCandidate.isPrimary ? "Primary Match" : "Candidate"} • {currentCandidate.relevance}% relevance
-                            </span>
-                          </div>
-                        )}
                       </div>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* SECTION 3: DEVIATION META */}
-              <div className="space-y-2">
-                {/* Tipe Deviasi */}
-                <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg border border-border">
-                  <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
-                    <Target className="w-4 h-4 text-muted-foreground" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Tipe Deviasi</span>
-                    <p className="text-sm font-medium text-foreground truncate">
-                      {currentCandidate?.deviationType || "Tidak teridentifikasi"}
-                    </p>
-                  </div>
+              {/* SECTION 3: DEVIATION META - Compact */}
+              <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg border border-border">
+                <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                  {getSourceIcon(currentCandidate?.source || 'Foto')}
                 </div>
-
-                {/* Sumber Bukti */}
-                <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg border border-border">
-                  <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
-                    {getSourceIcon(currentCandidate?.source || 'Foto')}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-medium text-foreground">Tipe Deviasi :</span>
+                    <span className="text-xs text-foreground">{currentCandidate?.source || "Foto"}</span>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Sumber Bukti</span>
-                    <p className="text-sm font-medium text-foreground">
-                      {currentCandidate?.source || "Foto"}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Deskripsi */}
-                <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg border border-border">
-                  <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
-                    <FileText className="w-4 h-4 text-muted-foreground" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Deskripsi</span>
-                    <p className="text-xs text-foreground leading-relaxed">
-                      Deskripsi dan foto konsisten, sinyal deviasi dan objek cocok dengan {activeTab}
-                    </p>
-                  </div>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Deskripsi dan foto konsisten, sinyal deviasi dan objek cocok dengan {activeTab}
+                  </p>
                 </div>
               </div>
 
-              {/* SECTION 4: TBC CANDIDATE LIST */}
+              {/* SECTION 4: TBC CANDIDATE ROW - Opens Side Panel */}
               {activeTab === 'TBC' && isCurrentActive && (
-                <Collapsible open={candidateListOpen} onOpenChange={setCandidateListOpen}>
-                  <CollapsibleTrigger className="flex items-center justify-between w-full p-3 bg-muted/30 rounded-lg border border-border hover:bg-muted/50 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <Users className="w-4 h-4 text-primary" />
-                      </div>
-                      <span className="text-sm font-semibold text-foreground">TBC Candidate</span>
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary text-primary-foreground font-bold">
-                        {tbcCandidates.length}
-                      </span>
+                <button
+                  onClick={() => setCandidatePanelOpen(true)}
+                  className="flex items-center justify-between w-full p-3 bg-muted/30 rounded-lg border border-border hover:bg-muted/50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <Users className="w-4 h-4 text-primary" />
                     </div>
-                    <ChevronRight className={cn(
-                      "w-4 h-4 text-muted-foreground transition-transform",
-                      candidateListOpen && "rotate-90"
-                    )} />
-                  </CollapsibleTrigger>
-                  
-                  <CollapsibleContent className="mt-2 space-y-2">
-                    {tbcCandidates.map((candidate) => (
-                      <button
-                        key={candidate.id}
-                        onClick={() => setSelectedCandidate(candidate.id === selectedCandidate ? null : candidate.id)}
-                        className={cn(
-                          "w-full flex items-center justify-between p-3 rounded-lg border transition-all text-left",
-                          selectedCandidate === candidate.id || (selectedCandidate === null && candidate.isPrimary)
-                            ? "bg-primary/5 border-primary/30"
-                            : "bg-card border-border hover:bg-muted/30"
-                        )}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className={cn(
-                            "w-7 h-7 rounded-lg flex items-center justify-center shrink-0",
-                            candidate.isPrimary ? "bg-amber-500/20" : "bg-muted"
-                          )}>
-                            <AlertTriangle className={cn(
-                              "w-4 h-4",
-                              candidate.isPrimary ? "text-amber-500" : "text-muted-foreground"
-                            )} />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-foreground truncate">{candidate.title}</p>
-                            <div className="flex items-center gap-2 mt-0.5">
-                              <span className={cn(
-                                "text-[10px] px-1.5 py-0.5 rounded font-semibold",
-                                candidate.relevance >= 80 ? "bg-emerald-500/10 text-emerald-600" :
-                                candidate.relevance >= 70 ? "bg-amber-500/10 text-amber-600" :
-                                "bg-muted text-muted-foreground"
-                              )}>
-                                {candidate.relevance}% match
-                              </span>
-                              <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                                {getSourceIcon(candidate.source)}
-                                {candidate.source}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
-                      </button>
-                    ))}
-                  </CollapsibleContent>
-                </Collapsible>
+                    <span className="text-sm font-semibold text-foreground">TBC Candidate</span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary text-primary-foreground font-bold">
+                      {tbcCandidates.length}
+                    </span>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                </button>
               )}
 
               {/* SECTION 6: AI REASONING */}
@@ -1562,6 +1478,141 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
             </div>
           </ScrollArea>
         </div>
+
+        {/* TBC Candidate Extension Panel */}
+        {candidatePanelOpen && (
+          <div className="w-[360px] min-w-[320px] bg-card border-l border-border shadow-lg flex flex-col animate-in slide-in-from-right duration-200">
+            {/* Header */}
+            <div className="px-4 py-3 border-b border-border bg-muted/20">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Users className="w-4 h-4 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-foreground">TBC Candidates</h3>
+                    <p className="text-[10px] text-muted-foreground">Pilih kandidat untuk detail</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setCandidatePanelOpen(false);
+                    setSelectedCandidate(null);
+                  }}
+                  className="w-7 h-7 rounded-lg hover:bg-muted flex items-center justify-center transition-colors"
+                >
+                  <X className="w-4 h-4 text-muted-foreground" />
+                </button>
+              </div>
+            </div>
+
+            <ScrollArea className="flex-1">
+              <div className="p-3 space-y-2">
+                {tbcCandidates.map((candidate) => (
+                  <div key={candidate.id}>
+                    <button
+                      onClick={() => setSelectedCandidate(selectedCandidate === candidate.id ? null : candidate.id)}
+                      className={cn(
+                        "w-full flex items-center justify-between p-3 rounded-lg border transition-all text-left",
+                        selectedCandidate === candidate.id
+                          ? "bg-primary/5 border-primary/30"
+                          : "bg-card border-border hover:bg-muted/30"
+                      )}
+                    >
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <div className={cn(
+                          "w-7 h-7 rounded-lg flex items-center justify-center shrink-0",
+                          candidate.isPrimary ? "bg-amber-500/20" : "bg-muted"
+                        )}>
+                          <AlertTriangle className={cn(
+                            "w-4 h-4",
+                            candidate.isPrimary ? "text-amber-500" : "text-muted-foreground"
+                          )} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-medium text-foreground truncate">{candidate.title}</p>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className={cn(
+                              "text-[10px] px-1.5 py-0.5 rounded font-semibold",
+                              candidate.relevance >= 80 ? "bg-emerald-500/10 text-emerald-600" :
+                              candidate.relevance >= 70 ? "bg-amber-500/10 text-amber-600" :
+                              "bg-muted text-muted-foreground"
+                            )}>
+                              {candidate.relevance}%
+                            </span>
+                            <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                              {getSourceIcon(candidate.source)}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <ChevronDown className={cn(
+                        "w-4 h-4 text-muted-foreground shrink-0 transition-transform",
+                        selectedCandidate === candidate.id && "rotate-180"
+                      )} />
+                    </button>
+
+                    {/* Candidate Detail - Inline Expansion */}
+                    {selectedCandidate === candidate.id && (
+                      <div className="mt-2 p-3 bg-muted/20 rounded-lg border border-border space-y-3 animate-in fade-in duration-200">
+                        {/* Deviation Type */}
+                        <div>
+                          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Tipe Deviasi</span>
+                          <p className="text-xs font-medium text-foreground mt-0.5">{candidate.deviationType}</p>
+                        </div>
+
+                        {/* Relevance Badge */}
+                        <div className="flex items-center gap-2">
+                          <span className={cn(
+                            "text-[10px] px-2 py-1 rounded-md font-semibold",
+                            candidate.isPrimary ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+                          )}>
+                            {candidate.isPrimary ? "Primary Match" : "Candidate"} • {candidate.relevance}% relevance
+                          </span>
+                        </div>
+
+                        {/* AI Reasoning */}
+                        <div className="rounded-lg border border-amber-500/30 overflow-hidden">
+                          <div className="px-3 py-2 bg-amber-500/10 border-b border-amber-500/20">
+                            <div className="flex items-center gap-1.5">
+                              <Brain className="w-3.5 h-3.5 text-amber-600" />
+                              <span className="text-[10px] font-semibold text-foreground uppercase">Alasan AI</span>
+                            </div>
+                          </div>
+                          <div className="p-3 bg-amber-50/50">
+                            <ul className="space-y-1.5">
+                              {candidate.aiReasoning.map((reason, idx) => (
+                                <li key={idx} className="flex items-start gap-2 text-xs text-foreground">
+                                  <span className="w-1 h-1 rounded-full bg-amber-500 shrink-0 mt-1.5" />
+                                  {reason}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+
+                        {/* Recommendations */}
+                        <div>
+                          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide mb-2 block">Next Steps</span>
+                          <ul className="space-y-1.5">
+                            {candidate.recommendations.map((rec, idx) => (
+                              <li key={idx} className="flex items-start gap-2 text-xs text-foreground p-2 bg-muted/30 rounded">
+                                <span className="w-4 h-4 rounded-full bg-emerald-500/10 text-emerald-600 text-[9px] font-bold flex items-center justify-center shrink-0">
+                                  {idx + 1}
+                                </span>
+                                {rec}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+          </div>
+        )}
       </div>
     </TooltipProvider>
   );
