@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, FileText, ChevronLeft, ChevronRight, ChevronDown, CheckCircle2, AlertCircle, Sparkles, Target, Eye, Brain, XCircle, Braces, Copy, Download, ChevronDownSquare, ChevronUpSquare, Search, BookOpen, ZoomIn, ZoomOut, Maximize2, Highlighter, AlertTriangle, Image, Video, FileType, Users, Car, MapPin } from "lucide-react";
+import { X, FileText, ChevronLeft, ChevronRight, ChevronDown, CheckCircle2, AlertCircle, Sparkles, Target, Eye, Brain, XCircle, Braces, Copy, Download, ChevronDownSquare, ChevronUpSquare, Search, BookOpen, ZoomIn, ZoomOut, Maximize2, Highlighter, AlertTriangle, Image, Video, FileType, Users, Car, MapPin, PenLine, Save } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
@@ -644,7 +644,7 @@ CATATAN PENTING:
 
 const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialTab }: RightAnalysisPanelProps) => {
   const [activeTab, setActiveTab] = useState<'TBC' | 'GR' | 'PSPP'>(initialTab || 'TBC');
-  const [drawerMode, setDrawerMode] = useState<'none' | 'dokumen' | 'ontologi' | 'tbc' | 'vlm'>('none');
+  const [drawerMode, setDrawerMode] = useState<'none' | 'dokumen' | 'ontologi' | 'tbc' | 'vlm' | 'annotation'>('none');
   const [jsonExpanded, setJsonExpanded] = useState(false);
   const [docCurrentPage, setDocCurrentPage] = useState(1);
   const [docZoom, setDocZoom] = useState(100);
@@ -658,6 +658,11 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
   
   // VLM inspection state
   const [vlmZoom, setVlmZoom] = useState(1);
+  
+  // Annotation state
+  const [annotationNote, setAnnotationNote] = useState('');
+  const [annotationTBC, setAnnotationTBC] = useState<string>('');
+  const [isAnnotated, setIsAnnotated] = useState(false);
 
   // Update active tab when initialTab changes
   useEffect(() => {
@@ -1143,9 +1148,9 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
             </div>
           </div>
 
-          {/* Toolbar: Dokumen & Ontologi buttons */}
+          {/* Toolbar: Navigation buttons */}
           <div className="px-4 py-2 border-b border-border bg-muted/20">
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
@@ -1182,6 +1187,60 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
                 </TooltipTrigger>
                 <TooltipContent side="bottom">
                   <p className="text-xs">{drawerMode === 'ontologi' ? 'Ontologi (open)' : 'Ontologi (JSON)'}</p>
+                </TooltipContent>
+              </Tooltip>
+
+              {/* TBC Candidate Button */}
+              {activeTab === 'TBC' && isCurrentActive && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => setDrawerMode(drawerMode === 'tbc' ? 'none' : 'tbc')}
+                      className={cn(
+                        "flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all border",
+                        drawerMode === 'tbc' 
+                          ? "bg-primary text-primary-foreground border-primary shadow-sm" 
+                          : "bg-card hover:bg-muted text-muted-foreground border-border hover:border-primary/30"
+                      )}
+                    >
+                      <Users className="w-4 h-4" />
+                      <span className="font-semibold">TBC</span>
+                      <span className={cn(
+                        "text-[10px] px-1.5 py-0.5 rounded-full font-bold",
+                        drawerMode === 'tbc' 
+                          ? "bg-primary-foreground/20 text-primary-foreground" 
+                          : "bg-primary text-primary-foreground"
+                      )}>
+                        {tbcCandidates.length}
+                      </span>
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">
+                    <p className="text-xs">{drawerMode === 'tbc' ? 'TBC Candidates (open)' : 'TBC Candidates'}</p>
+                  </TooltipContent>
+                </Tooltip>
+              )}
+
+              {/* Annotation Button */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => setDrawerMode(drawerMode === 'annotation' ? 'none' : 'annotation')}
+                    className={cn(
+                      "flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all border",
+                      drawerMode === 'annotation' 
+                        ? "bg-emerald-500 text-white border-emerald-500 shadow-sm" 
+                        : isAnnotated
+                          ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/30 hover:bg-emerald-500/20"
+                          : "bg-card hover:bg-muted text-muted-foreground border-border hover:border-primary/30"
+                    )}
+                  >
+                    <PenLine className="w-4 h-4" />
+                    {isAnnotated && <span className="font-semibold">Annotated</span>}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  <p className="text-xs">{drawerMode === 'annotation' ? 'Annotation (open)' : 'Human Annotation'}</p>
                 </TooltipContent>
               </Tooltip>
             </div>
@@ -1241,32 +1300,6 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
                 </div>
               </div>
 
-              {/* SECTION 4: TBC CANDIDATE ROW - Opens Side Panel */}
-              {activeTab === 'TBC' && isCurrentActive && (
-                <button
-                  onClick={() => setDrawerMode(drawerMode === 'tbc' ? 'none' : 'tbc')}
-                  className={cn(
-                    "flex items-center justify-between w-full p-3 rounded-lg border transition-colors",
-                    drawerMode === 'tbc' 
-                      ? "bg-primary/10 border-primary/30" 
-                      : "bg-muted/30 border-border hover:bg-muted/50"
-                  )}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <Users className="w-4 h-4 text-primary" />
-                    </div>
-                    <span className="text-sm font-semibold text-foreground">TBC Candidate</span>
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary text-primary-foreground font-bold">
-                      {tbcCandidates.length}
-                    </span>
-                  </div>
-                  <ChevronRight className={cn(
-                    "w-4 h-4 text-muted-foreground transition-transform",
-                    drawerMode === 'tbc' && "rotate-180"
-                  )} />
-                </button>
-              )}
 
               {/* SECTION 6: AI REASONING */}
               {currentCandidate && isCurrentActive && (
@@ -1704,6 +1737,127 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
                 </ScrollArea>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Annotation Panel - LEFT of main */}
+        {drawerMode === 'annotation' && (
+          <div className="w-[380px] min-w-[340px] bg-card border-r border-border shadow-lg flex flex-col animate-in slide-in-from-left duration-200 order-first">
+            {/* Header */}
+            <div className="px-4 py-3 border-b border-border bg-muted/20">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                    <PenLine className="w-4 h-4 text-emerald-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-foreground">Human Annotation</h3>
+                    <p className="text-[10px] text-muted-foreground">Manual review & correction</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setDrawerMode('none')}
+                  className="w-7 h-7 rounded-lg hover:bg-muted flex items-center justify-center transition-colors"
+                >
+                  <X className="w-4 h-4 text-muted-foreground" />
+                </button>
+              </div>
+            </div>
+
+            <ScrollArea className="flex-1">
+              <div className="p-4 space-y-4">
+                {/* Current AI Classification */}
+                <div className="p-3 bg-muted/30 rounded-xl border border-border">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Brain className="w-4 h-4 text-amber-600" />
+                    <span className="text-xs font-semibold text-foreground">AI Classification</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={cn(
+                      "text-xs px-2.5 py-1 rounded-md font-bold",
+                      labelConfig[activeTab].bg, labelConfig[activeTab].text
+                    )}>
+                      {activeTab}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {currentCandidate?.title || 'Tidak ada klasifikasi'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* TBC Selection Dropdown */}
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-foreground block">
+                    Pilih TBC yang Sesuai
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={annotationTBC}
+                      onChange={(e) => setAnnotationTBC(e.target.value)}
+                      className="w-full px-3 py-2.5 bg-card border border-border rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary appearance-none cursor-pointer"
+                    >
+                      <option value="">-- Pilih TBC --</option>
+                      {tbcCandidates.map((candidate) => (
+                        <option key={candidate.id} value={candidate.id.toString()}>
+                          {candidate.title} ({candidate.relevance}%)
+                        </option>
+                      ))}
+                      <option value="none">Tidak ada TBC yang sesuai</option>
+                      <option value="other">Lainnya (tulis di notes)</option>
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                  </div>
+                </div>
+
+                {/* Annotation Notes */}
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-foreground block">
+                    Catatan Annotator
+                  </label>
+                  <textarea
+                    value={annotationNote}
+                    onChange={(e) => setAnnotationNote(e.target.value)}
+                    placeholder="Tulis catatan atau alasan perubahan klasifikasi..."
+                    rows={5}
+                    className="w-full px-3 py-2.5 bg-card border border-border rounded-xl text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none"
+                  />
+                </div>
+
+                {/* Save Annotation Button */}
+                <Button
+                  onClick={() => {
+                    setIsAnnotated(true);
+                    setDrawerMode('none');
+                    toast.success("Annotation saved successfully");
+                  }}
+                  disabled={!annotationTBC && !annotationNote}
+                  className="w-full gap-2 bg-emerald-500 hover:bg-emerald-600 text-white"
+                >
+                  <Save className="w-4 h-4" />
+                  Simpan Annotation
+                </Button>
+
+                {/* Annotation Status */}
+                {isAnnotated && (
+                  <div className="p-3 bg-emerald-500/10 rounded-xl border border-emerald-500/30">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                      <span className="text-xs font-semibold text-emerald-700">Sudah di-annotate</span>
+                    </div>
+                    {annotationTBC && (
+                      <p className="text-xs text-emerald-600 mt-1">
+                        TBC: {tbcCandidates.find(c => c.id.toString() === annotationTBC)?.title || annotationTBC}
+                      </p>
+                    )}
+                    {annotationNote && (
+                      <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                        "{annotationNote}"
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
           </div>
         )}
       </div>
