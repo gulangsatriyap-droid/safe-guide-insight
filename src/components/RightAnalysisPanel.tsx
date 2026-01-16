@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, FileText, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, CheckCircle2, AlertCircle, HelpCircle, Sparkles, Target, Eye, Brain, ArrowRight, Ban, Info, XCircle, Braces, Copy, Download, ChevronDownSquare, ChevronUpSquare, Search, BookOpen, Link2, ZoomIn, ZoomOut, Maximize2, Highlighter, AlertTriangle, Image, Video, FileType, Users, Car, MapPin } from "lucide-react";
+import { X, FileText, ChevronLeft, ChevronRight, ChevronDown, CheckCircle2, AlertCircle, Sparkles, Target, Eye, Brain, XCircle, Braces, Copy, Download, ChevronDownSquare, ChevronUpSquare, Search, BookOpen, ZoomIn, ZoomOut, Maximize2, Highlighter, AlertTriangle, Image, Video, FileType, Users, Car, MapPin } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
@@ -654,10 +654,7 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
   // Collapsible states
   const [selectedCandidate, setSelectedCandidate] = useState<number | null>(null);
   const [observedFactOpen, setObservedFactOpen] = useState(false);
-  const [extractedContentOpen, setExtractedContentOpen] = useState(false);
-  const [evidenceMatchingOpen, setEvidenceMatchingOpen] = useState(false);
   const [assumptionsOpen, setAssumptionsOpen] = useState(false);
-  const [recommendationsOpen, setRecommendationsOpen] = useState(false);
   
   // VLM inspection state
   const [vlmZoom, setVlmZoom] = useState(1);
@@ -1347,100 +1344,101 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
                     )} />
                   </CollapsibleTrigger>
                   
-                  <CollapsibleContent className="mt-2 space-y-2 pl-4">
-                    {/* Extracted Content */}
-                    <Collapsible open={extractedContentOpen} onOpenChange={setExtractedContentOpen}>
-                      <CollapsibleTrigger className="flex items-center justify-between w-full p-2.5 bg-card rounded-lg border border-border hover:bg-muted/30 transition-colors">
-                        <div className="flex items-center gap-2">
-                          <Target className="w-3.5 h-3.5 text-muted-foreground" />
-                          <span className="text-xs font-medium text-foreground">Extracted Content</span>
+                  <CollapsibleContent className="mt-3 space-y-3">
+                    {/* Extracted Context - Professional Card Grid */}
+                    <div className="space-y-3">
+                      {/* Actors */}
+                      <div className="p-3 bg-card rounded-xl border border-border">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center">
+                            <Users className="w-3.5 h-3.5 text-primary" />
+                          </div>
+                          <span className="text-xs font-semibold text-foreground">Actors</span>
                         </div>
-                        <ChevronDown className={cn(
-                          "w-3.5 h-3.5 text-muted-foreground transition-transform",
-                          extractedContentOpen && "rotate-180"
-                        )} />
-                      </CollapsibleTrigger>
-                      <CollapsibleContent className="mt-1.5 p-3 bg-card rounded-lg border border-border">
-                        <div className="space-y-2 text-xs">
-                          <div>
-                            <span className="font-medium text-muted-foreground">Objects:</span>
-                            <span className="ml-2 text-foreground">{currentCandidate.observedFact.extractedContent.objects.join(", ")}</span>
-                          </div>
-                          <div>
-                            <span className="font-medium text-muted-foreground">Actions:</span>
-                            <span className="ml-2 text-foreground">{currentCandidate.observedFact.extractedContent.actions.join(", ")}</span>
-                          </div>
-                          <div>
-                            <span className="font-medium text-muted-foreground">Scene Context:</span>
-                            <span className="ml-2 text-foreground">{currentCandidate.observedFact.extractedContent.sceneContext}</span>
-                          </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {ontologyData.extracted_entities.actors.map((actor, idx) => (
+                            <span key={idx} className="px-2.5 py-1 bg-muted rounded-md text-xs font-medium text-foreground">
+                              {actor}
+                            </span>
+                          ))}
                         </div>
-                      </CollapsibleContent>
-                    </Collapsible>
+                      </div>
 
-                    {/* Evidence Matching */}
-                    <Collapsible open={evidenceMatchingOpen} onOpenChange={setEvidenceMatchingOpen}>
-                      <CollapsibleTrigger className="flex items-center justify-between w-full p-2.5 bg-card rounded-lg border border-border hover:bg-muted/30 transition-colors">
-                        <div className="flex items-center gap-2">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-muted-foreground" />
-                          <span className="text-xs font-medium text-foreground">Evidence Matching</span>
+                      {/* Objects */}
+                      <div className="p-3 bg-card rounded-xl border border-border">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-6 h-6 rounded-md bg-amber-500/10 flex items-center justify-center">
+                            <Car className="w-3.5 h-3.5 text-amber-600" />
+                          </div>
+                          <span className="text-xs font-semibold text-foreground">Objects</span>
                         </div>
-                        <ChevronDown className={cn(
-                          "w-3.5 h-3.5 text-muted-foreground transition-transform",
-                          evidenceMatchingOpen && "rotate-180"
-                        )} />
-                      </CollapsibleTrigger>
-                      <CollapsibleContent className="mt-1.5 p-3 bg-card rounded-lg border border-border">
-                        <div className="space-y-2 text-xs">
-                          <div className="flex items-center justify-between">
-                            <span className="font-medium text-muted-foreground">Image ↔ Text:</span>
-                            <span className={cn(
-                              "px-1.5 py-0.5 rounded text-[10px] font-medium",
-                              currentCandidate.observedFact.evidenceMatching.imageTextConsistency === 'Match' 
-                                ? "bg-emerald-500/10 text-emerald-600" 
-                                : "bg-amber-500/10 text-amber-600"
-                            )}>
-                              {currentCandidate.observedFact.evidenceMatching.imageTextConsistency}
+                        <div className="flex flex-wrap gap-1.5">
+                          {ontologyData.extracted_entities.objects.map((obj, idx) => (
+                            <span key={idx} className="px-2.5 py-1 bg-muted rounded-md text-xs font-medium text-foreground">
+                              {obj}
                             </span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="font-medium text-muted-foreground">Object ↔ Deviation:</span>
-                            <span className={cn(
-                              "px-1.5 py-0.5 rounded text-[10px] font-medium",
-                              currentCandidate.observedFact.evidenceMatching.objectDeviationMapping === 'Match'
-                                ? "bg-emerald-500/10 text-emerald-600"
-                                : "bg-amber-500/10 text-amber-600"
-                            )}>
-                              {currentCandidate.observedFact.evidenceMatching.objectDeviationMapping}
-                            </span>
-                          </div>
-                          <div>
-                            <span className="font-medium text-muted-foreground">Notes:</span>
-                            <span className="ml-2 text-foreground">{currentCandidate.observedFact.evidenceMatching.confidenceNotes}</span>
-                          </div>
+                          ))}
                         </div>
-                      </CollapsibleContent>
-                    </Collapsible>
+                      </div>
+
+                      {/* Activities */}
+                      <div className="p-3 bg-card rounded-xl border border-border">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-6 h-6 rounded-md bg-emerald-500/10 flex items-center justify-center">
+                            <Target className="w-3.5 h-3.5 text-emerald-600" />
+                          </div>
+                          <span className="text-xs font-semibold text-foreground">Activities</span>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {ontologyData.extracted_entities.activities.map((activity, idx) => (
+                            <span key={idx} className="px-2.5 py-1 bg-muted rounded-md text-xs font-medium text-foreground">
+                              {activity}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Work Context */}
+                      <div className="p-3 bg-card rounded-xl border border-border">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-6 h-6 rounded-md bg-purple-500/10 flex items-center justify-center">
+                            <MapPin className="w-3.5 h-3.5 text-purple-600" />
+                          </div>
+                          <span className="text-xs font-semibold text-foreground">Work Context</span>
+                        </div>
+                        <span className="px-2.5 py-1 bg-muted rounded-md text-xs font-medium text-foreground inline-block">
+                          {ontologyData.extracted_entities.work_context}
+                        </span>
+                      </div>
+                    </div>
 
                     {/* VLM Inspection Button */}
                     <button
                       onClick={() => setDrawerMode(drawerMode === 'vlm' ? 'none' : 'vlm')}
                       className={cn(
-                        "flex items-center justify-between w-full p-2.5 rounded-lg border transition-colors",
+                        "flex items-center justify-between w-full p-3 rounded-xl border transition-all",
                         drawerMode === 'vlm'
-                          ? "bg-primary/10 border-primary/30"
-                          : "bg-card border-border hover:bg-muted/30"
+                          ? "bg-primary/10 border-primary/30 shadow-sm"
+                          : "bg-card border-border hover:bg-muted/30 hover:border-primary/20"
                       )}
                     >
-                      <div className="flex items-center gap-2">
-                        <Sparkles className={cn(
-                          "w-3.5 h-3.5",
-                          drawerMode === 'vlm' ? "text-primary" : "text-muted-foreground"
-                        )} />
-                        <span className="text-xs font-medium text-foreground">VLM Inspection</span>
+                      <div className="flex items-center gap-3">
+                        <div className={cn(
+                          "w-8 h-8 rounded-lg flex items-center justify-center",
+                          drawerMode === 'vlm' ? "bg-primary/20" : "bg-muted"
+                        )}>
+                          <Sparkles className={cn(
+                            "w-4 h-4",
+                            drawerMode === 'vlm' ? "text-primary" : "text-muted-foreground"
+                          )} />
+                        </div>
+                        <div className="text-left">
+                          <span className="text-sm font-semibold text-foreground block">VLM Inspection</span>
+                          <span className="text-[10px] text-muted-foreground">AI Image Analysis</span>
+                        </div>
                       </div>
                       <ChevronRight className={cn(
-                        "w-3.5 h-3.5 text-muted-foreground transition-transform",
+                        "w-4 h-4 text-muted-foreground transition-transform",
                         drawerMode === 'vlm' && "rotate-180"
                       )} />
                     </button>
@@ -1477,36 +1475,6 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
                 </Collapsible>
               )}
 
-              {/* SECTION 9: RECOMMENDED NEXT STEPS (Collapsible) */}
-              {isCurrentActive && currentCandidate && (
-                <Collapsible open={recommendationsOpen} onOpenChange={setRecommendationsOpen}>
-                  <CollapsibleTrigger className="flex items-center justify-between w-full p-3 bg-muted/30 rounded-lg border border-border hover:bg-muted/50 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                        <ArrowRight className="w-4 h-4 text-emerald-500" />
-                      </div>
-                      <span className="text-sm font-semibold text-foreground">Recommended Next Steps</span>
-                    </div>
-                    <ChevronDown className={cn(
-                      "w-4 h-4 text-muted-foreground transition-transform",
-                      recommendationsOpen && "rotate-180"
-                    )} />
-                  </CollapsibleTrigger>
-                  
-                  <CollapsibleContent className="mt-2 p-3 bg-card rounded-lg border border-border">
-                    <ul className="space-y-2">
-                      {currentCandidate.recommendations.map((rec, idx) => (
-                        <li key={idx} className="flex items-start gap-2 text-xs text-foreground p-2 bg-muted/20 rounded-lg">
-                          <span className="w-4 h-4 rounded-full bg-emerald-500/10 text-emerald-600 text-[10px] font-bold flex items-center justify-center shrink-0">
-                            {idx + 1}
-                          </span>
-                          {rec}
-                        </li>
-                      ))}
-                    </ul>
-                  </CollapsibleContent>
-                </Collapsible>
-              )}
 
             </div>
           </ScrollArea>
@@ -1624,20 +1592,6 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
                           </div>
                         </div>
 
-                        {/* Recommendations */}
-                        <div>
-                          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide mb-2 block">Next Steps</span>
-                          <ul className="space-y-1.5">
-                            {candidate.recommendations.map((rec, idx) => (
-                              <li key={idx} className="flex items-start gap-2 text-xs text-foreground p-2 bg-muted/30 rounded">
-                                <span className="w-4 h-4 rounded-full bg-emerald-500/10 text-emerald-600 text-[9px] font-bold flex items-center justify-center shrink-0">
-                                  {idx + 1}
-                                </span>
-                                {rec}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
                       </div>
                     )}
                   </div>
