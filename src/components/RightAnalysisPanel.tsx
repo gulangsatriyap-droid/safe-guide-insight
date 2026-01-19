@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, FileText, ChevronLeft, ChevronRight, ChevronDown, CheckCircle2, AlertCircle, Sparkles, Target, Eye, Brain, XCircle, Braces, Copy, Download, ChevronDownSquare, ChevronUpSquare, Search, BookOpen, ZoomIn, ZoomOut, Maximize2, Highlighter, AlertTriangle, Image, Video, FileType, Users, Car, MapPin, PenLine, Save } from "lucide-react";
+import { X, FileText, ChevronLeft, ChevronRight, ChevronDown, CheckCircle2, AlertCircle, Sparkles, Target, Eye, Brain, XCircle, Braces, Copy, Download, ChevronDownSquare, ChevronUpSquare, Search, BookOpen, ZoomIn, ZoomOut, Maximize2, Highlighter, AlertTriangle, Image, Video, FileType, Users, Car, MapPin, PenLine, Save, Hand } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
@@ -658,6 +658,10 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
   
   // VLM inspection state
   const [vlmZoom, setVlmZoom] = useState(1);
+  const [vlmPanMode, setVlmPanMode] = useState(false);
+  const [vlmDragging, setVlmDragging] = useState(false);
+  const [vlmPosition, setVlmPosition] = useState({ x: 0, y: 0 });
+  const [vlmDragStart, setVlmDragStart] = useState({ x: 0, y: 0 });
   
   // Annotation state
   const [annotationNote, setAnnotationNote] = useState('');
@@ -1634,105 +1638,266 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
           </div>
         )}
 
-        {/* VLM Inspection Extension Panel - LEFT of main */}
+        {/* VLM Inspection Extension Panel - LEFT of main - WIDE layout like reference */}
         {drawerMode === 'vlm' && (
-          <div className="w-[500px] min-w-[400px] bg-card border-r border-border shadow-lg flex flex-col animate-in slide-in-from-left duration-200 order-first">
+          <div className="flex-1 min-w-[700px] max-w-[900px] bg-card border-r border-border shadow-xl flex flex-col animate-in slide-in-from-left duration-200 order-first">
             {/* Header */}
-            <div className="px-4 py-3 border-b border-border bg-muted/20">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <Sparkles className="w-4 h-4 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-semibold text-foreground">VLM Inspection</h3>
-                    <p className="text-[10px] text-muted-foreground">AI Image Analysis</p>
-                  </div>
+            <div className="px-5 py-4 border-b border-border bg-card flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-lg">
+                  <Sparkles className="w-4 h-4 text-primary" />
+                  <span className="text-sm font-semibold text-primary">VLM Inspection</span>
                 </div>
-                <button
-                  onClick={() => setDrawerMode('none')}
-                  className="w-7 h-7 rounded-lg hover:bg-muted flex items-center justify-center transition-colors"
-                >
-                  <X className="w-4 h-4 text-muted-foreground" />
-                </button>
+                <span className="text-sm text-muted-foreground">AI Image Analysis & Extraction</span>
               </div>
+              <button
+                onClick={() => setDrawerMode('none')}
+                className="w-8 h-8 rounded-lg hover:bg-muted flex items-center justify-center transition-colors"
+              >
+                <X className="w-5 h-5 text-muted-foreground" />
+              </button>
             </div>
 
-            {/* Image Preview */}
-            <div className="flex-1 flex flex-col overflow-hidden">
-              {/* Zoom Controls */}
-              <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-muted/30">
-                <span className="text-xs text-muted-foreground">Image Preview</span>
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] text-muted-foreground">{Math.round(vlmZoom * 100)}%</span>
-                  <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => setVlmZoom(prev => Math.max(prev - 0.25, 0.5))}>
-                    <ZoomOut className="w-3.5 h-3.5" />
-                  </Button>
-                  <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => setVlmZoom(prev => Math.min(prev + 0.25, 3))}>
-                    <ZoomIn className="w-3.5 h-3.5" />
-                  </Button>
+            {/* Content - Image Left, Extraction Right */}
+            <div className="flex-1 flex overflow-hidden">
+              {/* Left - Image Viewer */}
+              <div className="flex-1 flex flex-col bg-muted/20 min-w-0">
+                {/* Zoom & Pan Controls */}
+                <div className="flex items-center justify-between px-4 py-2.5 border-b border-border bg-card/80 shrink-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-medium text-foreground">Image Preview</span>
+                    <div className="h-3 w-px bg-border" />
+                    <span className="text-xs text-muted-foreground">{Math.round(vlmZoom * 100)}%</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    {/* Hand/Pan Tool */}
+                    <Button 
+                      variant={vlmPanMode ? "default" : "outline"} 
+                      size="icon" 
+                      className="h-7 w-7" 
+                      onClick={() => setVlmPanMode(!vlmPanMode)}
+                      title="Pan Tool (drag to move image)"
+                    >
+                      <Hand className="w-3.5 h-3.5" />
+                    </Button>
+                    <div className="w-px h-4 bg-border mx-0.5" />
+                    <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => setVlmZoom(prev => Math.max(prev - 0.25, 0.5))}>
+                      <ZoomOut className="w-3.5 h-3.5" />
+                    </Button>
+                    <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => setVlmZoom(prev => Math.min(prev + 0.25, 3))}>
+                      <ZoomIn className="w-3.5 h-3.5" />
+                    </Button>
+                    <div className="w-px h-4 bg-border mx-0.5" />
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="h-7 text-xs px-2.5" 
+                      onClick={() => { setVlmZoom(1); setVlmPosition({ x: 0, y: 0 }); }}
+                    >
+                      Reset
+                    </Button>
+                  </div>
                 </div>
-              </div>
 
-              {/* Image */}
-              <div className="flex-1 overflow-auto p-4 flex items-center justify-center bg-muted/20">
+                {/* Image Container with Pan/Drag */}
                 <div 
-                  className="relative transition-transform duration-200 ease-out"
-                  style={{ transform: `scale(${vlmZoom})` }}
+                  className={cn(
+                    "flex-1 overflow-hidden flex items-center justify-center p-6",
+                    vlmPanMode ? (vlmDragging ? 'cursor-grabbing' : 'cursor-grab') : 'cursor-default'
+                  )}
+                  onMouseDown={(e) => {
+                    if (!vlmPanMode) return;
+                    setVlmDragging(true);
+                    setVlmDragStart({ x: e.clientX - vlmPosition.x, y: e.clientY - vlmPosition.y });
+                  }}
+                  onMouseMove={(e) => {
+                    if (!vlmDragging || !vlmPanMode) return;
+                    setVlmPosition({ x: e.clientX - vlmDragStart.x, y: e.clientY - vlmDragStart.y });
+                  }}
+                  onMouseUp={() => setVlmDragging(false)}
+                  onMouseLeave={() => setVlmDragging(false)}
                 >
-                  <img
-                    src="/placeholder.svg"
-                    alt="VLM Inspection"
-                    className="max-w-full max-h-[40vh] object-contain rounded-lg shadow-lg border border-border"
-                  />
+                  <div 
+                    className="relative transition-transform duration-100 ease-out select-none"
+                    style={{ 
+                      transform: `scale(${vlmZoom}) translate(${vlmPosition.x / vlmZoom}px, ${vlmPosition.y / vlmZoom}px)`,
+                    }}
+                  >
+                    <img
+                      src="/placeholder.svg"
+                      alt="VLM Inspection"
+                      className="max-w-full max-h-[calc(100vh-280px)] object-contain rounded-lg shadow-xl border border-border/50"
+                      draggable={false}
+                    />
+                  </div>
+                </div>
+
+                {/* Description Box */}
+                <div className="px-4 pb-4 shrink-0">
+                  <div className="bg-card border border-border rounded-lg p-3">
+                    <h4 className="text-xs font-semibold text-foreground mb-1">Deskripsi Temuan</h4>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      Operator HD tidak menggunakan safety vest saat keluar dari unit.
+                    </p>
+                  </div>
                 </div>
               </div>
 
-              {/* Extraction Results */}
-              <div className="border-t border-border bg-card">
-                <div className="px-4 py-2 border-b border-border">
-                  <h4 className="text-xs font-semibold text-foreground">Extraction Results</h4>
+              {/* Right - Extraction Results Panel */}
+              <div className="w-[340px] border-l border-border flex flex-col bg-card shrink-0">
+                {/* AI Analysis Header */}
+                <div className="px-4 py-3 border-b border-border shrink-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <h3 className="font-semibold text-foreground">AI Analysis</h3>
+                    <Button variant="outline" size="sm" className="h-7 text-xs">
+                      Trace
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">Skor kualitas dan ekstraksi metadata</p>
                 </div>
-                <ScrollArea className="h-[250px]">
+
+                {/* Information Extraction Header */}
+                <div className="px-4 py-2.5 border-b border-border flex items-center justify-between bg-muted/30 shrink-0">
+                  <div>
+                    <h4 className="text-xs font-medium text-foreground">Information Extraction</h4>
+                    <p className="text-[10px] text-muted-foreground">Source: Extraction engine v1</p>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] text-muted-foreground">View as</span>
+                    <select className="h-6 px-2 text-[10px] bg-card border border-border rounded text-foreground focus:outline-none">
+                      <option value="table">Table</option>
+                      <option value="json">JSON</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Extraction Categories - Accordion Style */}
+                <ScrollArea className="flex-1">
                   <div className="p-3 space-y-2">
+                    {/* Image Properties */}
+                    <Collapsible defaultOpen>
+                      <CollapsibleTrigger className="flex items-center justify-between w-full p-2.5 bg-background rounded-lg border border-border hover:bg-muted/30 transition-colors">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center">
+                            <Image className="w-3.5 h-3.5 text-primary" />
+                          </div>
+                          <span className="text-xs font-medium text-foreground">Image Properties</span>
+                        </div>
+                        <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="mt-1.5 p-2.5 bg-muted/20 rounded-lg space-y-1.5">
+                        <div className="flex justify-between text-xs"><span className="text-muted-foreground">Resolution</span><span className="font-medium">1920x1080</span></div>
+                        <div className="flex justify-between text-xs"><span className="text-muted-foreground">Format</span><span className="font-medium">JPEG</span></div>
+                        <div className="flex justify-between text-xs"><span className="text-muted-foreground">Quality Score</span><span className="font-medium">92%</span></div>
+                      </CollapsibleContent>
+                    </Collapsible>
+
+                    {/* Composition */}
+                    <Collapsible>
+                      <CollapsibleTrigger className="flex items-center justify-between w-full p-2.5 bg-background rounded-lg border border-border hover:bg-muted/30 transition-colors">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-7 h-7 rounded-md bg-emerald-500/10 flex items-center justify-center">
+                            <Target className="w-3.5 h-3.5 text-emerald-600" />
+                          </div>
+                          <span className="text-xs font-medium text-foreground">Composition</span>
+                        </div>
+                        <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="mt-1.5 p-2.5 bg-muted/20 rounded-lg space-y-1.5">
+                        <div className="flex justify-between text-xs"><span className="text-muted-foreground">Scene Type</span><span className="font-medium">Mining Site</span></div>
+                        <div className="flex justify-between text-xs"><span className="text-muted-foreground">Time of Day</span><span className="font-medium">Daytime</span></div>
+                        <div className="flex justify-between text-xs"><span className="text-muted-foreground">Weather</span><span className="font-medium">Clear</span></div>
+                      </CollapsibleContent>
+                    </Collapsible>
+
                     {/* People & PPE */}
-                    <div className="p-3 bg-muted/30 rounded-lg border border-border">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Users className="w-4 h-4 text-primary" />
-                        <span className="text-xs font-semibold text-foreground">People & PPE</span>
-                      </div>
-                      <div className="space-y-1 text-xs">
-                        <div className="flex justify-between"><span className="text-muted-foreground">People Detected</span><span className="font-medium">2</span></div>
-                        <div className="flex justify-between"><span className="text-muted-foreground">Helmet Worn</span><span className="font-medium text-emerald-600">Yes</span></div>
-                        <div className="flex justify-between"><span className="text-muted-foreground">Safety Vest</span><span className="font-medium text-emerald-600">Yes</span></div>
-                      </div>
-                    </div>
+                    <Collapsible>
+                      <CollapsibleTrigger className="flex items-center justify-between w-full p-2.5 bg-background rounded-lg border border-border hover:bg-muted/30 transition-colors">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-7 h-7 rounded-md bg-amber-500/10 flex items-center justify-center">
+                            <Users className="w-3.5 h-3.5 text-amber-600" />
+                          </div>
+                          <span className="text-xs font-medium text-foreground">People & PPE</span>
+                        </div>
+                        <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="mt-1.5 p-2.5 bg-muted/20 rounded-lg space-y-1.5">
+                        <div className="flex justify-between text-xs"><span className="text-muted-foreground">People Detected</span><span className="font-medium">2</span></div>
+                        <div className="flex justify-between text-xs"><span className="text-muted-foreground">Helmet</span><span className="font-medium text-emerald-600">Worn</span></div>
+                        <div className="flex justify-between text-xs"><span className="text-muted-foreground">Safety Vest</span><span className="font-medium text-emerald-600">Worn</span></div>
+                      </CollapsibleContent>
+                    </Collapsible>
 
                     {/* Vehicles */}
-                    <div className="p-3 bg-muted/30 rounded-lg border border-border">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Car className="w-4 h-4 text-primary" />
-                        <span className="text-xs font-semibold text-foreground">Vehicles</span>
-                      </div>
-                      <div className="space-y-1 text-xs">
-                        <div className="flex justify-between"><span className="text-muted-foreground">Vehicles Detected</span><span className="font-medium">1</span></div>
-                        <div className="flex justify-between"><span className="text-muted-foreground">Type</span><span className="font-medium">Dump Truck</span></div>
-                        <div className="flex justify-between"><span className="text-muted-foreground">Status</span><span className="font-medium">Stationary</span></div>
-                      </div>
-                    </div>
+                    <Collapsible>
+                      <CollapsibleTrigger className="flex items-center justify-between w-full p-2.5 bg-background rounded-lg border border-border hover:bg-muted/30 transition-colors">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-7 h-7 rounded-md bg-blue-500/10 flex items-center justify-center">
+                            <Car className="w-3.5 h-3.5 text-blue-600" />
+                          </div>
+                          <span className="text-xs font-medium text-foreground">Vehicles</span>
+                        </div>
+                        <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="mt-1.5 p-2.5 bg-muted/20 rounded-lg space-y-1.5">
+                        <div className="flex justify-between text-xs"><span className="text-muted-foreground">Detected</span><span className="font-medium">1</span></div>
+                        <div className="flex justify-between text-xs"><span className="text-muted-foreground">Type</span><span className="font-medium">Dump Truck</span></div>
+                        <div className="flex justify-between text-xs"><span className="text-muted-foreground">Status</span><span className="font-medium">Stationary</span></div>
+                      </CollapsibleContent>
+                    </Collapsible>
+
+                    {/* Traffic Control */}
+                    <Collapsible>
+                      <CollapsibleTrigger className="flex items-center justify-between w-full p-2.5 bg-background rounded-lg border border-border hover:bg-muted/30 transition-colors">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-7 h-7 rounded-md bg-orange-500/10 flex items-center justify-center">
+                            <AlertTriangle className="w-3.5 h-3.5 text-orange-600" />
+                          </div>
+                          <span className="text-xs font-medium text-foreground">Traffic Control</span>
+                        </div>
+                        <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="mt-1.5 p-2.5 bg-muted/20 rounded-lg space-y-1.5">
+                        <div className="flex justify-between text-xs"><span className="text-muted-foreground">Cones</span><span className="font-medium">0</span></div>
+                        <div className="flex justify-between text-xs"><span className="text-muted-foreground">Barriers</span><span className="font-medium">None</span></div>
+                        <div className="flex justify-between text-xs"><span className="text-muted-foreground">Signage</span><span className="font-medium">Not Visible</span></div>
+                      </CollapsibleContent>
+                    </Collapsible>
+
+                    {/* Access Infrastructure */}
+                    <Collapsible>
+                      <CollapsibleTrigger className="flex items-center justify-between w-full p-2.5 bg-background rounded-lg border border-border hover:bg-muted/30 transition-colors">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-7 h-7 rounded-md bg-purple-500/10 flex items-center justify-center">
+                            <MapPin className="w-3.5 h-3.5 text-purple-600" />
+                          </div>
+                          <span className="text-xs font-medium text-foreground">Access Infrastructure</span>
+                        </div>
+                        <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="mt-1.5 p-2.5 bg-muted/20 rounded-lg space-y-1.5">
+                        <div className="flex justify-between text-xs"><span className="text-muted-foreground">Road Type</span><span className="font-medium">Unpaved</span></div>
+                        <div className="flex justify-between text-xs"><span className="text-muted-foreground">Road Condition</span><span className="font-medium">Fair</span></div>
+                      </CollapsibleContent>
+                    </Collapsible>
 
                     {/* Environment */}
-                    <div className="p-3 bg-muted/30 rounded-lg border border-border">
-                      <div className="flex items-center gap-2 mb-2">
-                        <MapPin className="w-4 h-4 text-primary" />
-                        <span className="text-xs font-semibold text-foreground">Environment</span>
-                      </div>
-                      <div className="space-y-1 text-xs">
-                        <div className="flex justify-between"><span className="text-muted-foreground">Scene Type</span><span className="font-medium">Mining Site</span></div>
-                        <div className="flex justify-between"><span className="text-muted-foreground">Weather</span><span className="font-medium">Clear</span></div>
-                        <div className="flex justify-between"><span className="text-muted-foreground">Visibility</span><span className="font-medium">Good</span></div>
-                      </div>
-                    </div>
+                    <Collapsible>
+                      <CollapsibleTrigger className="flex items-center justify-between w-full p-2.5 bg-background rounded-lg border border-border hover:bg-muted/30 transition-colors">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-7 h-7 rounded-md bg-sky-500/10 flex items-center justify-center">
+                            <Eye className="w-3.5 h-3.5 text-sky-600" />
+                          </div>
+                          <span className="text-xs font-medium text-foreground">Environment</span>
+                        </div>
+                        <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="mt-1.5 p-2.5 bg-muted/20 rounded-lg space-y-1.5">
+                        <div className="flex justify-between text-xs"><span className="text-muted-foreground">Terrain</span><span className="font-medium">Flat</span></div>
+                        <div className="flex justify-between text-xs"><span className="text-muted-foreground">Ground</span><span className="font-medium">Dry</span></div>
+                        <div className="flex justify-between text-xs"><span className="text-muted-foreground">Hazards</span><span className="font-medium">None</span></div>
+                      </CollapsibleContent>
+                    </Collapsible>
                   </div>
                 </ScrollArea>
               </div>
