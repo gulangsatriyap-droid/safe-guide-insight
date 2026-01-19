@@ -1724,7 +1724,7 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
                     }}
                   >
                     <img
-                      src="/placeholder.svg"
+                      src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80"
                       alt="VLM Inspection"
                       className="max-w-full max-h-[calc(100vh-280px)] object-contain rounded-lg shadow-xl border border-border/50"
                       draggable={false}
