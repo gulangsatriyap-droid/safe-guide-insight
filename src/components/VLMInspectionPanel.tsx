@@ -1,24 +1,15 @@
-import { X, ZoomIn, ZoomOut, Image, Layers, Users, Car, TrafficCone, Building, Cloud, Sparkles, Hand, Move } from "lucide-react";
-import { useState, useRef, useCallback } from "react";
+import { X, ZoomIn, ZoomOut, Image, Layers, Users, Car, TrafficCone, Building, Cloud, Sparkles, Hand, Target, Eye, AlertTriangle, MapPin, ChevronDown } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { cn } from "@/lib/utils";
 
 interface VLMExtractionCategory {
   id: string;
   label: string;
   icon: React.ElementType;
+  iconColor: string;
   data: Record<string, string | number | boolean | string[]>;
 }
 
@@ -35,83 +26,76 @@ const defaultExtractionData: VLMExtractionCategory[] = [
     id: "image_properties",
     label: "Image Properties",
     icon: Image,
+    iconColor: "text-primary bg-primary/10",
     data: {
       "Resolution": "1920x1080",
       "Format": "JPEG",
       "Quality Score": "92%",
-      "Brightness": "Normal",
-      "Contrast": "Good",
-      "Sharpness": "Clear"
     }
   },
   {
     id: "composition",
     label: "Composition",
-    icon: Layers,
+    icon: Target,
+    iconColor: "text-emerald-600 bg-emerald-500/10",
     data: {
-      "Scene Type": "Outdoor - Mining Site",
+      "Scene Type": "Mining Site",
       "Time of Day": "Daytime",
       "Weather": "Clear",
-      "Visibility": "Good",
-      "Camera Angle": "Eye Level"
     }
   },
   {
     id: "people_ppe",
     label: "People & PPE",
     icon: Users,
+    iconColor: "text-amber-600 bg-amber-500/10",
     data: {
       "People Detected": 2,
-      "Helmet Worn": "Yes",
-      "Safety Vest": "Yes",
-      "Safety Glasses": "Not Detected",
-      "Gloves": "Not Visible",
-      "Safety Boots": "Visible"
+      "Helmet": "Worn",
+      "Safety Vest": "Worn",
     }
   },
   {
     id: "vehicles",
     label: "Vehicles",
     icon: Car,
+    iconColor: "text-blue-600 bg-blue-500/10",
     data: {
-      "Vehicles Detected": 1,
+      "Detected": 1,
       "Type": "Dump Truck",
       "Status": "Stationary",
-      "Condition": "Operational",
-      "Hazard Lights": "Off"
     }
   },
   {
     id: "traffic_control",
     label: "Traffic Control",
-    icon: TrafficCone,
+    icon: AlertTriangle,
+    iconColor: "text-orange-600 bg-orange-500/10",
     data: {
-      "Cones Detected": 0,
+      "Cones": 0,
       "Barriers": "None",
       "Signage": "Not Visible",
-      "Road Markings": "Visible"
     }
   },
   {
     id: "access_infrastructure",
     label: "Access Infrastructure",
-    icon: Building,
+    icon: MapPin,
+    iconColor: "text-purple-600 bg-purple-500/10",
     data: {
       "Road Type": "Unpaved",
       "Road Condition": "Fair",
-      "Access Points": 1,
-      "Structures": "None"
     }
   },
   {
     id: "environment",
     label: "Environment",
-    icon: Cloud,
+    icon: Eye,
+    iconColor: "text-sky-600 bg-sky-500/10",
     data: {
       "Terrain": "Flat",
-      "Ground Condition": "Dry",
-      "Dust Level": "Low",
-      "Hazards Detected": "None"
+      "Ground": "Dry",
+      "Hazards": "None",
     }
   }
 ];
@@ -123,36 +107,13 @@ const VLMInspectionPanel = ({
   extractionData = defaultExtractionData 
 }: VLMInspectionPanelProps) => {
   const [zoomLevel, setZoomLevel] = useState(1);
-  const [viewMode, setViewMode] = useState<"table" | "json">("table");
   const [isPanMode, setIsPanMode] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const imageContainerRef = useRef<HTMLDivElement>(null);
 
   const handleZoomIn = () => setZoomLevel(prev => Math.min(prev + 0.25, 3));
   const handleZoomOut = () => setZoomLevel(prev => Math.max(prev - 0.25, 0.5));
-
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if (!isPanMode) return;
-    setIsDragging(true);
-    setDragStart({
-      x: e.clientX - position.x,
-      y: e.clientY - position.y
-    });
-  }, [isPanMode, position]);
-
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!isDragging || !isPanMode) return;
-    setPosition({
-      x: e.clientX - dragStart.x,
-      y: e.clientY - dragStart.y
-    });
-  }, [isDragging, isPanMode, dragStart]);
-
-  const handleMouseUp = useCallback(() => {
-    setIsDragging(false);
-  }, []);
 
   const resetPosition = () => {
     setPosition({ x: 0, y: 0 });
@@ -161,11 +122,14 @@ const VLMInspectionPanel = ({
 
   if (!isOpen) return null;
 
+  // Use dummy image if no valid URL
+  const displayImage = imageUrl || "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80";
+
   return (
     <div className="fixed inset-0 z-50 bg-background/95 backdrop-blur-sm">
       <div className="fixed inset-0 flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-card">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-card shrink-0">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-lg">
               <Sparkles className="w-4 h-4 text-primary" />
@@ -186,7 +150,7 @@ const VLMInspectionPanel = ({
           {/* Left - Image Viewer (wider) */}
           <div className="flex-1 flex flex-col bg-muted/20 min-w-0">
             {/* Zoom & Pan Controls */}
-            <div className="flex items-center justify-between px-5 py-3 border-b border-border bg-card/80">
+            <div className="flex items-center justify-between px-5 py-3 border-b border-border bg-card/80 shrink-0">
               <div className="flex items-center gap-3">
                 <span className="text-sm font-medium text-foreground">Image Preview</span>
                 <div className="h-4 w-px bg-border" />
@@ -221,14 +185,27 @@ const VLMInspectionPanel = ({
 
             {/* Image Container */}
             <div 
-              ref={imageContainerRef}
-              className={`flex-1 overflow-hidden flex items-center justify-center p-8 ${
-                isPanMode ? 'cursor-grab' : 'cursor-default'
-              } ${isDragging ? 'cursor-grabbing' : ''}`}
-              onMouseDown={handleMouseDown}
-              onMouseMove={handleMouseMove}
-              onMouseUp={handleMouseUp}
-              onMouseLeave={handleMouseUp}
+              className={cn(
+                "flex-1 overflow-hidden flex items-center justify-center p-8",
+                isPanMode ? (isDragging ? 'cursor-grabbing' : 'cursor-grab') : 'cursor-default'
+              )}
+              onMouseDown={(e) => {
+                if (!isPanMode) return;
+                setIsDragging(true);
+                setDragStart({
+                  x: e.clientX - position.x,
+                  y: e.clientY - position.y
+                });
+              }}
+              onMouseMove={(e) => {
+                if (!isDragging || !isPanMode) return;
+                setPosition({
+                  x: e.clientX - dragStart.x,
+                  y: e.clientY - dragStart.y
+                });
+              }}
+              onMouseUp={() => setIsDragging(false)}
+              onMouseLeave={() => setIsDragging(false)}
             >
               <div 
                 className="relative transition-transform duration-100 ease-out select-none"
@@ -237,16 +214,16 @@ const VLMInspectionPanel = ({
                 }}
               >
                 <img
-                  src={imageUrl}
+                  src={displayImage}
                   alt="VLM Inspection"
-                  className="max-w-full max-h-[calc(100vh-180px)] object-contain rounded-lg shadow-xl border border-border/50"
+                  className="max-w-full max-h-[calc(100vh-220px)] object-contain rounded-lg shadow-xl border border-border/50"
                   draggable={false}
                 />
               </div>
             </div>
 
             {/* Description Box */}
-            <div className="px-5 pb-5">
+            <div className="px-5 pb-5 shrink-0">
               <div className="bg-card border border-border rounded-lg p-4">
                 <h4 className="text-sm font-medium text-foreground mb-1">Deskripsi Temuan</h4>
                 <p className="text-sm text-muted-foreground">
@@ -257,9 +234,9 @@ const VLMInspectionPanel = ({
           </div>
 
           {/* Right - Extraction Results Panel */}
-          <div className="w-[480px] border-l border-border flex flex-col bg-card shrink-0">
+          <div className="w-[380px] border-l border-border flex flex-col bg-card shrink-0">
             {/* AI Analysis Header */}
-            <div className="px-5 py-4 border-b border-border">
+            <div className="px-5 py-4 border-b border-border shrink-0">
               <div className="flex items-center justify-between mb-1">
                 <h3 className="font-semibold text-foreground text-lg">AI Analysis</h3>
                 <Button variant="outline" size="sm" className="h-8 text-xs">
@@ -270,69 +247,53 @@ const VLMInspectionPanel = ({
             </div>
 
             {/* Information Extraction Header */}
-            <div className="px-5 py-3 border-b border-border flex items-center justify-between bg-muted/30">
+            <div className="px-5 py-3 border-b border-border flex items-center justify-between bg-muted/30 shrink-0">
               <div>
                 <h4 className="text-sm font-medium text-foreground">Information Extraction</h4>
                 <p className="text-xs text-muted-foreground">Source: Extraction engine v1</p>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-xs text-muted-foreground">View as</span>
-                <Select value={viewMode} onValueChange={(v: "table" | "json") => setViewMode(v)}>
-                  <SelectTrigger className="h-8 w-24 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="table">Table</SelectItem>
-                    <SelectItem value="json">JSON</SelectItem>
-                  </SelectContent>
-                </Select>
+                <select className="h-7 px-2 text-xs bg-card border border-border rounded text-foreground focus:outline-none">
+                  <option value="table">Table</option>
+                  <option value="json">JSON</option>
+                </select>
               </div>
             </div>
 
-            {/* Extraction Categories */}
-            <div className="flex-1 overflow-auto">
-              {viewMode === "table" ? (
-                <Accordion type="multiple" defaultValue={["image_properties"]} className="px-4 py-3">
-                  {extractionData.map((category) => (
-                    <AccordionItem key={category.id} value={category.id} className="border border-border rounded-lg mb-2 overflow-hidden bg-background">
-                      <AccordionTrigger className="hover:no-underline py-3 px-4 hover:bg-muted/50 data-[state=open]:bg-primary/5 [&[data-state=open]>svg]:rotate-90">
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                            <category.icon className="w-4 h-4 text-primary" />
-                          </div>
-                          <span className="text-sm font-medium text-foreground">{category.label}</span>
+            {/* Extraction Categories - Accordion Style */}
+            <ScrollArea className="flex-1">
+              <div className="p-4 space-y-2">
+                {extractionData.map((category, index) => (
+                  <Collapsible key={category.id} defaultOpen={index === 0}>
+                    <CollapsibleTrigger className="flex items-center justify-between w-full p-3 bg-background rounded-lg border border-border hover:bg-muted/30 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center", category.iconColor.split(' ')[1])}>
+                          <category.icon className={cn("w-4 h-4", category.iconColor.split(' ')[0])} />
                         </div>
-                      </AccordionTrigger>
-                      <AccordionContent className="px-4 pb-3">
-                        <div className="bg-muted/30 rounded-lg p-4 space-y-2.5">
-                          {Object.entries(category.data).map(([key, value]) => (
-                            <div key={key} className="flex items-center justify-between text-sm">
-                              <span className="text-muted-foreground">{key}</span>
-                              <span className="font-medium text-foreground">
-                                {Array.isArray(value) ? value.join(", ") : String(value)}
-                              </span>
-                            </div>
-                          ))}
+                        <span className="text-sm font-medium text-foreground">{category.label}</span>
+                      </div>
+                      <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="mt-2 p-3 bg-muted/20 rounded-lg space-y-2">
+                      {Object.entries(category.data).map(([key, value]) => (
+                        <div key={key} className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">{key}</span>
+                          <span className={cn(
+                            "font-medium",
+                            value === "Worn" || value === "Yes" ? "text-emerald-600" :
+                            value === "Not Visible" || value === "None" ? "text-muted-foreground" :
+                            "text-foreground"
+                          )}>
+                            {Array.isArray(value) ? value.join(", ") : String(value)}
+                          </span>
                         </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
-              ) : (
-                <div className="p-4">
-                  <pre className="bg-muted/50 rounded-lg p-4 text-xs overflow-auto max-h-[calc(100vh-320px)] text-foreground border border-border">
-                    {JSON.stringify(
-                      extractionData.reduce((acc, cat) => ({
-                        ...acc,
-                        [cat.id]: cat.data
-                      }), {}),
-                      null,
-                      2
-                    )}
-                  </pre>
-                </div>
-              )}
-            </div>
+                      ))}
+                    </CollapsibleContent>
+                  </Collapsible>
+                ))}
+              </div>
+            </ScrollArea>
           </div>
         </div>
       </div>
