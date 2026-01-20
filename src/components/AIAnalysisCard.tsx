@@ -1,4 +1,4 @@
-import { Info, ChevronRight, Sparkles, CheckCircle2, XCircle } from "lucide-react";
+import { Info, ChevronRight, Sparkles, XCircle } from "lucide-react";
 import { AIKnowledgeSource } from "@/data/hazardReports";
 import { cn } from "@/lib/utils";
 
@@ -97,19 +97,30 @@ const AIAnalysisCard = ({ source, isActive = true, onDetailClick }: AIAnalysisCa
   // Description based on category
   const description = source.description || source.citation.content.split('\n')[0];
 
+  // Get relevance score based on type
+  const getRelevanceScore = () => {
+    switch (source.type) {
+      case 'TBC': return 79;
+      case 'GR': return 90;
+      case 'PSPP': return 100;
+      default: return 85;
+    }
+  };
+
+  const relevanceScore = getRelevanceScore();
+
   return (
     <div className={cn(
       "rounded-xl border bg-card h-full flex flex-col transition-all hover:shadow-md",
       config.border
     )}>
-      {/* Header with AI Label */}
+      {/* Header with AI Label and Relevance Score */}
       <div className={cn("flex items-center justify-between px-4 py-3 border-b", config.bg, config.border)}>
         <div className="flex items-center gap-2">
           <span className={cn(
             "inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold border",
             config.bg, config.text, config.border
           )}>
-            <CheckCircle2 className="w-3 h-3" />
             {config.shortName}
           </span>
           <div className="flex items-center gap-1 px-1.5 py-0.5 bg-primary/10 rounded border border-primary/20">
@@ -117,6 +128,8 @@ const AIAnalysisCard = ({ source, isActive = true, onDetailClick }: AIAnalysisCa
             <span className="text-[10px] font-medium text-primary">AI</span>
           </div>
         </div>
+        {/* Relevance Score */}
+        <span className="text-2xl font-bold text-foreground">{relevanceScore}</span>
       </div>
 
       {/* Content */}
@@ -134,14 +147,6 @@ const AIAnalysisCard = ({ source, isActive = true, onDetailClick }: AIAnalysisCa
           <span className="text-xs font-medium text-foreground">
             {source.deviationType || "Pengoperasian Kendaraan / Unit"}
           </span>
-        </div>
-
-        {/* Alasan */}
-        <div className={cn("rounded-lg p-3 border", config.bg, config.border)}>
-          <p className={cn("text-xs font-bold mb-1.5", config.text)}>Alasan:</p>
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            {briefReason}
-          </p>
         </div>
       </div>
 
