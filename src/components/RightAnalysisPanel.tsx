@@ -147,6 +147,34 @@ const mainTBCData = {
   ]
 };
 
+// Main GR data (for FALSE state display)
+const mainGRData = {
+  title: "Pengoperasian Kendaraan & Unit",
+  relevanceScore: 0,
+  source: "Foto",
+  deviationType: "Bekerja di ketinggian > 1.8 m tanpa full body harness",
+  aiReasoning: "Tidak ditemukan indikasi pelanggaran Golden Rules dalam analisis visual. Pekerja terdeteksi menggunakan APD yang sesuai dan tidak ada aktivitas bekerja di ketinggian yang teridentifikasi tanpa pengaman yang memadai.",
+};
+
+// Main PSPP data (for FALSE state display)
+const mainPSPPData = {
+  title: "Pelanggaran Prosedur Keselamatan",
+  relevanceScore: 0,
+  source: "Foto",
+  deviationType: "Hand rail tidak ada pada dudukan tandon profil",
+  aiReasoning: "Berdasarkan ekstraksi visual, tidak ditemukan pelanggaran prosedur keselamatan yang signifikan. Kondisi area kerja dan peralatan sesuai dengan standar yang ditetapkan.",
+};
+
+// Helper to get main data by type
+const getMainDataByType = (type: 'TBC' | 'GR' | 'PSPP') => {
+  switch (type) {
+    case 'TBC': return mainTBCData;
+    case 'GR': return mainGRData;
+    case 'PSPP': return mainPSPPData;
+    default: return mainTBCData;
+  }
+};
+
 const documentConfig = {
   TBC: {
     title: "TBC - To be Concern Hazard",
@@ -1245,121 +1273,144 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
           <ScrollArea className="flex-1">
             <div className="px-4 py-4 space-y-4">
               
-              {/* SECTION 2: PRIMARY TBC CARD - Compact */}
-              {currentCandidate && (
-                <div className={cn(
-                  "rounded-xl border overflow-hidden",
-                  isCurrentActive ? config.border : "border-border"
-                )}>
-                  {/* Card Header */}
+              {/* SECTION 2: PRIMARY CARD - Always show for all types */}
+              {(() => {
+                const currentMainData = getMainDataByType(activeTab);
+                return (
                   <div className={cn(
-                    "px-4 py-3",
-                    isCurrentActive ? `${config.accent}` : "bg-muted/30"
+                    "rounded-xl border overflow-hidden",
+                    isCurrentActive ? config.border : "border-destructive/30"
                   )}>
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-start gap-3 flex-1">
-                        <div className={cn(
-                          "w-9 h-9 rounded-lg flex items-center justify-center shrink-0",
-                          isCurrentActive ? "bg-amber-500/20" : "bg-muted"
-                        )}>
-                          <AlertTriangle className={cn(
-                            "w-5 h-5",
-                            isCurrentActive ? "text-amber-500" : "text-muted-foreground"
-                          )} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-[10px] px-1.5 py-0.5 rounded font-bold bg-primary/10 text-primary">
-                              TBC Utama
-                            </span>
+                    {/* Card Header */}
+                    <div className={cn(
+                      "px-4 py-3",
+                      isCurrentActive ? config.accent : "bg-destructive/5"
+                    )}>
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-start gap-3 flex-1">
+                          <div className={cn(
+                            "w-9 h-9 rounded-lg flex items-center justify-center shrink-0",
+                            isCurrentActive ? config.iconBg : "bg-destructive/10"
+                          )}>
+                            {isCurrentActive ? (
+                              <AlertTriangle className={cn("w-5 h-5", config.text)} />
+                            ) : (
+                              <XCircle className="w-5 h-5 text-destructive" />
+                            )}
                           </div>
-                          <h4 className="text-sm font-semibold text-foreground">
-                            {mainTBCData.title}
-                          </h4>
-                          <p className="text-xs text-muted-foreground mt-0.5">
-                            Tipe: {mainTBCData.deviationType}
-                          </p>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className={cn(
+                                "text-[10px] px-1.5 py-0.5 rounded font-bold",
+                                isCurrentActive ? `${config.bg} ${config.text}` : "bg-destructive/10 text-destructive"
+                              )}>
+                                {activeTab} {isCurrentActive ? "Utama" : "FALSE"}
+                              </span>
+                            </div>
+                            <h4 className={cn(
+                              "text-sm font-semibold",
+                              isCurrentActive ? "text-foreground" : "text-muted-foreground"
+                            )}>
+                              {currentMainData.title}
+                            </h4>
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              Tipe: {currentMainData.deviationType}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                      {/* Relevance Score */}
-                      <div className="text-right shrink-0">
-                        <span className="text-[10px] text-muted-foreground block">Relevance Score</span>
-                        <span className="text-2xl font-bold text-foreground">{mainTBCData.relevanceScore}</span>
+                        {/* Relevance Score */}
+                        <div className="text-right shrink-0">
+                          <span className="text-[10px] text-muted-foreground block">Relevance Score</span>
+                          <span className={cn(
+                            "text-2xl font-bold",
+                            isCurrentActive ? "text-foreground" : "text-muted-foreground"
+                          )}>
+                            {isCurrentActive ? currentMainData.relevanceScore : "-"}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
               {/* SECTION 3: DEVIATION META - Compact */}
-              <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg border border-border">
-                <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
-                  {getSourceIcon(currentCandidate?.source || 'Foto')}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-medium text-foreground">Tipe Deviasi :</span>
-                    <span className="text-xs text-foreground">{currentCandidate?.source || "Foto"}</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    Deskripsi dan foto konsisten, sinyal deviasi dan objek cocok dengan {activeTab}
-                  </p>
-                </div>
-              </div>
-
-
-              {/* SECTION 6: AI REASONING */}
               {isCurrentActive && (
-                <div className="rounded-xl border border-amber-500/30 overflow-hidden">
-                  <div className="px-4 py-3 bg-amber-500/10 border-b border-amber-500/20">
-                    <div className="flex items-center gap-2">
-                      <Brain className="w-4 h-4 text-amber-600" />
-                      <h4 className="text-sm font-semibold text-foreground">ALASAN AI</h4>
-                    </div>
+                <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg border border-border">
+                  <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                    {getSourceIcon(mainTBCData.source)}
                   </div>
-                  <div className="p-4 bg-amber-50/50">
-                    <p className="text-sm text-foreground leading-relaxed">
-                      {mainTBCData.aiReasoning}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs font-medium text-foreground">Tipe Deviasi :</span>
+                      <span className="text-xs text-foreground">{mainTBCData.source}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      Deskripsi dan foto konsisten, sinyal deviasi dan objek cocok dengan {activeTab}
                     </p>
                   </div>
                 </div>
               )}
 
-              {/* FALSE state message */}
-              {!isCurrentActive && (
-                <div className="p-4 bg-muted/30 rounded-xl border border-border text-center">
-                  <XCircle className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                  <p className="text-sm font-medium text-foreground">Tidak Terdeteksi</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    AI tidak menemukan kecocokan {activeTab} yang relevan dengan temuan ini.
-                  </p>
-                  
-                  {/* Quick navigation to active labels */}
-                  {activeLabels.length > 0 && (
-                    <div className="mt-4">
-                      <p className="text-xs text-muted-foreground mb-2">Lihat kategori yang terdeteksi:</p>
-                      <div className="flex gap-2 justify-center flex-wrap">
-                        {activeLabels.map(label => {
-                          const lConfig = labelConfig[label];
-                          return (
-                            <Button
-                              key={label}
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setActiveTab(label)}
-                              className={cn(
-                                "gap-1.5 h-7 text-xs font-bold",
-                                lConfig.bg, lConfig.text, `border ${lConfig.border}`
-                              )}
-                            >
-                              <CheckCircle2 className="w-3 h-3" />
-                              {label}
-                            </Button>
-                          );
-                        })}
+              {/* SECTION 6: AI REASONING - Always show */}
+              {(() => {
+                const currentMainData = getMainDataByType(activeTab);
+                return (
+                  <div className={cn(
+                    "rounded-xl border overflow-hidden",
+                    isCurrentActive ? "border-amber-500/30" : "border-muted"
+                  )}>
+                    <div className={cn(
+                      "px-4 py-3 border-b",
+                      isCurrentActive ? "bg-amber-500/10 border-amber-500/20" : "bg-muted/30 border-border"
+                    )}>
+                      <div className="flex items-center gap-2">
+                        <Brain className={cn(
+                          "w-4 h-4",
+                          isCurrentActive ? "text-amber-600" : "text-muted-foreground"
+                        )} />
+                        <h4 className="text-sm font-semibold text-foreground">ALASAN AI</h4>
                       </div>
                     </div>
-                  )}
+                    <div className={cn(
+                      "p-4",
+                      isCurrentActive ? "bg-amber-50/50" : "bg-muted/10"
+                    )}>
+                      <p className={cn(
+                        "text-sm leading-relaxed",
+                        isCurrentActive ? "text-foreground" : "text-muted-foreground"
+                      )}>
+                        {currentMainData.aiReasoning}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Quick navigation to active labels for FALSE state */}
+              {!isCurrentActive && activeLabels.length > 0 && (
+                <div className="p-3 bg-muted/20 rounded-lg border border-border">
+                  <p className="text-xs text-muted-foreground mb-2">Lihat kategori yang terdeteksi:</p>
+                  <div className="flex gap-2 flex-wrap">
+                    {activeLabels.map(label => {
+                      const lConfig = labelConfig[label];
+                      return (
+                        <Button
+                          key={label}
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setActiveTab(label)}
+                          className={cn(
+                            "gap-1.5 h-7 text-xs font-bold",
+                            lConfig.bg, lConfig.text, `border ${lConfig.border}`
+                          )}
+                        >
+                          <CheckCircle2 className="w-3 h-3" />
+                          {label}
+                        </Button>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
 
@@ -1543,80 +1594,59 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
             </div>
 
             <ScrollArea className="flex-1">
-              <div className="p-3 space-y-2">
+              <div className="p-3 space-y-3">
+                {/* Show both TBC candidates at once */}
                 {tbcCandidates.map((candidate) => (
-                  <div key={candidate.id}>
+                  <div 
+                    key={candidate.id}
+                    className={cn(
+                      "rounded-xl border overflow-hidden transition-all",
+                      selectedCandidate === candidate.id 
+                        ? "border-primary/30 shadow-sm" 
+                        : "border-border hover:border-primary/20"
+                    )}
+                  >
+                    {/* Card Header - Always visible */}
                     <button
                       onClick={() => setSelectedCandidate(selectedCandidate === candidate.id ? null : candidate.id)}
                       className={cn(
-                        "w-full flex items-center justify-between p-3 rounded-lg border transition-all text-left",
-                        selectedCandidate === candidate.id
-                          ? "bg-primary/5 border-primary/30"
-                          : "bg-card border-border hover:bg-muted/30"
+                        "w-full flex items-start justify-between p-3 text-left transition-colors",
+                        selectedCandidate === candidate.id ? "bg-primary/5" : "bg-card hover:bg-muted/30"
                       )}
                     >
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <div className={cn(
-                          "w-7 h-7 rounded-lg flex items-center justify-center shrink-0",
-                          candidate.isPrimary ? "bg-amber-500/20" : "bg-muted"
-                        )}>
-                          <AlertTriangle className={cn(
-                            "w-4 h-4",
-                            candidate.isPrimary ? "text-amber-500" : "text-muted-foreground"
-                          )} />
+                      <div className="flex items-start gap-3 flex-1 min-w-0">
+                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                          <AlertTriangle className="w-4 h-4 text-primary" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className={cn(
-                              "text-[10px] px-1.5 py-0.5 rounded font-bold",
-                              "bg-primary/10 text-primary"
-                            )}>
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-[10px] px-1.5 py-0.5 rounded font-bold bg-primary/10 text-primary">
                               {candidate.candidateLabel}
                             </span>
                           </div>
-                          <p className="text-xs font-medium text-foreground mt-1">{candidate.title}</p>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="text-[10px] text-muted-foreground">Relevance Score:</span>
-                            <span className={cn(
-                              "text-[10px] px-1.5 py-0.5 rounded font-bold",
-                              candidate.relevanceScore >= 80 ? "bg-emerald-500/10 text-emerald-600" :
-                              candidate.relevanceScore >= 70 ? "bg-amber-500/10 text-amber-600" :
-                              "bg-muted text-muted-foreground"
-                            )}>
-                              {candidate.relevanceScore}
-                            </span>
-                          </div>
+                          <h4 className="text-sm font-semibold text-foreground">{candidate.title}</h4>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            Tipe: {candidate.deviationType}
+                          </p>
                         </div>
                       </div>
-                      <ChevronDown className={cn(
-                        "w-4 h-4 text-muted-foreground shrink-0 transition-transform",
-                        selectedCandidate === candidate.id && "rotate-180"
-                      )} />
+                      {/* Relevance Score */}
+                      <div className="text-right shrink-0 ml-2">
+                        <span className="text-[10px] text-muted-foreground block">Relevance Score</span>
+                        <span className={cn(
+                          "text-xl font-bold",
+                          candidate.relevanceScore >= 80 ? "text-emerald-600" :
+                          candidate.relevanceScore >= 70 ? "text-amber-600" :
+                          "text-muted-foreground"
+                        )}>
+                          {candidate.relevanceScore}
+                        </span>
+                      </div>
                     </button>
 
-                    {/* Candidate Detail - Inline Expansion */}
+                    {/* Expandable AI Reasoning */}
                     {selectedCandidate === candidate.id && (
-                      <div className="mt-2 p-3 bg-muted/20 rounded-lg border border-border space-y-3 animate-in fade-in duration-200">
-                        {/* Deviation Type */}
-                        <div>
-                          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Tipe Deviasi</span>
-                          <p className="text-xs font-medium text-foreground mt-0.5">{candidate.deviationType}</p>
-                        </div>
-
-                        {/* Relevance Score */}
-                        <div className="flex items-center gap-2">
-                          <span className="text-[10px] text-muted-foreground">Relevance Score:</span>
-                          <span className={cn(
-                            "text-sm font-bold",
-                            candidate.relevanceScore >= 80 ? "text-emerald-600" :
-                            candidate.relevanceScore >= 70 ? "text-amber-600" :
-                            "text-muted-foreground"
-                          )}>
-                            {candidate.relevanceScore}
-                          </span>
-                        </div>
-
-                        {/* AI Reasoning - Narrative */}
+                      <div className="px-3 pb-3 bg-muted/10 animate-in fade-in duration-200">
                         <div className="rounded-lg border border-amber-500/30 overflow-hidden">
                           <div className="px-3 py-2 bg-amber-500/10 border-b border-amber-500/20">
                             <div className="flex items-center gap-1.5">
@@ -1630,7 +1660,6 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
                             </p>
                           </div>
                         </div>
-
                       </div>
                     )}
                   </div>
