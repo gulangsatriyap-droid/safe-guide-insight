@@ -50,21 +50,17 @@ const labelConfig = {
   }
 };
 
-// TBC Candidates sample data
+// TBC Candidates sample data - only showing Candidate 1 and Candidate 3
 const tbcCandidates = [
   {
     id: 1,
-    title: "Pelanggaran APD di Area Workshop",
-    relevance: 85,
+    candidateLabel: "Candidate 1",
+    title: "Deviasi pengoperasian kendaraan/unit",
+    relevanceScore: 79,
     source: "Foto",
     deviationType: "Akses Area yang Tidak Aktif Belum Ditutup",
-    isPrimary: true,
-    aiReasoning: [
-      "Tidak memakai helm dan APD lainnya",
-      "Konteks visual: pekerja sedang istirahat",
-      "Bukan aktivitas kerja aktif",
-      "Sinyal deviasi cocok dengan TBC"
-    ],
+    isPrimary: false,
+    aiReasoning: "Berdasarkan analisis visual, terdeteksi adanya pekerja yang mengakses area yang seharusnya tidak aktif namun belum ditutup dengan baramit atau signage yang memadai. Kondisi ini menunjukkan potensi risiko keselamatan karena pekerja dapat terpapar bahaya yang tidak terduga di area tersebut. Sinyal visual menunjukkan tidak adanya pembatas fisik yang jelas antara area aktif dan non-aktif.",
     observedFact: {
       extractedContent: {
         objects: ["Helm", "Sepatu safety", "Rompi"],
@@ -89,50 +85,14 @@ const tbcCandidates = [
     ]
   },
   {
-    id: 2,
-    title: "Penggunaan Alat Tidak Standar",
-    relevance: 72,
-    source: "Foto",
-    deviationType: "Penggunaan Peralatan Kerja Non-Standar",
-    isPrimary: false,
-    aiReasoning: [
-      "Alat yang digunakan tidak sesuai SOP",
-      "Tidak ada label inspeksi pada alat",
-      "Potensi risiko kecelakaan kerja"
-    ],
-    observedFact: {
-      extractedContent: {
-        objects: ["Alat non-standar", "Kabel", "Peralatan"],
-        actions: ["Penggunaan alat improvisasi"],
-        sceneContext: "Area kerja dengan peralatan"
-      },
-      evidenceMatching: {
-        imageTextConsistency: "Match",
-        objectDeviationMapping: "Match",
-        confidenceNotes: "Alat tidak memiliki label inspeksi"
-      }
-    },
-    assumptions: [
-      "Tidak diketahui apakah alat sudah diinspeksi",
-      "Tidak ada informasi approval penggunaan"
-    ],
-    recommendations: [
-      "Verifikasi status inspeksi alat",
-      "Konfirmasi approval penggunaan alat"
-    ]
-  },
-  {
     id: 3,
-    title: "Area Kerja Tidak Rapi",
-    relevance: 68,
+    candidateLabel: "Candidate 3",
+    title: "Deviasi pengoperasian kendaraan/unit",
+    relevanceScore: 68,
     source: "Video",
     deviationType: "Housekeeping Tidak Sesuai Standar",
     isPrimary: false,
-    aiReasoning: [
-      "Material berserakan di area kerja",
-      "Jalur evakuasi terhalang",
-      "Potensi trip hazard"
-    ],
+    aiReasoning: "Dari hasil ekstraksi visual, teridentifikasi kondisi area kerja yang tidak memenuhi standar housekeeping. Material dan peralatan ditemukan berserakan di jalur akses yang dapat menghambat evakuasi darurat. Kondisi ini menciptakan potensi trip hazard bagi pekerja yang melintas dan dapat memperlambat respons dalam situasi darurat.",
     observedFact: {
       extractedContent: {
         objects: ["Material", "Peralatan", "Jalur evakuasi"],
@@ -155,6 +115,37 @@ const tbcCandidates = [
     ]
   }
 ];
+
+// Main TBC data (fixed, cannot be changed by user)
+const mainTBCData = {
+  title: "Deviasi pengoperasian kendaraan/unit",
+  relevanceScore: 85,
+  source: "Foto",
+  deviationType: "Pekerjaan tidak sesuai DOP / tidak ada DOP",
+  aiReasoning: "Berdasarkan hasil analisis visual dan ekstraksi konteks, sistem mengidentifikasi adanya deviasi dalam pengoperasian kendaraan atau unit. Operator terdeteksi tidak mengikuti standar operasional prosedur yang telah ditetapkan, dengan indikasi kuat bahwa pekerjaan yang dilakukan tidak memiliki Dokumen Operasional Prosedur (DOP) yang valid atau tidak sesuai dengan DOP yang ada. Hal ini menunjukkan potensi risiko keselamatan yang signifikan karena operator mungkin tidak mengetahui langkah-langkah keselamatan yang harus diikuti.",
+  observedFact: {
+    extractedContent: {
+      objects: ["Hauler", "Tire", "Workshop Tyre"],
+      actions: ["Equipment inspection", "Maintenance observation"],
+      sceneContext: "Workshop area dengan aktivitas maintenance kendaraan"
+    },
+    evidenceMatching: {
+      imageTextConsistency: "Match",
+      objectDeviationMapping: "Match",
+      confidenceNotes: "Deviasi prosedur teridentifikasi dengan jelas"
+    }
+  },
+  assumptions: [
+    "Tidak dapat memverifikasi keberadaan DOP di lokasi",
+    "Tidak diketahui apakah operator sudah mendapat briefing",
+    "Timestamp aktivitas tidak tersedia"
+  ],
+  recommendations: [
+    "Verifikasi keberadaan dan kepatuhan terhadap DOP",
+    "Lakukan briefing ulang kepada operator",
+    "Dokumentasikan temuan untuk tindak lanjut"
+  ]
+};
 
 const documentConfig = {
   TBC: {
@@ -1265,23 +1256,35 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
                     "px-4 py-3",
                     isCurrentActive ? `${config.accent}` : "bg-muted/30"
                   )}>
-                    <div className="flex items-start gap-3">
-                      <div className={cn(
-                        "w-9 h-9 rounded-lg flex items-center justify-center shrink-0",
-                        isCurrentActive ? "bg-amber-500/20" : "bg-muted"
-                      )}>
-                        <AlertTriangle className={cn(
-                          "w-5 h-5",
-                          isCurrentActive ? "text-amber-500" : "text-muted-foreground"
-                        )} />
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-start gap-3 flex-1">
+                        <div className={cn(
+                          "w-9 h-9 rounded-lg flex items-center justify-center shrink-0",
+                          isCurrentActive ? "bg-amber-500/20" : "bg-muted"
+                        )}>
+                          <AlertTriangle className={cn(
+                            "w-5 h-5",
+                            isCurrentActive ? "text-amber-500" : "text-muted-foreground"
+                          )} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-[10px] px-1.5 py-0.5 rounded font-bold bg-primary/10 text-primary">
+                              TBC Utama
+                            </span>
+                          </div>
+                          <h4 className="text-sm font-semibold text-foreground">
+                            {mainTBCData.title}
+                          </h4>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            Tipe: {mainTBCData.deviationType}
+                          </p>
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="text-sm font-semibold text-foreground">
-                          Deviasi {docConfig.subtitle?.toLowerCase()}
-                        </h4>
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          Tipe: {currentCandidate.deviationType}
-                        </p>
+                      {/* Relevance Score */}
+                      <div className="text-right shrink-0">
+                        <span className="text-[10px] text-muted-foreground block">Relevance Score</span>
+                        <span className="text-2xl font-bold text-foreground">{mainTBCData.relevanceScore}</span>
                       </div>
                     </div>
                   </div>
@@ -1306,7 +1309,7 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
 
 
               {/* SECTION 6: AI REASONING */}
-              {currentCandidate && isCurrentActive && (
+              {isCurrentActive && (
                 <div className="rounded-xl border border-amber-500/30 overflow-hidden">
                   <div className="px-4 py-3 bg-amber-500/10 border-b border-amber-500/20">
                     <div className="flex items-center gap-2">
@@ -1315,14 +1318,9 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
                     </div>
                   </div>
                   <div className="p-4 bg-amber-50/50">
-                    <ul className="space-y-2">
-                      {currentCandidate.aiReasoning.map((reason, idx) => (
-                        <li key={idx} className="flex items-start gap-2 text-sm text-foreground">
-                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0 mt-1.5" />
-                          {reason}
-                        </li>
-                      ))}
-                    </ul>
+                    <p className="text-sm text-foreground leading-relaxed">
+                      {mainTBCData.aiReasoning}
+                    </p>
                   </div>
                 </div>
               )}
@@ -1568,19 +1566,25 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
                           )} />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium text-foreground truncate">{candidate.title}</p>
-                          <div className="flex items-center gap-2 mt-0.5">
+                          <div className="flex items-center gap-2">
                             <span className={cn(
-                              "text-[10px] px-1.5 py-0.5 rounded font-semibold",
-                              candidate.relevance >= 80 ? "bg-emerald-500/10 text-emerald-600" :
-                              candidate.relevance >= 70 ? "bg-amber-500/10 text-amber-600" :
+                              "text-[10px] px-1.5 py-0.5 rounded font-bold",
+                              "bg-primary/10 text-primary"
+                            )}>
+                              {candidate.candidateLabel}
+                            </span>
+                          </div>
+                          <p className="text-xs font-medium text-foreground mt-1">{candidate.title}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-[10px] text-muted-foreground">Relevance Score:</span>
+                            <span className={cn(
+                              "text-[10px] px-1.5 py-0.5 rounded font-bold",
+                              candidate.relevanceScore >= 80 ? "bg-emerald-500/10 text-emerald-600" :
+                              candidate.relevanceScore >= 70 ? "bg-amber-500/10 text-amber-600" :
                               "bg-muted text-muted-foreground"
                             )}>
-                              {candidate.relevance}%
+                              {candidate.relevanceScore}
                             </span>
-                            <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                              {getSourceIcon(candidate.source)}
-                            </div>
                           </div>
                         </div>
                       </div>
@@ -1599,17 +1603,20 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
                           <p className="text-xs font-medium text-foreground mt-0.5">{candidate.deviationType}</p>
                         </div>
 
-                        {/* Relevance Badge */}
+                        {/* Relevance Score */}
                         <div className="flex items-center gap-2">
+                          <span className="text-[10px] text-muted-foreground">Relevance Score:</span>
                           <span className={cn(
-                            "text-[10px] px-2 py-1 rounded-md font-semibold",
-                            candidate.isPrimary ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+                            "text-sm font-bold",
+                            candidate.relevanceScore >= 80 ? "text-emerald-600" :
+                            candidate.relevanceScore >= 70 ? "text-amber-600" :
+                            "text-muted-foreground"
                           )}>
-                            {candidate.isPrimary ? "Primary Match" : "Candidate"} • {candidate.relevance}% relevance
+                            {candidate.relevanceScore}
                           </span>
                         </div>
 
-                        {/* AI Reasoning */}
+                        {/* AI Reasoning - Narrative */}
                         <div className="rounded-lg border border-amber-500/30 overflow-hidden">
                           <div className="px-3 py-2 bg-amber-500/10 border-b border-amber-500/20">
                             <div className="flex items-center gap-1.5">
@@ -1618,14 +1625,9 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
                             </div>
                           </div>
                           <div className="p-3 bg-amber-50/50">
-                            <ul className="space-y-1.5">
-                              {candidate.aiReasoning.map((reason, idx) => (
-                                <li key={idx} className="flex items-start gap-2 text-xs text-foreground">
-                                  <span className="w-1 h-1 rounded-full bg-amber-500 shrink-0 mt-1.5" />
-                                  {reason}
-                                </li>
-                              ))}
-                            </ul>
+                            <p className="text-xs text-foreground leading-relaxed">
+                              {candidate.aiReasoning}
+                            </p>
                           </div>
                         </div>
 
@@ -1964,7 +1966,7 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
                       <option value="">-- Pilih TBC --</option>
                       {tbcCandidates.map((candidate) => (
                         <option key={candidate.id} value={candidate.id.toString()}>
-                          {candidate.title} ({candidate.relevance}%)
+                          {candidate.candidateLabel}: {candidate.title} (Score: {candidate.relevanceScore})
                         </option>
                       ))}
                       <option value="none">Tidak ada TBC yang sesuai</option>
