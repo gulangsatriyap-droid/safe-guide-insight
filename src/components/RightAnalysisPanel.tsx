@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, FileText, ChevronLeft, ChevronRight, ChevronDown, CheckCircle2, AlertCircle, Sparkles, Target, Eye, Brain, XCircle, Braces, Copy, Download, ChevronDownSquare, ChevronUpSquare, Search, BookOpen, ZoomIn, ZoomOut, Maximize2, Highlighter, AlertTriangle, Image, Video, FileType, Users, Car, MapPin, PenLine, Save, Hand } from "lucide-react";
+import { X, FileText, ChevronLeft, ChevronRight, ChevronDown, CheckCircle2, AlertCircle, Sparkles, Target, Eye, Brain, XCircle, Braces, Copy, Download, ChevronDownSquare, ChevronUpSquare, Search, BookOpen, ZoomIn, ZoomOut, Maximize2, Highlighter, AlertTriangle, Image as ImageIcon, Video, FileType, Users, Car, MapPin, PenLine, Save, Hand } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
@@ -814,13 +814,13 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
   const getSourceIcon = (source: string) => {
     switch (source.toLowerCase()) {
       case 'foto':
-        return <Image className="w-3.5 h-3.5" />;
+        return <ImageIcon className="w-3.5 h-3.5" />;
       case 'video':
         return <Video className="w-3.5 h-3.5" />;
       case 'text':
         return <FileType className="w-3.5 h-3.5" />;
       default:
-        return <Image className="w-3.5 h-3.5" />;
+        return <ImageIcon className="w-3.5 h-3.5" />;
     }
   };
 
@@ -1472,103 +1472,127 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
                     )} />
                   </CollapsibleTrigger>
                   
-                  <CollapsibleContent className="mt-3 space-y-3">
-                    {/* Extracted Context - Professional Card Grid */}
-                    <div className="space-y-3">
-                      {/* Actors */}
-                      <div className="p-3 bg-card rounded-xl border border-border">
-                        <div className="flex items-center gap-2 mb-2">
-                          <div className="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center">
-                            <Users className="w-3.5 h-3.5 text-primary" />
-                          </div>
-                          <span className="text-xs font-semibold text-foreground">Actors</span>
+                  <CollapsibleContent className="mt-3 space-y-4">
+                    {/* Extracted Content - Card-based layout matching reference */}
+                    <div className="p-4 bg-card rounded-xl border border-border">
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center">
+                          <Eye className="w-3.5 h-3.5 text-muted-foreground" />
                         </div>
-                        <div className="flex flex-wrap gap-1.5">
-                          {ontologyData.extracted_entities.actors.map((actor, idx) => (
-                            <span key={idx} className="px-2.5 py-1 bg-muted rounded-md text-xs font-medium text-foreground">
-                              {actor}
-                            </span>
-                          ))}
-                        </div>
+                        <span className="text-sm font-semibold text-foreground">Extracted Content</span>
                       </div>
-
-                      {/* Objects */}
-                      <div className="p-3 bg-card rounded-xl border border-border">
-                        <div className="flex items-center gap-2 mb-2">
-                          <div className="w-6 h-6 rounded-md bg-amber-500/10 flex items-center justify-center">
-                            <Car className="w-3.5 h-3.5 text-amber-600" />
+                      
+                      {/* 2x2 Grid Layout */}
+                      <div className="grid grid-cols-2 gap-3">
+                        {/* Actors */}
+                        <div className="p-3 bg-muted/30 rounded-lg border border-border">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Users className="w-3.5 h-3.5 text-muted-foreground" />
+                            <span className="text-xs font-medium text-muted-foreground">Actors</span>
                           </div>
-                          <span className="text-xs font-semibold text-foreground">Objects</span>
+                          <div className="flex flex-wrap gap-1.5">
+                            {ontologyData.extracted_entities.actors.map((actor, idx) => (
+                              <span key={idx} className="px-2 py-1 bg-card rounded-md text-xs font-medium text-foreground border border-border">
+                                {actor}
+                              </span>
+                            ))}
+                          </div>
                         </div>
-                        <div className="flex flex-wrap gap-1.5">
-                          {ontologyData.extracted_entities.objects.map((obj, idx) => (
-                            <span key={idx} className="px-2.5 py-1 bg-muted rounded-md text-xs font-medium text-foreground">
-                              {obj}
+
+                        {/* Objects */}
+                        <div className="p-3 bg-muted/30 rounded-lg border border-border">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Car className="w-3.5 h-3.5 text-muted-foreground" />
+                            <span className="text-xs font-medium text-muted-foreground">Objects</span>
+                          </div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {ontologyData.extracted_entities.objects.map((obj, idx) => (
+                              <span key={idx} className="px-2 py-1 bg-card rounded-md text-xs font-medium text-foreground border border-border">
+                                {obj}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Activities */}
+                        <div className="p-3 bg-muted/30 rounded-lg border border-border">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Target className="w-3.5 h-3.5 text-muted-foreground" />
+                            <span className="text-xs font-medium text-muted-foreground">Activities</span>
+                          </div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {ontologyData.extracted_entities.activities.map((activity, idx) => (
+                              <span key={idx} className="px-2 py-1 bg-card rounded-md text-xs font-medium text-foreground border border-border">
+                                {activity}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Work Context */}
+                        <div className="p-3 bg-muted/30 rounded-lg border border-border">
+                          <div className="flex items-center gap-2 mb-2">
+                            <MapPin className="w-3.5 h-3.5 text-muted-foreground" />
+                            <span className="text-xs font-medium text-muted-foreground">Work Context</span>
+                          </div>
+                          <div className="flex flex-wrap gap-1.5">
+                            <span className="px-2 py-1 bg-card rounded-md text-xs font-medium text-foreground border border-border">
+                              {ontologyData.extracted_entities.work_context}
                             </span>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Activities */}
-                      <div className="p-3 bg-card rounded-xl border border-border">
-                        <div className="flex items-center gap-2 mb-2">
-                          <div className="w-6 h-6 rounded-md bg-emerald-500/10 flex items-center justify-center">
-                            <Target className="w-3.5 h-3.5 text-emerald-600" />
                           </div>
-                          <span className="text-xs font-semibold text-foreground">Activities</span>
                         </div>
-                        <div className="flex flex-wrap gap-1.5">
-                          {ontologyData.extracted_entities.activities.map((activity, idx) => (
-                            <span key={idx} className="px-2.5 py-1 bg-muted rounded-md text-xs font-medium text-foreground">
-                              {activity}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Work Context */}
-                      <div className="p-3 bg-card rounded-xl border border-border">
-                        <div className="flex items-center gap-2 mb-2">
-                          <div className="w-6 h-6 rounded-md bg-purple-500/10 flex items-center justify-center">
-                            <MapPin className="w-3.5 h-3.5 text-purple-600" />
-                          </div>
-                          <span className="text-xs font-semibold text-foreground">Work Context</span>
-                        </div>
-                        <span className="px-2.5 py-1 bg-muted rounded-md text-xs font-medium text-foreground inline-block">
-                          {ontologyData.extracted_entities.work_context}
-                        </span>
                       </div>
                     </div>
 
-                    {/* VLM Inspection Button */}
+                    {/* Disclaimer Text */}
+                    <p className="text-[10px] text-muted-foreground italic text-center">
+                      This observation is generated from automated image analysis.
+                    </p>
+
+                    {/* View Image Source Button - Stand out CTA */}
                     <button
                       onClick={() => setDrawerMode(drawerMode === 'vlm' ? 'none' : 'vlm')}
                       className={cn(
-                        "flex items-center justify-between w-full p-3 rounded-xl border transition-all",
+                        "flex items-center justify-between w-full p-4 rounded-xl border-2 transition-all group",
                         drawerMode === 'vlm'
-                          ? "bg-primary/10 border-primary/30 shadow-sm"
-                          : "bg-card border-border hover:bg-muted/30 hover:border-primary/20"
+                          ? "bg-primary text-primary-foreground border-primary shadow-lg"
+                          : "bg-gradient-to-r from-primary/5 to-primary/10 border-primary/30 hover:border-primary hover:shadow-md hover:from-primary/10 hover:to-primary/20"
                       )}
                     >
                       <div className="flex items-center gap-3">
                         <div className={cn(
-                          "w-8 h-8 rounded-lg flex items-center justify-center",
-                          drawerMode === 'vlm' ? "bg-primary/20" : "bg-muted"
+                          "w-10 h-10 rounded-xl flex items-center justify-center relative",
+                          drawerMode === 'vlm' ? "bg-primary-foreground/20" : "bg-primary/10"
                         )}>
+                          <ImageIcon className={cn(
+                            "w-5 h-5 absolute",
+                            drawerMode === 'vlm' ? "text-primary-foreground" : "text-primary"
+                          )} />
                           <Sparkles className={cn(
-                            "w-4 h-4",
-                            drawerMode === 'vlm' ? "text-primary" : "text-muted-foreground"
+                            "w-3 h-3 absolute -top-0.5 -right-0.5",
+                            drawerMode === 'vlm' ? "text-primary-foreground" : "text-primary"
                           )} />
                         </div>
                         <div className="text-left">
-                          <span className="text-sm font-semibold text-foreground block">VLM Inspection</span>
-                          <span className="text-[10px] text-muted-foreground">AI Image Analysis</span>
+                          <span className={cn(
+                            "text-sm font-bold block",
+                            drawerMode === 'vlm' ? "text-primary-foreground" : "text-foreground"
+                          )}>View Image Source</span>
+                          <span className={cn(
+                            "text-[10px]",
+                            drawerMode === 'vlm' ? "text-primary-foreground/70" : "text-muted-foreground"
+                          )}>AI Visual Language Model Analysis</span>
                         </div>
                       </div>
-                      <ChevronRight className={cn(
-                        "w-4 h-4 text-muted-foreground transition-transform",
-                        drawerMode === 'vlm' && "rotate-180"
-                      )} />
+                      <div className={cn(
+                        "w-8 h-8 rounded-lg flex items-center justify-center transition-transform group-hover:translate-x-0.5",
+                        drawerMode === 'vlm' ? "bg-primary-foreground/20" : "bg-primary/10"
+                      )}>
+                        <ChevronRight className={cn(
+                          "w-4 h-4 transition-transform",
+                          drawerMode === 'vlm' ? "text-primary-foreground rotate-180" : "text-primary"
+                        )} />
+                      </div>
                     </button>
                   </CollapsibleContent>
                 </Collapsible>
@@ -1852,7 +1876,7 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
                       <CollapsibleTrigger className="flex items-center justify-between w-full p-2.5 bg-background rounded-lg border border-border hover:bg-muted/30 transition-colors">
                         <div className="flex items-center gap-2.5">
                           <div className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center">
-                            <Image className="w-3.5 h-3.5 text-primary" />
+                            <ImageIcon className="w-3.5 h-3.5 text-primary" />
                           </div>
                           <span className="text-xs font-medium text-foreground">Image Properties</span>
                         </div>
