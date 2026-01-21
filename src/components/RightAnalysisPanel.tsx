@@ -154,6 +154,27 @@ const mainGRData = {
   source: "Foto",
   deviationType: "Bekerja di ketinggian > 1.8 m tanpa full body harness",
   aiReasoning: "Tidak ditemukan indikasi pelanggaran Golden Rules dalam analisis visual. Pekerja terdeteksi menggunakan APD yang sesuai dan tidak ada aktivitas bekerja di ketinggian yang teridentifikasi tanpa pengaman yang memadai.",
+  observedFact: {
+    extractedContent: {
+      objects: ["APD", "Helm", "Safety vest"],
+      actions: ["Penggunaan APD sesuai standar"],
+      sceneContext: "Area kerja dengan kondisi aman"
+    },
+    evidenceMatching: {
+      imageTextConsistency: "Match",
+      objectDeviationMapping: "No Deviation",
+      confidenceNotes: "Tidak ditemukan pelanggaran Golden Rules"
+    }
+  },
+  assumptions: [
+    "Kondisi visual terbatas pada sudut pandang kamera",
+    "Tidak diketahui kondisi di luar frame",
+    "Aktivitas sebelum dan sesudah rekaman tidak diketahui"
+  ],
+  recommendations: [
+    "Tetap monitor kepatuhan Golden Rules",
+    "Lakukan pengecekan berkala"
+  ]
 };
 
 // Main PSPP data (for FALSE state display)
@@ -163,6 +184,27 @@ const mainPSPPData = {
   source: "Foto",
   deviationType: "Hand rail tidak ada pada dudukan tandon profil",
   aiReasoning: "Berdasarkan ekstraksi visual, tidak ditemukan pelanggaran prosedur keselamatan yang signifikan. Kondisi area kerja dan peralatan sesuai dengan standar yang ditetapkan.",
+  observedFact: {
+    extractedContent: {
+      objects: ["Hand rail", "Safety equipment", "Struktur platform"],
+      actions: ["Penempatan peralatan sesuai standar"],
+      sceneContext: "Area kerja dengan kondisi sesuai prosedur"
+    },
+    evidenceMatching: {
+      imageTextConsistency: "Match",
+      objectDeviationMapping: "No Deviation",
+      confidenceNotes: "Tidak ditemukan pelanggaran PSPP"
+    }
+  },
+  assumptions: [
+    "Kondisi visual terbatas pada sudut pandang kamera",
+    "Tidak diketahui kondisi infrastruktur tersembunyi",
+    "Status pemeliharaan peralatan tidak diketahui"
+  ],
+  recommendations: [
+    "Tetap lakukan inspeksi rutin PSPP",
+    "Dokumentasikan kondisi saat ini"
+  ]
 };
 
 // Helper to get main data by type
@@ -1550,7 +1592,7 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
                   
                   <CollapsibleContent className="mt-2 p-3 bg-card rounded-lg border border-border">
                     <ul className="space-y-2">
-                      {currentCandidate.assumptions.map((item, idx) => (
+                      {(currentCandidate?.assumptions || getMainDataByType(activeTab).assumptions || []).map((item, idx) => (
                         <li key={idx} className="flex items-start gap-2 text-xs text-muted-foreground">
                           <AlertCircle className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
                           {item}
