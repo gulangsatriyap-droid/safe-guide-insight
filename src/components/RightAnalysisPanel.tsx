@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, FileText, ChevronLeft, ChevronRight, ChevronDown, CheckCircle2, AlertCircle, Sparkles, Target, Eye, Brain, XCircle, Braces, Copy, Download, ChevronDownSquare, ChevronUpSquare, Search, BookOpen, ZoomIn, ZoomOut, Maximize2, Highlighter, AlertTriangle, Image as ImageIcon, Video, FileType, Users, Car, MapPin, PenLine, Save, Hand } from "lucide-react";
+import { X, FileText, ChevronLeft, ChevronRight, ChevronDown, CheckCircle2, AlertCircle, Sparkles, Target, Eye, Brain, XCircle, Braces, Copy, Download, ChevronDownSquare, ChevronUpSquare, Search, BookOpen, ZoomIn, ZoomOut, Maximize2, Highlighter, AlertTriangle, Image as ImageIcon, Video, FileType, Users, Car, MapPin, PenLine, Save, Hand, Lock, Shield, Clock, User } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
@@ -7,7 +7,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { AIKnowledgeSource } from "@/data/hazardReports";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-
+import HumanAnnotationPanel, { AnnotationData, EditLock, TBC_CATEGORIES } from "@/components/HumanAnnotationPanel";
 interface RightAnalysisPanelProps {
   isOpen: boolean;
   onClose: () => void;
@@ -724,11 +724,18 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
   const [vlmPosition, setVlmPosition] = useState({ x: 0, y: 0 });
   const [vlmDragStart, setVlmDragStart] = useState({ x: 0, y: 0 });
   
-  // Annotation state
-  const [annotationNote, setAnnotationNote] = useState('');
-  const [annotationTBC, setAnnotationTBC] = useState<string>('');
-  const [isAnnotated, setIsAnnotated] = useState(false);
-
+  // Annotation state - Enhanced for single-editor locking
+  const [annotationData, setAnnotationData] = useState<AnnotationData | null>(null);
+  const [editLock, setEditLock] = useState<EditLock | null>(null);
+  
+  // Simulated current user (in real app, this would come from auth context)
+  const currentUser = {
+    name: "Ahmad Evaluator",
+    role: "Safety Evaluator"
+  };
+  
+  // Derived state
+  const isAnnotated = annotationData?.isFinalized || false;
   // Update active tab when initialTab changes
   useEffect(() => {
     if (initialTab) {
@@ -1286,7 +1293,7 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
                 </Tooltip>
               )}
 
-              {/* Annotation Button */}
+              {/* Annotation Button - Enhanced status display */}
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
@@ -1300,12 +1307,33 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
                           : "bg-card hover:bg-muted text-muted-foreground border-border hover:border-primary/30"
                     )}
                   >
-                    <PenLine className="w-4 h-4" />
-                    {isAnnotated && <span className="font-semibold">Annotated</span>}
+                    {isAnnotated ? (
+                      <>
+                        <CheckCircle2 className="w-4 h-4" />
+                        <span className="font-semibold">Finalized</span>
+                        <Lock className="w-3 h-3 opacity-70" />
+                      </>
+                    ) : editLock?.isLocked ? (
+                      <>
+                        <PenLine className="w-4 h-4" />
+                        <span className="font-medium">Editing...</span>
+                      </>
+                    ) : (
+                      <>
+                        <PenLine className="w-4 h-4" />
+                        <span className="font-medium">Annotate</span>
+                      </>
+                    )}
                   </button>
                 </TooltipTrigger>
                 <TooltipContent side="bottom">
-                  <p className="text-xs">{drawerMode === 'annotation' ? 'Annotation (open)' : 'Human Annotation'}</p>
+                  <p className="text-xs">
+                    {isAnnotated 
+                      ? `✅ Annotated by ${annotationData?.annotatorName}` 
+                      : editLock?.isLocked 
+                        ? `✏️ Being edited by ${editLock.lockedBy}`
+                        : 'Human Annotation'}
+                  </p>
                 </TooltipContent>
               </Tooltip>
             </div>
@@ -2002,125 +2030,36 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
           </div>
         )}
 
-        {/* Annotation Panel - LEFT of main */}
+        {/* Human Annotation Panel - Using new component */}
         {drawerMode === 'annotation' && (
-          <div className="w-[380px] min-w-[340px] bg-card border-r border-border shadow-lg flex flex-col animate-in slide-in-from-left duration-200 order-first">
-            {/* Header */}
-            <div className="px-4 py-3 border-b border-border bg-muted/20">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                    <PenLine className="w-4 h-4 text-emerald-600" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-semibold text-foreground">Human Annotation</h3>
-                    <p className="text-[10px] text-muted-foreground">Manual review & correction</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setDrawerMode('none')}
-                  className="w-7 h-7 rounded-lg hover:bg-muted flex items-center justify-center transition-colors"
-                >
-                  <X className="w-4 h-4 text-muted-foreground" />
-                </button>
-              </div>
-            </div>
-
-            <ScrollArea className="flex-1">
-              <div className="p-4 space-y-4">
-                {/* Current AI Classification */}
-                <div className="p-3 bg-muted/30 rounded-xl border border-border">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Brain className="w-4 h-4 text-amber-600" />
-                    <span className="text-xs font-semibold text-foreground">AI Classification</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className={cn(
-                      "text-xs px-2.5 py-1 rounded-md font-bold",
-                      labelConfig[activeTab].bg, labelConfig[activeTab].text
-                    )}>
-                      {activeTab}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {currentCandidate?.title || 'Tidak ada klasifikasi'}
-                    </span>
-                  </div>
-                </div>
-
-                {/* TBC Selection Dropdown */}
-                <div className="space-y-2">
-                  <label className="text-xs font-semibold text-foreground block">
-                    Pilih TBC yang Sesuai
-                  </label>
-                  <div className="relative">
-                    <select
-                      value={annotationTBC}
-                      onChange={(e) => setAnnotationTBC(e.target.value)}
-                      className="w-full px-3 py-2.5 bg-card border border-border rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary appearance-none cursor-pointer"
-                    >
-                      <option value="">-- Pilih TBC --</option>
-                      {tbcCandidates.map((candidate) => (
-                        <option key={candidate.id} value={candidate.id.toString()}>
-                          {candidate.candidateLabel}: {candidate.title} (Score: {candidate.relevanceScore})
-                        </option>
-                      ))}
-                      <option value="none">Tidak ada TBC yang sesuai</option>
-                      <option value="other">Lainnya (tulis di notes)</option>
-                    </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-                  </div>
-                </div>
-
-                {/* Annotation Notes */}
-                <div className="space-y-2">
-                  <label className="text-xs font-semibold text-foreground block">
-                    Catatan Annotator
-                  </label>
-                  <textarea
-                    value={annotationNote}
-                    onChange={(e) => setAnnotationNote(e.target.value)}
-                    placeholder="Tulis catatan atau alasan perubahan klasifikasi..."
-                    rows={5}
-                    className="w-full px-3 py-2.5 bg-card border border-border rounded-xl text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none"
-                  />
-                </div>
-
-                {/* Save Annotation Button */}
-                <Button
-                  onClick={() => {
-                    setIsAnnotated(true);
-                    setDrawerMode('none');
-                    toast.success("Annotation saved successfully");
-                  }}
-                  disabled={!annotationTBC && !annotationNote}
-                  className="w-full gap-2 bg-emerald-500 hover:bg-emerald-600 text-white"
-                >
-                  <Save className="w-4 h-4" />
-                  Simpan Annotation
-                </Button>
-
-                {/* Annotation Status */}
-                {isAnnotated && (
-                  <div className="p-3 bg-emerald-500/10 rounded-xl border border-emerald-500/30">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                      <span className="text-xs font-semibold text-emerald-700">Sudah di-annotate</span>
-                    </div>
-                    {annotationTBC && (
-                      <p className="text-xs text-emerald-600 mt-1">
-                        TBC: {tbcCandidates.find(c => c.id.toString() === annotationTBC)?.title || annotationTBC}
-                      </p>
-                    )}
-                    {annotationNote && (
-                      <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                        "{annotationNote}"
-                      </p>
-                    )}
-                  </div>
-                )}
-              </div>
-            </ScrollArea>
-          </div>
+          <HumanAnnotationPanel
+            isOpen={true}
+            onClose={() => setDrawerMode('none')}
+            activeTab={activeTab}
+            aiSuggestion={currentSource ? {
+              category: currentSource.category,
+              confidence: currentSource.confidence,
+              reasoning: currentSource.reasoning
+            } : undefined}
+            currentAnnotation={annotationData}
+            editLock={editLock}
+            currentUser={currentUser}
+            onSaveAnnotation={(data) => {
+              setAnnotationData(data);
+              setEditLock(null);
+              setDrawerMode('none');
+            }}
+            onStartEditing={() => {
+              setEditLock({
+                isLocked: true,
+                lockedBy: currentUser.name,
+                lockedAt: new Date().toISOString()
+              });
+            }}
+            onCancelEditing={() => {
+              setEditLock(null);
+            }}
+          />
         )}
       </div>
     </TooltipProvider>
