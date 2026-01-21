@@ -672,8 +672,8 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
   
   // Collapsible states
   const [selectedCandidate, setSelectedCandidate] = useState<number | null>(null);
-  const [observedFactOpen, setObservedFactOpen] = useState(false);
-  const [assumptionsOpen, setAssumptionsOpen] = useState(false);
+  const [observedFactOpen, setObservedFactOpen] = useState(true);
+  const [assumptionsOpen, setAssumptionsOpen] = useState(true);
   
   // VLM inspection state
   const [vlmZoom, setVlmZoom] = useState(1);
@@ -1414,8 +1414,8 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
                 </div>
               )}
 
-              {/* SECTION 7: OBSERVED FACT (Collapsible) */}
-              {isCurrentActive && currentCandidate && (
+              {/* SECTION 7: OBSERVED FACT (Collapsible) - Show for all types including FALSE */}
+              {(
                 <Collapsible open={observedFactOpen} onOpenChange={setObservedFactOpen}>
                   <CollapsibleTrigger className="flex items-center justify-between w-full p-3 bg-muted/30 rounded-lg border border-border hover:bg-muted/50 transition-colors">
                     <div className="flex items-center gap-3">
@@ -1532,8 +1532,8 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
                 </Collapsible>
               )}
 
-              {/* SECTION 8: ASSUMPTIONS & UNKNOWNS (Collapsible) */}
-              {isCurrentActive && currentCandidate && (
+              {/* SECTION 8: ASSUMPTIONS & UNKNOWNS (Collapsible) - Show for all types including FALSE */}
+              {(
                 <Collapsible open={assumptionsOpen} onOpenChange={setAssumptionsOpen}>
                   <CollapsibleTrigger className="flex items-center justify-between w-full p-3 bg-muted/30 rounded-lg border border-border hover:bg-muted/50 transition-colors">
                     <div className="flex items-center gap-3">
