@@ -1342,27 +1342,115 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
           {/* Content Area */}
           <ScrollArea className="flex-1">
             <div className="px-4 py-4 space-y-4">
+
+              {/* SECTION 1: HUMAN ANNOTATION RESULT (if annotated) - Shows above AI */}
+              {isAnnotated && annotationData && activeTab === 'TBC' && (
+                <div className="rounded-xl border-2 border-emerald-500/50 overflow-hidden bg-emerald-500/5 animate-in fade-in duration-300">
+                  {/* Human Annotation Header */}
+                  <div className="px-4 py-3 bg-emerald-500/10 border-b border-emerald-500/20">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+                          <Shield className="w-4 h-4 text-emerald-600" />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-emerald-700">Human Annotation</span>
+                            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-500 text-white font-bold">FINAL</span>
+                          </div>
+                          <p className="text-[10px] text-emerald-600">Keputusan akhir oleh manusia</p>
+                        </div>
+                      </div>
+                      <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                    </div>
+                  </div>
+                  
+                  {/* Annotated TBC Info */}
+                  <div className="p-4 space-y-3">
+                    {/* TBC Category */}
+                    <div className="flex items-start gap-3">
+                      <div className="w-9 h-9 rounded-lg bg-emerald-500/20 flex items-center justify-center shrink-0">
+                        <AlertTriangle className="w-5 h-5 text-emerald-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <span className="text-[10px] px-1.5 py-0.5 rounded font-bold bg-emerald-500/20 text-emerald-700">
+                          TBC (By Human)
+                        </span>
+                        <h4 className="text-sm font-semibold text-foreground mt-1">
+                          {annotationData.annotatedTBC 
+                            ? TBC_CATEGORIES.find(c => c.id.toString() === annotationData.annotatedTBC)?.name 
+                            : "No TBC Assigned"}
+                        </h4>
+                      </div>
+                    </div>
+
+                    {/* Annotation Note */}
+                    <div className="p-3 bg-card rounded-lg border border-emerald-500/20">
+                      <div className="flex items-center gap-2 mb-2">
+                        <PenLine className="w-3.5 h-3.5 text-emerald-600" />
+                        <span className="text-[10px] font-medium text-emerald-700 uppercase tracking-wide">Catatan Anotasi</span>
+                      </div>
+                      <p className="text-xs text-foreground leading-relaxed italic">
+                        "{annotationData.annotationNote}"
+                      </p>
+                    </div>
+
+                    {/* Annotator Info */}
+                    <div className="flex items-center justify-between text-[10px] text-muted-foreground pt-1 border-t border-emerald-500/20">
+                      <div className="flex items-center gap-1.5">
+                        <User className="w-3 h-3" />
+                        <span>{annotationData.annotatorName} ({annotationData.annotatorRole})</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <Clock className="w-3 h-3" />
+                        <span>
+                          {new Date(annotationData.timestamp).toLocaleString('id-ID', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
               
-              {/* SECTION 2: PRIMARY CARD - Always show for all types */}
+              {/* SECTION 2: PRIMARY CARD - Shows AI suggestion (label changes if human annotated) */}
               {(() => {
                 const currentMainData = getMainDataByType(activeTab);
+                // If human annotated TBC, use human's choice for display
+                const displayTitle = (isAnnotated && annotationData?.annotatedTBC && activeTab === 'TBC')
+                  ? TBC_CATEGORIES.find(c => c.id.toString() === annotationData.annotatedTBC)?.name || currentMainData.title
+                  : currentMainData.title;
+                
                 return (
                   <div className={cn(
                     "rounded-xl border overflow-hidden",
-                    isCurrentActive ? config.border : "border-destructive/30"
+                    isAnnotated && activeTab === 'TBC' 
+                      ? "border-muted opacity-60" 
+                      : isCurrentActive ? config.border : "border-destructive/30"
                   )}>
                     {/* Card Header */}
                     <div className={cn(
                       "px-4 py-3",
-                      isCurrentActive ? config.accent : "bg-destructive/5"
+                      isAnnotated && activeTab === 'TBC' 
+                        ? "bg-muted/30" 
+                        : isCurrentActive ? config.accent : "bg-destructive/5"
                     )}>
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex items-start gap-3 flex-1">
                           <div className={cn(
                             "w-9 h-9 rounded-lg flex items-center justify-center shrink-0",
-                            isCurrentActive ? config.iconBg : "bg-destructive/10"
+                            isAnnotated && activeTab === 'TBC'
+                              ? "bg-muted"
+                              : isCurrentActive ? config.iconBg : "bg-destructive/10"
                           )}>
-                            {isCurrentActive ? (
+                            {isAnnotated && activeTab === 'TBC' ? (
+                              <Brain className="w-5 h-5 text-muted-foreground" />
+                            ) : isCurrentActive ? (
                               <AlertTriangle className={cn("w-5 h-5", config.text)} />
                             ) : (
                               <XCircle className="w-5 h-5 text-destructive" />
@@ -1372,14 +1460,20 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
                             <div className="flex items-center gap-2 mb-1">
                               <span className={cn(
                                 "text-[10px] px-1.5 py-0.5 rounded font-bold",
-                                isCurrentActive ? `${config.bg} ${config.text}` : "bg-destructive/10 text-destructive"
+                                isAnnotated && activeTab === 'TBC'
+                                  ? "bg-muted text-muted-foreground"
+                                  : isCurrentActive ? `${config.bg} ${config.text}` : "bg-destructive/10 text-destructive"
                               )}>
-                                {activeTab} {isCurrentActive ? "Utama" : "FALSE"}
+                                {isAnnotated && activeTab === 'TBC' 
+                                  ? "AI Suggestion (Superseded)" 
+                                  : `${activeTab} ${isCurrentActive ? "Utama" : "FALSE"}`}
                               </span>
                             </div>
                             <h4 className={cn(
                               "text-sm font-semibold",
-                              isCurrentActive ? "text-foreground" : "text-muted-foreground"
+                              isAnnotated && activeTab === 'TBC'
+                                ? "text-muted-foreground line-through"
+                                : isCurrentActive ? "text-foreground" : "text-muted-foreground"
                             )}>
                               {currentMainData.title}
                             </h4>
@@ -1393,7 +1487,9 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
                           <span className="text-[10px] text-muted-foreground block">Relevance Score</span>
                           <span className={cn(
                             "text-2xl font-bold",
-                            isCurrentActive ? "text-foreground" : "text-muted-foreground"
+                            isAnnotated && activeTab === 'TBC'
+                              ? "text-muted-foreground"
+                              : isCurrentActive ? "text-foreground" : "text-muted-foreground"
                           )}>
                             {isCurrentActive ? currentMainData.relevanceScore : "-"}
                           </span>
@@ -2030,36 +2126,38 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
           </div>
         )}
 
-        {/* Human Annotation Panel - Using new component */}
+        {/* Human Annotation Panel - LEFT side like TBC Candidate */}
         {drawerMode === 'annotation' && (
-          <HumanAnnotationPanel
-            isOpen={true}
-            onClose={() => setDrawerMode('none')}
-            activeTab={activeTab}
-            aiSuggestion={currentSource ? {
-              category: currentSource.category,
-              confidence: currentSource.confidence,
-              reasoning: currentSource.reasoning
-            } : undefined}
-            currentAnnotation={annotationData}
-            editLock={editLock}
-            currentUser={currentUser}
-            onSaveAnnotation={(data) => {
-              setAnnotationData(data);
-              setEditLock(null);
-              setDrawerMode('none');
-            }}
-            onStartEditing={() => {
-              setEditLock({
-                isLocked: true,
-                lockedBy: currentUser.name,
-                lockedAt: new Date().toISOString()
-              });
-            }}
-            onCancelEditing={() => {
-              setEditLock(null);
-            }}
-          />
+          <div className="w-[420px] min-w-[380px] bg-card border-r border-border shadow-lg flex flex-col animate-in slide-in-from-left duration-200 order-first">
+            <HumanAnnotationPanel
+              isOpen={true}
+              onClose={() => setDrawerMode('none')}
+              activeTab={activeTab}
+              aiSuggestion={currentSource ? {
+                category: currentSource.category,
+                confidence: currentSource.confidence,
+                reasoning: currentSource.reasoning
+              } : undefined}
+              currentAnnotation={annotationData}
+              editLock={editLock}
+              currentUser={currentUser}
+              onSaveAnnotation={(data) => {
+                setAnnotationData(data);
+                setEditLock(null);
+                setDrawerMode('none');
+              }}
+              onStartEditing={() => {
+                setEditLock({
+                  isLocked: true,
+                  lockedBy: currentUser.name,
+                  lockedAt: new Date().toISOString()
+                });
+              }}
+              onCancelEditing={() => {
+                setEditLock(null);
+              }}
+            />
+          </div>
         )}
       </div>
     </TooltipProvider>
