@@ -134,9 +134,10 @@ const HumanAnnotationPanel = ({
 
   if (!isOpen) return null;
 
+  // Simplified wrapper - parent handles positioning
   return (
     <TooltipProvider>
-      <div className="w-[420px] min-w-[380px] bg-card border-r border-border shadow-lg flex flex-col animate-in slide-in-from-left duration-200">
+      <div className="flex flex-col h-full">
         {/* Header */}
         <div className="px-4 py-3 border-b border-border bg-muted/20">
           <div className="flex items-center justify-between">
