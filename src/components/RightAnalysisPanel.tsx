@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, FileText, ChevronLeft, ChevronRight, ChevronDown, CheckCircle2, AlertCircle, Sparkles, Target, Eye, Brain, XCircle, Braces, Copy, Download, ChevronDownSquare, ChevronUpSquare, Search, BookOpen, ZoomIn, ZoomOut, Maximize2, Highlighter, AlertTriangle, Image as ImageIcon, Video, FileType, Users, Car, MapPin, PenLine, Save, Hand, Lock, Shield, Clock, User } from "lucide-react";
+import { X, FileText, ChevronLeft, ChevronRight, ChevronDown, CheckCircle2, AlertCircle, Sparkles, Target, Eye, Brain, XCircle, Braces, Copy, Download, ChevronDownSquare, ChevronUpSquare, Search, BookOpen, ZoomIn, ZoomOut, Maximize2, Highlighter, AlertTriangle, Image as ImageIcon, Video, FileType, Users, Car, MapPin, PenLine, Save, Hand, Lock, Shield, Clock, User, Timer } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
@@ -8,6 +8,7 @@ import { AIKnowledgeSource } from "@/data/hazardReports";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import HumanAnnotationPanel, { AnnotationData, EditLock, TBC_CATEGORIES } from "@/components/HumanAnnotationPanel";
+import { useAutoConfirmCountdown, formatCountdown, getUrgencyLevel } from "@/hooks/useAutoConfirmCountdown";
 interface RightAnalysisPanelProps {
   isOpen: boolean;
   onClose: () => void;
@@ -734,8 +735,23 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
     role: "Safety Evaluator"
   };
   
+  // Auto-confirm countdown (only for AI-labeled items not yet annotated)
+  const hasActiveLabels = activeLabels.length > 0;
+  const autoConfirm = useAutoConfirmCountdown({
+    initialSeconds: 90, // 1.5 minutes for demo
+    shouldRun: hasActiveLabels && isOpen,
+    isHumanAnnotated: annotationData?.isFinalized || false,
+    onAutoConfirm: () => {
+      toast.info("Klasifikasi AI telah dikonfirmasi secara otomatis.", {
+        description: "Anotasi manual tidak lagi tersedia untuk laporan ini.",
+      });
+    }
+  });
+  
   // Derived state
   const isAnnotated = annotationData?.isFinalized || false;
+  const isAutoConfirmed = autoConfirm.isAutoConfirmed;
+  const urgency = getUrgencyLevel(autoConfirm.remainingSeconds, autoConfirm.totalSeconds);
   // Update active tab when initialTab changes
   useEffect(() => {
     if (initialTab) {
@@ -1293,21 +1309,29 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
                 </Tooltip>
               )}
 
-              {/* Annotation Button - Enhanced status display */}
+              {/* Annotation Button - Enhanced status display with auto-confirm */}
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
-                    onClick={() => setDrawerMode(drawerMode === 'annotation' ? 'none' : 'annotation')}
+                    onClick={() => !isAutoConfirmed && setDrawerMode(drawerMode === 'annotation' ? 'none' : 'annotation')}
+                    disabled={isAutoConfirmed}
                     className={cn(
                       "flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all border",
-                      drawerMode === 'annotation' 
-                        ? "bg-emerald-500 text-white border-emerald-500 shadow-sm" 
-                        : isAnnotated
-                          ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/30 hover:bg-emerald-500/20"
-                          : "bg-card hover:bg-muted text-muted-foreground border-border hover:border-primary/30"
+                      isAutoConfirmed
+                        ? "bg-muted text-muted-foreground border-border cursor-not-allowed opacity-60"
+                        : drawerMode === 'annotation' 
+                          ? "bg-emerald-500 text-white border-emerald-500 shadow-sm" 
+                          : isAnnotated
+                            ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/30 hover:bg-emerald-500/20"
+                            : "bg-card hover:bg-muted text-muted-foreground border-border hover:border-primary/30"
                     )}
                   >
-                    {isAnnotated ? (
+                    {isAutoConfirmed ? (
+                      <>
+                        <Lock className="w-4 h-4" />
+                        <span className="font-medium">Auto-confirmed</span>
+                      </>
+                    ) : isAnnotated ? (
                       <>
                         <CheckCircle2 className="w-4 h-4" />
                         <span className="font-semibold">Finalized</span>
@@ -1328,11 +1352,13 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
                 </TooltipTrigger>
                 <TooltipContent side="bottom">
                   <p className="text-xs">
-                    {isAnnotated 
-                      ? `✅ Annotated by ${annotationData?.annotatorName}` 
-                      : editLock?.isLocked 
-                        ? `✏️ Being edited by ${editLock.lockedBy}`
-                        : 'Human Annotation'}
+                    {isAutoConfirmed 
+                      ? "🔒 AI classification auto-confirmed. Human annotation no longer available."
+                      : isAnnotated 
+                        ? `✅ Annotated by ${annotationData?.annotatorName}` 
+                        : editLock?.isLocked 
+                          ? `✏️ Being edited by ${editLock.lockedBy}`
+                          : 'Human Annotation'}
                   </p>
                 </TooltipContent>
               </Tooltip>
@@ -1342,6 +1368,105 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
           {/* Content Area */}
           <ScrollArea className="flex-1">
             <div className="px-4 py-4 space-y-4">
+
+              {/* AUTO-CONFIRM COUNTDOWN / STATUS - Show for AI-labeled items */}
+              {hasActiveLabels && !isAnnotated && (
+                <div className={cn(
+                  "rounded-xl border overflow-hidden animate-in fade-in duration-300",
+                  isAutoConfirmed 
+                    ? "bg-muted/50 border-border"
+                    : urgency === 'critical' 
+                      ? "bg-destructive/5 border-destructive/30"
+                      : urgency === 'warning' 
+                        ? "bg-amber-500/5 border-amber-500/30"
+                        : "bg-primary/5 border-primary/30"
+                )}>
+                  {isAutoConfirmed ? (
+                    // Auto-confirmed state (locked by AI)
+                    <div className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
+                          <Lock className="w-5 h-5 text-muted-foreground" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-semibold text-muted-foreground">Auto-confirmed</span>
+                            <CheckCircle2 className="w-4 h-4 text-muted-foreground" />
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            Klasifikasi AI sudah final — anotasi manual tidak lagi tersedia
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    // Countdown running state
+                    <div className="p-4">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className={cn(
+                          "w-10 h-10 rounded-xl flex items-center justify-center",
+                          urgency === 'critical' ? "bg-destructive/10" :
+                          urgency === 'warning' ? "bg-amber-500/10" : "bg-primary/10"
+                        )}>
+                          <Timer className={cn(
+                            "w-5 h-5",
+                            urgency === 'critical' ? "text-destructive" :
+                            urgency === 'warning' ? "text-amber-500" : "text-primary"
+                          )} />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <span className={cn(
+                              "text-xs font-semibold",
+                              urgency === 'critical' ? "text-destructive" :
+                              urgency === 'warning' ? "text-amber-600" : "text-primary"
+                            )}>
+                              Auto-confirm dalam:
+                            </span>
+                            <span className={cn(
+                              "text-xl font-bold tabular-nums",
+                              urgency === 'critical' ? "text-destructive" :
+                              urgency === 'warning' ? "text-amber-600" : "text-primary"
+                            )}>
+                              {formatCountdown(autoConfirm.remainingSeconds)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Progress bar */}
+                      <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                        <div 
+                          className={cn(
+                            "h-full transition-all duration-1000 rounded-full",
+                            urgency === 'critical' ? "bg-destructive" :
+                            urgency === 'warning' ? "bg-amber-500" : "bg-primary"
+                          )}
+                          style={{ width: `${autoConfirm.progress}%` }}
+                        />
+                      </div>
+                      
+                      {/* Warning text */}
+                      {urgency === 'critical' && (
+                        <p className="text-[10px] text-destructive mt-2.5 font-medium flex items-center gap-1">
+                          <AlertTriangle className="w-3 h-3" />
+                          Segera review! Setelah waktu habis, klasifikasi AI menjadi final.
+                        </p>
+                      )}
+                      {urgency === 'warning' && (
+                        <p className="text-[10px] text-amber-600 mt-2.5">
+                          Review sekarang untuk melakukan anotasi manual.
+                        </p>
+                      )}
+                      {urgency === 'normal' && (
+                        <p className="text-[10px] text-muted-foreground mt-2.5">
+                          Klik "Annotate" untuk review dan berikan klasifikasi manual.
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* SECTION 1: HUMAN ANNOTATION RESULT (if annotated) - Shows above AI */}
               {isAnnotated && annotationData && activeTab === 'TBC' && (
@@ -2127,7 +2252,7 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
         )}
 
         {/* Human Annotation Panel - LEFT side like TBC Candidate */}
-        {drawerMode === 'annotation' && (
+        {drawerMode === 'annotation' && !isAutoConfirmed && (
           <div className="w-[420px] min-w-[380px] bg-card border-r border-border shadow-lg flex flex-col animate-in slide-in-from-left duration-200 order-first">
             <HumanAnnotationPanel
               isOpen={true}
@@ -2141,6 +2266,12 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
               currentAnnotation={annotationData}
               editLock={editLock}
               currentUser={currentUser}
+              isAutoConfirmed={isAutoConfirmed}
+              autoConfirmCountdown={{
+                remainingSeconds: autoConfirm.remainingSeconds,
+                totalSeconds: autoConfirm.totalSeconds,
+                progress: autoConfirm.progress,
+              }}
               onSaveAnnotation={(data) => {
                 setAnnotationData(data);
                 setEditLock(null);
