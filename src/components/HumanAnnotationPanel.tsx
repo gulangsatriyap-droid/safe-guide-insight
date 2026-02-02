@@ -60,6 +60,14 @@ interface HumanAnnotationPanelProps {
   onSaveAnnotation: (data: AnnotationData) => void;
   onStartEditing: () => void;
   onCancelEditing: () => void;
+  /** Whether AI classification has been auto-confirmed (locks out human annotation) */
+  isAutoConfirmed?: boolean;
+  /** Countdown info for display */
+  autoConfirmCountdown?: {
+    remainingSeconds: number;
+    totalSeconds: number;
+    progress: number;
+  };
 }
 
 const HumanAnnotationPanel = ({
@@ -73,6 +81,8 @@ const HumanAnnotationPanel = ({
   onSaveAnnotation,
   onStartEditing,
   onCancelEditing,
+  isAutoConfirmed = false,
+  autoConfirmCountdown,
 }: HumanAnnotationPanelProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [selectedTBC, setSelectedTBC] = useState<string>("");
@@ -93,6 +103,10 @@ const HumanAnnotationPanel = ({
   }, [isOpen]);
 
   const handleStartEditing = () => {
+    if (isAutoConfirmed) {
+      toast.error("Klasifikasi AI sudah dikonfirmasi secara otomatis. Anotasi tidak tersedia.");
+      return;
+    }
     if (isFinalized) {
       toast.error("Annotation sudah final dan tidak dapat diubah");
       return;
@@ -306,8 +320,48 @@ const HumanAnnotationPanel = ({
                 </div>
               )}
 
+              {/* Auto-Confirmed State (AI classification locked) */}
+              {isAutoConfirmed && !isFinalized && (
+                <div className="space-y-3">
+                  {/* Auto-confirmed Banner */}
+                  <div className="p-4 bg-muted/50 rounded-xl border border-border">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
+                        <Lock className="w-5 h-5 text-muted-foreground" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold text-muted-foreground">Auto-confirmed</span>
+                          <CheckCircle2 className="w-4 h-4 text-muted-foreground" />
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          Waktu review habis — klasifikasi AI menjadi final
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Disabled Edit Button */}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        className="w-full gap-2 opacity-50 cursor-not-allowed"
+                        disabled
+                      >
+                        <Lock className="w-4 h-4" />
+                        Anotasi Tidak Tersedia
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Klasifikasi AI sudah dikonfirmasi secara otomatis</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+              )}
+
               {/* Idle State (Not Annotated) */}
-              {!isFinalized && !isEditing && (
+              {!isFinalized && !isEditing && !isAutoConfirmed && (
                 <div className="space-y-3">
                   {/* Not Annotated Notice */}
                   <div className="p-3 bg-muted/30 rounded-xl border border-border">

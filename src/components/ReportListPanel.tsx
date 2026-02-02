@@ -1,10 +1,21 @@
-import { useState } from "react";
-import { Search, Filter, ChevronLeft, ChevronRight, Clock, FileText, CheckCircle2, Ban } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search, Filter, ChevronLeft, ChevronRight, Clock, FileText, CheckCircle2, Ban, Lock } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { HazardReport } from "@/data/hazardReports";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { formatCountdown, getUrgencyLevel } from "@/hooks/useAutoConfirmCountdown";
+
+// Simulated countdown state per report (in real app, this would come from backend)
+const INITIAL_COUNTDOWN_SECONDS = 120; // 2 minutes for demo
+
+interface ReportCountdownState {
+  [reportId: string]: {
+    remainingSeconds: number;
+    isAutoConfirmed: boolean;
+  };
+}
 
 interface ReportListPanelProps {
   reports: HazardReport[];
@@ -63,6 +74,49 @@ const ReportListPanel = ({ reports, selectedReportId, onSelectReport }: ReportLi
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+  // Simulated countdown state for each report
+  const [countdowns, setCountdowns] = useState<ReportCountdownState>(() => {
+    const initial: ReportCountdownState = {};
+    reports.forEach(report => {
+      // Only AI-labeled reports get countdown (those with active labels)
+      if (report.labels && report.labels.length > 0) {
+        // Randomize initial countdown for demo (between 30s and 120s)
+        const randomSeconds = Math.floor(Math.random() * 90) + 30;
+        initial[report.id] = {
+          remainingSeconds: randomSeconds,
+          isAutoConfirmed: false,
+        };
+      }
+    });
+    return initial;
+  });
+
+  // Countdown timer effect
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCountdowns(prev => {
+        const updated = { ...prev };
+        let hasChanges = false;
+        
+        Object.keys(updated).forEach(reportId => {
+          const state = updated[reportId];
+          if (!state.isAutoConfirmed && state.remainingSeconds > 0) {
+            hasChanges = true;
+            updated[reportId] = {
+              ...state,
+              remainingSeconds: state.remainingSeconds - 1,
+              isAutoConfirmed: state.remainingSeconds - 1 <= 0,
+            };
+          }
+        });
+        
+        return hasChanges ? updated : prev;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
   // Filter reports based on search
   const filteredReports = reports.filter(report =>
     report.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -101,9 +155,14 @@ const ReportListPanel = ({ reports, selectedReportId, onSelectReport }: ReportLi
 
         {/* Report List */}
         <div className="flex-1 overflow-y-auto">
-          {paginatedReports.map((report) => {
+        {paginatedReports.map((report) => {
             const isSelected = report.id === selectedReportId;
             const labels = report.labels || [];
+            const countdown = countdowns[report.id];
+            const hasActiveLabels = labels.length > 0;
+            const isAutoConfirmed = countdown?.isAutoConfirmed || false;
+            const remainingSeconds = countdown?.remainingSeconds || 0;
+            const urgency = hasActiveLabels ? getUrgencyLevel(remainingSeconds, INITIAL_COUNTDOWN_SECONDS) : 'normal';
             
             return (
               <button
@@ -179,12 +238,59 @@ const ReportListPanel = ({ reports, selectedReportId, onSelectReport }: ReportLi
                     <p className="text-xs text-muted-foreground truncate mt-0.5">
                       {report.subJenisHazard}
                     </p>
+                    
+                    {/* Date row */}
                     <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
                       <Clock className="w-3 h-3" />
                       <span>{report.tanggal}</span>
                       <span className="text-muted-foreground/60">•</span>
                       <span>{getReportAge(report.tanggal)}</span>
                     </div>
+
+                    {/* Auto-confirm countdown (only for AI-labeled reports) */}
+                    {hasActiveLabels && (
+                      <div className="mt-2">
+                        {isAutoConfirmed ? (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-muted text-muted-foreground">
+                                <Lock className="w-3 h-3" />
+                                <span className="text-[10px] font-medium">Auto-confirmed</span>
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="text-xs">
+                              <p>Klasifikasi AI sudah final. Anotasi manual tidak tersedia.</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        ) : (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className={cn(
+                                "inline-flex items-center gap-1.5 px-2 py-1 rounded-full",
+                                urgency === 'critical' ? "bg-destructive/10" :
+                                urgency === 'warning' ? "bg-amber-500/10" : "bg-primary/10"
+                              )}>
+                                <Clock className={cn(
+                                  "w-3 h-3",
+                                  urgency === 'critical' ? "text-destructive" :
+                                  urgency === 'warning' ? "text-amber-500" : "text-primary"
+                                )} />
+                                <span className={cn(
+                                  "text-[10px] font-bold tabular-nums",
+                                  urgency === 'critical' ? "text-destructive" :
+                                  urgency === 'warning' ? "text-amber-600" : "text-primary"
+                                )}>
+                                  {formatCountdown(remainingSeconds)}
+                                </span>
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="text-xs max-w-[200px]">
+                              <p>Auto-confirm dalam {formatCountdown(remainingSeconds)}. Review sekarang untuk anotasi manual.</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               </button>
