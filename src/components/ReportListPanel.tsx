@@ -247,49 +247,39 @@ const ReportListPanel = ({ reports, selectedReportId, onSelectReport }: ReportLi
                       <span>{getReportAge(report.tanggal)}</span>
                     </div>
 
-                    {/* Auto-confirm countdown (only for AI-labeled reports) */}
+                    {/* Auto-confirm countdown - Subtle inline design */}
                     {hasActiveLabels && (
-                      <div className="mt-2">
-                        {isAutoConfirmed ? (
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-muted text-muted-foreground">
-                                <Lock className="w-3 h-3" />
-                                <span className="text-[10px] font-medium">Auto-confirmed</span>
-                              </div>
-                            </TooltipTrigger>
-                            <TooltipContent side="top" className="text-xs">
-                              <p>Klasifikasi AI sudah final. Anotasi manual tidak tersedia.</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        ) : (
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <div className={cn(
-                                "inline-flex items-center gap-1.5 px-2 py-1 rounded-full",
-                                urgency === 'critical' ? "bg-destructive/10" :
-                                urgency === 'warning' ? "bg-amber-500/10" : "bg-primary/10"
-                              )}>
-                                <Clock className={cn(
-                                  "w-3 h-3",
-                                  urgency === 'critical' ? "text-destructive" :
-                                  urgency === 'warning' ? "text-amber-500" : "text-primary"
-                                )} />
-                                <span className={cn(
-                                  "text-[10px] font-bold tabular-nums",
-                                  urgency === 'critical' ? "text-destructive" :
-                                  urgency === 'warning' ? "text-amber-600" : "text-primary"
-                                )}>
-                                  {formatCountdown(remainingSeconds)}
-                                </span>
-                              </div>
-                            </TooltipTrigger>
-                            <TooltipContent side="top" className="text-xs max-w-[200px]">
-                              <p>Auto-confirm dalam {formatCountdown(remainingSeconds)}. Review sekarang untuk anotasi manual.</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        )}
-                      </div>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className={cn(
+                            "mt-1.5 inline-flex items-center gap-1.5 text-[10px]",
+                            isAutoConfirmed 
+                              ? "text-muted-foreground" 
+                              : urgency === 'critical' 
+                                ? "text-destructive" 
+                                : urgency === 'warning' 
+                                  ? "text-amber-600" 
+                                  : "text-muted-foreground"
+                          )}>
+                            {isAutoConfirmed ? (
+                              <>
+                                <Lock className="w-2.5 h-2.5" />
+                                <span>Locked</span>
+                              </>
+                            ) : (
+                              <>
+                                <Clock className="w-2.5 h-2.5" />
+                                <span className="font-mono tabular-nums">{formatCountdown(remainingSeconds)}</span>
+                              </>
+                            )}
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="text-xs">
+                          {isAutoConfirmed 
+                            ? "Klasifikasi AI sudah final" 
+                            : `Auto-confirm dalam ${formatCountdown(remainingSeconds)}`}
+                        </TooltipContent>
+                      </Tooltip>
                     )}
                   </div>
                 </div>
