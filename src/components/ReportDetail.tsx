@@ -1,10 +1,11 @@
-import { ArrowLeft, ChevronLeft, ChevronRight, Sparkles, Clock, CheckCircle2, AlertCircle, RotateCcw, MapPin, ExternalLink, X } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Sparkles, Clock, CheckCircle2, AlertCircle, RotateCcw, MapPin, ExternalLink, X, Lock, Timer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { HazardReport, similarReports, EvaluationStatus, AIKnowledgeSource } from "@/data/hazardReports";
 import VLMInspectionPanel from "./VLMInspectionPanel";
 import RightAnalysisPanel from "./RightAnalysisPanel";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
+import { formatCountdown, getUrgencyLevel } from "@/hooks/useAutoConfirmCountdown";
 import {
   Select,
   SelectContent,
@@ -116,6 +117,37 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
   const [showPinPoint, setShowPinPoint] = useState(false);
   const [showAnalysisPanel, setShowAnalysisPanel] = useState(false);
   const [analysisPanelInitialTab, setAnalysisPanelInitialTab] = useState<'TBC' | 'GR' | 'PSPP'>('TBC');
+  
+  // Use report's AI sources or default ones
+  const aiSources = report.aiKnowledgeSources && report.aiKnowledgeSources.length > 0 
+    ? report.aiKnowledgeSources 
+    : defaultAISources;
+
+  // Get active labels
+  const activeLabels = report.labels || ['TBC', 'PSPP', 'GR'];
+  const hasActiveLabels = activeLabels.length > 0;
+  
+  // Auto-confirm countdown state (moved to component level to follow hooks rules)
+  const [remainingSeconds, setRemainingSeconds] = useState(75);
+  const [isAutoConfirmed, setIsAutoConfirmed] = useState(false);
+  const totalSeconds = 90;
+  
+  useEffect(() => {
+    if (!hasActiveLabels || isAutoConfirmed) return;
+    const timer = setInterval(() => {
+      setRemainingSeconds(prev => {
+        if (prev <= 1) {
+          setIsAutoConfirmed(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [hasActiveLabels, isAutoConfirmed]);
+  
+  const urgency = getUrgencyLevel(remainingSeconds, totalSeconds);
+  const countdownProgress = (remainingSeconds / totalSeconds) * 100;
 
   // Handler to open analysis panel with specific tab
   const openAnalysisPanelWithTab = (tab: 'TBC' | 'GR' | 'PSPP') => {
@@ -135,14 +167,6 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
       console.error('Failed to open maps:', error);
     }
   };
-
-  // Use report's AI sources or default ones
-  const aiSources = report.aiKnowledgeSources && report.aiKnowledgeSources.length > 0 
-    ? report.aiKnowledgeSources 
-    : defaultAISources;
-
-  // Get active labels
-  const activeLabels = report.labels || ['TBC', 'PSPP', 'GR'];
 
   return (
     <TooltipProvider>
@@ -348,7 +372,7 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
               <div className="lg:col-span-4 flex flex-col gap-4">
                 {/* AI Labeled Section */}
                 <div className="bg-card rounded-xl p-4 border border-border shadow-sm">
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <Sparkles className="w-4 h-4 text-primary" />
                       <h3 className="font-bold text-foreground text-sm">AI Labeled</h3>
@@ -361,6 +385,52 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
                       <ChevronRight className="w-3.5 h-3.5" />
                     </button>
                   </div>
+                  
+                  {/* Auto-confirm countdown bar */}
+                  {hasActiveLabels && (
+                    <div className={cn(
+                      "flex items-center gap-3 px-3 py-2 rounded-lg border mb-3",
+                      isAutoConfirmed 
+                        ? "bg-muted/30 border-border" 
+                        : urgency === 'critical' 
+                          ? "bg-destructive/5 border-destructive/20"
+                          : urgency === 'warning' 
+                            ? "bg-amber-500/5 border-amber-500/20"
+                            : "bg-muted/20 border-border"
+                    )}>
+                      {isAutoConfirmed ? (
+                        <>
+                          <Lock className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                          <span className="text-xs text-muted-foreground">Auto-confirmed — klasifikasi AI final</span>
+                        </>
+                      ) : (
+                        <>
+                          <Timer className={cn(
+                            "w-3.5 h-3.5 shrink-0",
+                            urgency === 'critical' ? "text-destructive" :
+                            urgency === 'warning' ? "text-amber-500" : "text-muted-foreground"
+                          )} />
+                          <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                            <div 
+                              className={cn(
+                                "h-full transition-all duration-1000",
+                                urgency === 'critical' ? "bg-destructive" :
+                                urgency === 'warning' ? "bg-amber-500" : "bg-muted-foreground/40"
+                              )}
+                              style={{ width: `${countdownProgress}%` }}
+                            />
+                          </div>
+                          <span className={cn(
+                            "text-xs font-mono font-semibold tabular-nums shrink-0",
+                            urgency === 'critical' ? "text-destructive" :
+                            urgency === 'warning' ? "text-amber-600" : "text-muted-foreground"
+                          )}>
+                            {formatCountdown(remainingSeconds)}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  )}
                   
                   <div className="space-y-2">
                     {/* TBC Card */}
@@ -514,7 +584,6 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
                     })()}
                   </div>
                 </div>
-
 
                 {/* Pengendalian Section */}
                 <div className="bg-card rounded-xl p-4 border border-border shadow-sm">
