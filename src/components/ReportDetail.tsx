@@ -1,4 +1,4 @@
-import { ArrowLeft, ChevronLeft, ChevronRight, Sparkles, Clock, CheckCircle2, AlertCircle, RotateCcw, MapPin, ExternalLink, X, Lock, Timer } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Sparkles, Clock, CheckCircle2, AlertCircle, RotateCcw, MapPin, ExternalLink, X, Lock, Timer, User, Eye, Edit3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { HazardReport, similarReports, EvaluationStatus, AIKnowledgeSource } from "@/data/hazardReports";
 import VLMInspectionPanel from "./VLMInspectionPanel";
@@ -6,6 +6,15 @@ import RightAnalysisPanel from "./RightAnalysisPanel";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { formatCountdown, getUrgencyLevel } from "@/hooks/useAutoConfirmCountdown";
+
+// Type for tracking annotation state per label
+type LabelAnnotationState = {
+  [key in 'TBC' | 'GR' | 'PSPP']?: {
+    isAnnotated: boolean;
+    annotator?: string;
+    timestamp?: string;
+  };
+};
 import {
   Select,
   SelectContent,
@@ -117,6 +126,10 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
   const [showPinPoint, setShowPinPoint] = useState(false);
   const [showAnalysisPanel, setShowAnalysisPanel] = useState(false);
   const [analysisPanelInitialTab, setAnalysisPanelInitialTab] = useState<'TBC' | 'GR' | 'PSPP'>('TBC');
+  const [openAnnotationOnPanel, setOpenAnnotationOnPanel] = useState(false);
+  
+  // Track annotation state per label
+  const [labelAnnotations, setLabelAnnotations] = useState<LabelAnnotationState>({});
   
   // Use report's AI sources or default ones
   const aiSources = report.aiKnowledgeSources && report.aiKnowledgeSources.length > 0 
@@ -150,9 +163,35 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
   const countdownProgress = (remainingSeconds / totalSeconds) * 100;
 
   // Handler to open analysis panel with specific tab
-  const openAnalysisPanelWithTab = (tab: 'TBC' | 'GR' | 'PSPP') => {
+  const openAnalysisPanelWithTab = (tab: 'TBC' | 'GR' | 'PSPP', openAnnotation = false) => {
     setAnalysisPanelInitialTab(tab);
+    setOpenAnnotationOnPanel(openAnnotation);
     setShowAnalysisPanel(true);
+  };
+  
+  // Handler for quick annotate action
+  const handleQuickAnnotate = (label: 'TBC' | 'GR' | 'PSPP', e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isAutoConfirmed) return;
+    openAnalysisPanelWithTab(label, true);
+  };
+  
+  // Handler for view detail action
+  const handleViewDetail = (label: 'TBC' | 'GR' | 'PSPP', e: React.MouseEvent) => {
+    e.stopPropagation();
+    openAnalysisPanelWithTab(label, false);
+  };
+  
+  // Simulate annotation save (in real app, this would come from RightAnalysisPanel callback)
+  const handleAnnotationSave = (label: 'TBC' | 'GR' | 'PSPP') => {
+    setLabelAnnotations(prev => ({
+      ...prev,
+      [label]: {
+        isAnnotated: true,
+        annotator: 'Officer',
+        timestamp: new Date().toLocaleString('id-ID')
+      }
+    }));
   };
 
   // Coordinates for the location (could come from report data)
@@ -437,30 +476,77 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
                     {(() => {
                       const tbcSource = aiSources.find(s => s.type === 'TBC');
                       const isTbcActive = activeLabels.includes('TBC');
+                      const tbcAnnotation = labelAnnotations['TBC'];
+                      const isAnnotatedByHuman = tbcAnnotation?.isAnnotated;
+                      
                       return (
                         <div 
                           className={cn(
-                            "cursor-pointer rounded-xl p-3 transition-all",
+                            "cursor-pointer rounded-xl p-3 transition-all group",
                             isTbcActive 
                               ? "bg-primary/5 border border-primary/20 hover:bg-primary/10 hover:border-primary/40"
                               : "bg-muted/20 border-2 border-dashed border-muted-foreground/20 hover:bg-muted/30"
                           )}
                           onClick={() => openAnalysisPanelWithTab('TBC')}
                         >
-                          <div className="flex items-center gap-2 mb-2">
-                            {isTbcActive ? (
-                              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-primary text-primary-foreground">
-                                TBC
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border border-muted-foreground/30 bg-muted/50 text-muted-foreground">
-                                <X className="w-3 h-3 text-muted-foreground" />
-                                TBC
-                              </span>
-                            )}
-                            <div className="flex items-center gap-1 px-1.5 py-0.5 rounded border bg-muted/50 border-muted-foreground/20">
-                              <Sparkles className="w-2.5 h-2.5 text-muted-foreground" />
-                              <span className="text-[10px] font-medium text-muted-foreground">AI</span>
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              {isTbcActive ? (
+                                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-primary text-primary-foreground">
+                                  TBC
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border border-muted-foreground/30 bg-muted/50 text-muted-foreground">
+                                  <X className="w-3 h-3 text-muted-foreground" />
+                                  TBC
+                                </span>
+                              )}
+                              {/* AI or Human badge */}
+                              {isAnnotatedByHuman ? (
+                                <div className="flex items-center gap-1 px-1.5 py-0.5 rounded border bg-emerald-500/10 border-emerald-500/30">
+                                  <User className="w-2.5 h-2.5 text-emerald-600" />
+                                  <span className="text-[10px] font-medium text-emerald-600">Human</span>
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-1 px-1.5 py-0.5 rounded border bg-muted/50 border-muted-foreground/20">
+                                  <Sparkles className="w-2.5 h-2.5 text-muted-foreground" />
+                                  <span className="text-[10px] font-medium text-muted-foreground">AI</span>
+                                </div>
+                              )}
+                            </div>
+                            {/* Quick action buttons */}
+                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button 
+                                    onClick={(e) => handleViewDetail('TBC', e)}
+                                    className="p-1.5 rounded-md hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
+                                  >
+                                    <Eye className="w-3.5 h-3.5" />
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="text-xs">View Detail</TooltipContent>
+                              </Tooltip>
+                              {!isAutoConfirmed && (
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <button 
+                                      onClick={(e) => handleQuickAnnotate('TBC', e)}
+                                      className={cn(
+                                        "p-1.5 rounded-md transition-colors",
+                                        isAnnotatedByHuman 
+                                          ? "hover:bg-emerald-500/10 text-emerald-600 hover:text-emerald-700"
+                                          : "hover:bg-primary/10 text-muted-foreground hover:text-primary"
+                                      )}
+                                    >
+                                      <Edit3 className="w-3.5 h-3.5" />
+                                    </button>
+                                  </TooltipTrigger>
+                                  <TooltipContent side="top" className="text-xs">
+                                    {isAnnotatedByHuman ? 'Edit Annotation' : 'Annotate'}
+                                  </TooltipContent>
+                                </Tooltip>
+                              )}
                             </div>
                           </div>
                           <p className={cn(
@@ -487,30 +573,77 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
                     {(() => {
                       const grSource = aiSources.find(s => s.type === 'GR');
                       const isGrActive = activeLabels.includes('GR');
+                      const grAnnotation = labelAnnotations['GR'];
+                      const isAnnotatedByHuman = grAnnotation?.isAnnotated;
+                      
                       return (
                         <div 
                           className={cn(
-                            "cursor-pointer rounded-xl p-3 transition-all",
+                            "cursor-pointer rounded-xl p-3 transition-all group",
                             isGrActive 
                               ? "bg-emerald-500/5 border border-emerald-500/20 hover:bg-emerald-500/10 hover:border-emerald-500/40"
                               : "bg-muted/20 border-2 border-dashed border-muted-foreground/20 hover:bg-muted/30"
                           )}
                           onClick={() => openAnalysisPanelWithTab('GR')}
                         >
-                          <div className="flex items-center gap-2 mb-2">
-                            {isGrActive ? (
-                              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500 text-white">
-                                GR
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border border-muted-foreground/30 bg-muted/50 text-muted-foreground">
-                                <X className="w-3 h-3 text-muted-foreground" />
-                                GR
-                              </span>
-                            )}
-                            <div className="flex items-center gap-1 px-1.5 py-0.5 rounded border bg-muted/50 border-muted-foreground/20">
-                              <Sparkles className="w-2.5 h-2.5 text-muted-foreground" />
-                              <span className="text-[10px] font-medium text-muted-foreground">AI</span>
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              {isGrActive ? (
+                                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500 text-white">
+                                  GR
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border border-muted-foreground/30 bg-muted/50 text-muted-foreground">
+                                  <X className="w-3 h-3 text-muted-foreground" />
+                                  GR
+                                </span>
+                              )}
+                              {/* AI or Human badge */}
+                              {isAnnotatedByHuman ? (
+                                <div className="flex items-center gap-1 px-1.5 py-0.5 rounded border bg-emerald-500/10 border-emerald-500/30">
+                                  <User className="w-2.5 h-2.5 text-emerald-600" />
+                                  <span className="text-[10px] font-medium text-emerald-600">Human</span>
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-1 px-1.5 py-0.5 rounded border bg-muted/50 border-muted-foreground/20">
+                                  <Sparkles className="w-2.5 h-2.5 text-muted-foreground" />
+                                  <span className="text-[10px] font-medium text-muted-foreground">AI</span>
+                                </div>
+                              )}
+                            </div>
+                            {/* Quick action buttons */}
+                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button 
+                                    onClick={(e) => handleViewDetail('GR', e)}
+                                    className="p-1.5 rounded-md hover:bg-emerald-500/10 text-muted-foreground hover:text-emerald-600 transition-colors"
+                                  >
+                                    <Eye className="w-3.5 h-3.5" />
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="text-xs">View Detail</TooltipContent>
+                              </Tooltip>
+                              {!isAutoConfirmed && (
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <button 
+                                      onClick={(e) => handleQuickAnnotate('GR', e)}
+                                      className={cn(
+                                        "p-1.5 rounded-md transition-colors",
+                                        isAnnotatedByHuman 
+                                          ? "hover:bg-emerald-500/10 text-emerald-600 hover:text-emerald-700"
+                                          : "hover:bg-emerald-500/10 text-muted-foreground hover:text-emerald-600"
+                                      )}
+                                    >
+                                      <Edit3 className="w-3.5 h-3.5" />
+                                    </button>
+                                  </TooltipTrigger>
+                                  <TooltipContent side="top" className="text-xs">
+                                    {isAnnotatedByHuman ? 'Edit Annotation' : 'Annotate'}
+                                  </TooltipContent>
+                                </Tooltip>
+                              )}
                             </div>
                           </div>
                           <p className={cn(
@@ -537,30 +670,77 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
                     {(() => {
                       const psppSource = aiSources.find(s => s.type === 'PSPP');
                       const isPsppActive = activeLabels.includes('PSPP');
+                      const psppAnnotation = labelAnnotations['PSPP'];
+                      const isAnnotatedByHuman = psppAnnotation?.isAnnotated;
+                      
                       return (
                         <div 
                           className={cn(
-                            "cursor-pointer rounded-xl p-3 transition-all",
+                            "cursor-pointer rounded-xl p-3 transition-all group",
                             isPsppActive 
                               ? "bg-amber-500/5 border border-amber-500/20 hover:bg-amber-500/10 hover:border-amber-500/40"
                               : "bg-muted/20 border-2 border-dashed border-muted-foreground/20 hover:bg-muted/30"
                           )}
                           onClick={() => openAnalysisPanelWithTab('PSPP')}
                         >
-                          <div className="flex items-center gap-2 mb-2">
-                            {isPsppActive ? (
-                              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500 text-white">
-                                PSPP
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border border-muted-foreground/30 bg-muted/50 text-muted-foreground">
-                                <X className="w-3 h-3 text-muted-foreground" />
-                                PSPP
-                              </span>
-                            )}
-                            <div className="flex items-center gap-1 px-1.5 py-0.5 rounded border bg-muted/50 border-muted-foreground/20">
-                              <Sparkles className="w-2.5 h-2.5 text-muted-foreground" />
-                              <span className="text-[10px] font-medium text-muted-foreground">AI</span>
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              {isPsppActive ? (
+                                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500 text-white">
+                                  PSPP
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border border-muted-foreground/30 bg-muted/50 text-muted-foreground">
+                                  <X className="w-3 h-3 text-muted-foreground" />
+                                  PSPP
+                                </span>
+                              )}
+                              {/* AI or Human badge */}
+                              {isAnnotatedByHuman ? (
+                                <div className="flex items-center gap-1 px-1.5 py-0.5 rounded border bg-emerald-500/10 border-emerald-500/30">
+                                  <User className="w-2.5 h-2.5 text-emerald-600" />
+                                  <span className="text-[10px] font-medium text-emerald-600">Human</span>
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-1 px-1.5 py-0.5 rounded border bg-muted/50 border-muted-foreground/20">
+                                  <Sparkles className="w-2.5 h-2.5 text-muted-foreground" />
+                                  <span className="text-[10px] font-medium text-muted-foreground">AI</span>
+                                </div>
+                              )}
+                            </div>
+                            {/* Quick action buttons */}
+                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button 
+                                    onClick={(e) => handleViewDetail('PSPP', e)}
+                                    className="p-1.5 rounded-md hover:bg-amber-500/10 text-muted-foreground hover:text-amber-600 transition-colors"
+                                  >
+                                    <Eye className="w-3.5 h-3.5" />
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="text-xs">View Detail</TooltipContent>
+                              </Tooltip>
+                              {!isAutoConfirmed && (
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <button 
+                                      onClick={(e) => handleQuickAnnotate('PSPP', e)}
+                                      className={cn(
+                                        "p-1.5 rounded-md transition-colors",
+                                        isAnnotatedByHuman 
+                                          ? "hover:bg-emerald-500/10 text-emerald-600 hover:text-emerald-700"
+                                          : "hover:bg-amber-500/10 text-muted-foreground hover:text-amber-600"
+                                      )}
+                                    >
+                                      <Edit3 className="w-3.5 h-3.5" />
+                                    </button>
+                                  </TooltipTrigger>
+                                  <TooltipContent side="top" className="text-xs">
+                                    {isAnnotatedByHuman ? 'Edit Annotation' : 'Annotate'}
+                                  </TooltipContent>
+                                </Tooltip>
+                              )}
                             </div>
                           </div>
                           <p className={cn(
@@ -618,10 +798,15 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
         {/* Right Analysis Panel - Non-modal, floats over content */}
         <RightAnalysisPanel
           isOpen={showAnalysisPanel}
-          onClose={() => setShowAnalysisPanel(false)}
+          onClose={() => {
+            setShowAnalysisPanel(false);
+            setOpenAnnotationOnPanel(false);
+          }}
           aiSources={aiSources}
           activeLabels={activeLabels}
           initialTab={analysisPanelInitialTab}
+          openAnnotation={openAnnotationOnPanel}
+          onAnnotationSave={handleAnnotationSave}
         />
 
         {/* VLM Inspection Panel */}
