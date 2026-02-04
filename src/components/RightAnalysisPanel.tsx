@@ -15,6 +15,8 @@ interface RightAnalysisPanelProps {
   aiSources: AIKnowledgeSource[];
   activeLabels: ('TBC' | 'PSPP' | 'GR')[];
   initialTab?: 'TBC' | 'GR' | 'PSPP';
+  openAnnotation?: boolean;
+  onAnnotationSave?: (label: 'TBC' | 'GR' | 'PSPP') => void;
 }
 
 // Consistent label config - TBC blue, GR green, PSPP orange
@@ -704,7 +706,7 @@ CATATAN PENTING:
   }
 };
 
-const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialTab }: RightAnalysisPanelProps) => {
+const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialTab, openAnnotation, onAnnotationSave }: RightAnalysisPanelProps) => {
   const [activeTab, setActiveTab] = useState<'TBC' | 'GR' | 'PSPP'>(initialTab || 'TBC');
   const [drawerMode, setDrawerMode] = useState<'none' | 'dokumen' | 'ontologi' | 'tbc' | 'vlm' | 'annotation'>('none');
   const [jsonExpanded, setJsonExpanded] = useState(false);
@@ -758,6 +760,13 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
       setActiveTab(initialTab);
     }
   }, [initialTab]);
+  
+  // Auto-open annotation panel if requested
+  useEffect(() => {
+    if (openAnnotation && isOpen && !isAutoConfirmed) {
+      setDrawerMode('annotation');
+    }
+  }, [openAnnotation, isOpen, isAutoConfirmed]);
 
   // Reset doc page when tab changes
   useEffect(() => {
@@ -2234,6 +2243,8 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
                 setAnnotationData(data);
                 setEditLock(null);
                 setDrawerMode('none');
+                // Notify parent component about annotation save
+                onAnnotationSave?.(activeTab);
               }}
               onStartEditing={() => {
                 setEditLock({
