@@ -569,38 +569,27 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
                                 <TooltipContent side="top" className="text-xs">View Detail</TooltipContent>
                               </Tooltip>
                               {!isAutoConfirmed && (
-                                <QuickAnnotationPopover
-                                  label="TBC"
-                                  isOpen={openPopovers.TBC}
-                                  onOpenChange={(open) => handlePopoverOpenChange('TBC', open)}
-                                  onSave={handleQuickAnnotationSave}
-                                  aiSuggestion={tbcSource ? {
-                                    category: tbcSource.category,
-                                    confidence: tbcSource.confidence
-                                  } : undefined}
-                                >
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <button 
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handlePopoverOpenChange('TBC', true);
-                                        }}
-                                        className={cn(
-                                          "p-1.5 rounded-md transition-colors",
-                                          isAnnotatedByHuman 
-                                            ? "hover:bg-success/10 text-success hover:text-success"
-                                            : "hover:bg-primary/10 text-muted-foreground hover:text-primary"
-                                        )}
-                                      >
-                                        <Edit3 className="w-3.5 h-3.5" />
-                                      </button>
-                                    </TooltipTrigger>
-                                    <TooltipContent side="top" className="text-xs">
-                                      {isAnnotatedByHuman ? 'Edit Annotation' : 'Annotate'}
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </QuickAnnotationPopover>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <button 
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handlePopoverOpenChange('TBC', true);
+                                      }}
+                                      className={cn(
+                                        "p-1.5 rounded-md transition-colors",
+                                        isAnnotatedByHuman 
+                                          ? "hover:bg-success/10 text-success hover:text-success"
+                                          : "hover:bg-primary/10 text-muted-foreground hover:text-primary"
+                                      )}
+                                    >
+                                      <Edit3 className="w-3.5 h-3.5" />
+                                    </button>
+                                  </TooltipTrigger>
+                                  <TooltipContent side="top" className="text-xs">
+                                    {isAnnotatedByHuman ? 'Edit Annotation' : 'Annotate'}
+                                  </TooltipContent>
+                                </Tooltip>
                               )}
                             </div>
                           </div>
@@ -680,38 +669,27 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
                                 <TooltipContent side="top" className="text-xs">View Detail</TooltipContent>
                               </Tooltip>
                               {!isAutoConfirmed && (
-                                <QuickAnnotationPopover
-                                  label="GR"
-                                  isOpen={openPopovers.GR}
-                                  onOpenChange={(open) => handlePopoverOpenChange('GR', open)}
-                                  onSave={handleQuickAnnotationSave}
-                                  aiSuggestion={grSource ? {
-                                    category: grSource.category,
-                                    confidence: grSource.confidence
-                                  } : undefined}
-                                >
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <button 
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handlePopoverOpenChange('GR', true);
-                                        }}
-                                        className={cn(
-                                          "p-1.5 rounded-md transition-colors",
-                                          isAnnotatedByHuman 
-                                            ? "hover:bg-success/10 text-success hover:text-success"
-                                            : "hover:bg-success/10 text-muted-foreground hover:text-success"
-                                        )}
-                                      >
-                                        <Edit3 className="w-3.5 h-3.5" />
-                                      </button>
-                                    </TooltipTrigger>
-                                    <TooltipContent side="top" className="text-xs">
-                                      {isAnnotatedByHuman ? 'Edit Annotation' : 'Annotate'}
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </QuickAnnotationPopover>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <button 
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handlePopoverOpenChange('GR', true);
+                                      }}
+                                      className={cn(
+                                        "p-1.5 rounded-md transition-colors",
+                                        isAnnotatedByHuman 
+                                          ? "hover:bg-success/10 text-success hover:text-success"
+                                          : "hover:bg-emerald-500/10 text-muted-foreground hover:text-emerald-600"
+                                      )}
+                                    >
+                                      <Edit3 className="w-3.5 h-3.5" />
+                                    </button>
+                                  </TooltipTrigger>
+                                  <TooltipContent side="top" className="text-xs">
+                                    {isAnnotatedByHuman ? 'Edit Annotation' : 'Annotate'}
+                                  </TooltipContent>
+                                </Tooltip>
                               )}
                             </div>
                           </div>
@@ -791,38 +769,27 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
                                 <TooltipContent side="top" className="text-xs">View Detail</TooltipContent>
                               </Tooltip>
                               {!isAutoConfirmed && (
-                                <QuickAnnotationPopover
-                                  label="PSPP"
-                                  isOpen={openPopovers.PSPP}
-                                  onOpenChange={(open) => handlePopoverOpenChange('PSPP', open)}
-                                  onSave={handleQuickAnnotationSave}
-                                  aiSuggestion={psppSource ? {
-                                    category: psppSource.category,
-                                    confidence: psppSource.confidence
-                                  } : undefined}
-                                >
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <button 
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handlePopoverOpenChange('PSPP', true);
-                                        }}
-                                        className={cn(
-                                          "p-1.5 rounded-md transition-colors",
-                                          isAnnotatedByHuman 
-                                            ? "hover:bg-success/10 text-success hover:text-success"
-                                            : "hover:bg-warning/10 text-muted-foreground hover:text-warning"
-                                        )}
-                                      >
-                                        <Edit3 className="w-3.5 h-3.5" />
-                                      </button>
-                                    </TooltipTrigger>
-                                    <TooltipContent side="top" className="text-xs">
-                                      {isAnnotatedByHuman ? 'Edit Annotation' : 'Annotate'}
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </QuickAnnotationPopover>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <button 
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handlePopoverOpenChange('PSPP', true);
+                                      }}
+                                      className={cn(
+                                        "p-1.5 rounded-md transition-colors",
+                                        isAnnotatedByHuman 
+                                          ? "hover:bg-success/10 text-success hover:text-success"
+                                          : "hover:bg-amber-500/10 text-muted-foreground hover:text-amber-600"
+                                      )}
+                                    >
+                                      <Edit3 className="w-3.5 h-3.5" />
+                                    </button>
+                                  </TooltipTrigger>
+                                  <TooltipContent side="top" className="text-xs">
+                                    {isAnnotatedByHuman ? 'Edit Annotation' : 'Annotate'}
+                                  </TooltipContent>
+                                </Tooltip>
                               )}
                             </div>
                           </div>
@@ -893,6 +860,54 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
         />
 
         {/* VLM Inspection Panel */}
+        
+        {/* Quick Annotation Dialogs */}
+        {(() => {
+          const tbcSource = aiSources.find(s => s.type === 'TBC');
+          return (
+            <QuickAnnotationPopover
+              label="TBC"
+              isOpen={openPopovers.TBC}
+              onOpenChange={(open) => handlePopoverOpenChange('TBC', open)}
+              onSave={handleQuickAnnotationSave}
+              aiSuggestion={tbcSource ? {
+                category: tbcSource.category,
+                confidence: tbcSource.confidence
+              } : undefined}
+            />
+          );
+        })()}
+        {(() => {
+          const grSource = aiSources.find(s => s.type === 'GR');
+          return (
+            <QuickAnnotationPopover
+              label="GR"
+              isOpen={openPopovers.GR}
+              onOpenChange={(open) => handlePopoverOpenChange('GR', open)}
+              onSave={handleQuickAnnotationSave}
+              aiSuggestion={grSource ? {
+                category: grSource.category,
+                confidence: grSource.confidence
+              } : undefined}
+            />
+          );
+        })()}
+        {(() => {
+          const psppSource = aiSources.find(s => s.type === 'PSPP');
+          return (
+            <QuickAnnotationPopover
+              label="PSPP"
+              isOpen={openPopovers.PSPP}
+              onOpenChange={(open) => handlePopoverOpenChange('PSPP', open)}
+              onSave={handleQuickAnnotationSave}
+              aiSuggestion={psppSource ? {
+                category: psppSource.category,
+                confidence: psppSource.confidence
+              } : undefined}
+            />
+          );
+        })()}
+
         <VLMInspectionPanel
           isOpen={showVLMPanel}
           onClose={() => setShowVLMPanel(false)}

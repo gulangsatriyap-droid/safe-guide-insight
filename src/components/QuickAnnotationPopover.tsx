@@ -1,7 +1,20 @@
 import { useState } from "react";
 import { Brain, ChevronDown, AlertTriangle, Save, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -36,8 +49,6 @@ interface QuickAnnotationPopoverProps {
     category: string;
     confidence: number;
   };
-  children: React.ReactNode;
-  disabled?: boolean;
 }
 
 const QuickAnnotationPopover = ({
@@ -46,8 +57,6 @@ const QuickAnnotationPopover = ({
   onOpenChange,
   onSave,
   aiSuggestion,
-  children,
-  disabled = false,
 }: QuickAnnotationPopoverProps) => {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [note, setNote] = useState("");
@@ -77,36 +86,27 @@ const QuickAnnotationPopover = ({
     onOpenChange(false);
   };
 
-  if (disabled) {
-    return <>{children}</>;
-  }
+  const getLabelColor = () => {
+    switch (label) {
+      case 'TBC': return 'text-primary';
+      case 'GR': return 'text-emerald-600';
+      case 'PSPP': return 'text-amber-600';
+      default: return 'text-foreground';
+    }
+  };
 
   return (
-    <Popover open={isOpen} onOpenChange={onOpenChange}>
-      <PopoverTrigger asChild>
-        {children}
-      </PopoverTrigger>
-      <PopoverContent 
-        className="w-80 p-0" 
-        align="start" 
-        side="right"
-        sideOffset={8}
-      >
-        <div className="p-4 space-y-4">
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[400px] p-0 gap-0">
+        <DialogHeader className="px-5 pt-5 pb-3 border-b border-border">
+          <DialogTitle className="text-base font-semibold flex items-center gap-2">
+            <span>Quick Annotate:</span>
+            <span className={cn("font-bold", getLabelColor())}>{label}</span>
+          </DialogTitle>
+        </DialogHeader>
+        
+        <div className="p-5 space-y-4">
           {/* Header */}
-          <div className="flex items-center justify-between">
-            <h4 className="text-sm font-semibold text-foreground">
-              Quick Annotate: {label}
-            </h4>
-            <button
-              onClick={handleCancel}
-              className="w-6 h-6 rounded hover:bg-muted flex items-center justify-center"
-            >
-              <X className="w-3.5 h-3.5 text-muted-foreground" />
-            </button>
-          </div>
-
-          {/* TBC Selection */}
           <div className="space-y-2">
             <label className="text-xs font-medium text-foreground block">
               Select TBC Classification *
@@ -114,22 +114,19 @@ const QuickAnnotationPopover = ({
             <p className="text-[10px] text-muted-foreground">
               Choose from all 14 TBC categories. AI suggestion is shown but not pre-selected.
             </p>
-            <div className="relative">
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="w-full px-3 py-2 bg-card border border-border rounded-lg text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary appearance-none cursor-pointer"
-              >
-                <option value="">-- Select TBC Category --</option>
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger className="w-full h-9 text-xs">
+                <SelectValue placeholder="-- Select TBC Category --" />
+              </SelectTrigger>
+              <SelectContent className="max-h-[200px]">
                 {TBC_CATEGORIES.map((category) => (
-                  <option key={category.id} value={category.id.toString()}>
+                  <SelectItem key={category.id} value={category.id.toString()} className="text-xs">
                     {category.id}. {category.name}
-                  </option>
+                  </SelectItem>
                 ))}
-                <option value="none">No TBC applicable</option>
-              </select>
-              <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
-            </div>
+                <SelectItem value="none" className="text-xs">No TBC applicable</SelectItem>
+              </SelectContent>
+            </Select>
             
             {/* AI Hint */}
             {aiSuggestion && (
@@ -145,13 +142,13 @@ const QuickAnnotationPopover = ({
             <label className="text-xs font-medium text-foreground block">
               Annotation Note * <span className="text-destructive">(Required)</span>
             </label>
-            <textarea
+            <Textarea
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="Provide justification for your classification decision. This is required before saving."
               rows={3}
               className={cn(
-                "w-full px-3 py-2 bg-card border rounded-lg text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none",
+                "w-full text-xs resize-none min-h-[80px]",
                 !note.trim() ? "border-warning" : "border-border"
               )}
             />
@@ -189,8 +186,8 @@ const QuickAnnotationPopover = ({
             </Button>
           </div>
         </div>
-      </PopoverContent>
-    </Popover>
+      </DialogContent>
+    </Dialog>
   );
 };
 
