@@ -521,7 +521,10 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
                       const isAnnotatedByHuman = tbcAnnotation?.isAnnotated;
                       
                       return (
-                        <div 
+                         <div
+                           className="relative"
+                         >
+                           <div 
                           className={cn(
                             "cursor-pointer rounded-xl p-3 transition-all group",
                             isTbcActive 
@@ -532,6 +535,30 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
                         >
                           <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-2">
+                               {/* Edit button - moved to left */}
+                               {!isAutoConfirmed && (
+                                 <Tooltip>
+                                   <TooltipTrigger asChild>
+                                     <button 
+                                       onClick={(e) => {
+                                         e.stopPropagation();
+                                         handlePopoverOpenChange('TBC', true);
+                                       }}
+                                       className={cn(
+                                         "p-1.5 rounded-md transition-colors",
+                                         isAnnotatedByHuman 
+                                           ? "hover:bg-success/10 text-success hover:text-success"
+                                           : "hover:bg-primary/10 text-muted-foreground hover:text-primary"
+                                       )}
+                                     >
+                                       <Edit3 className="w-3.5 h-3.5" />
+                                     </button>
+                                   </TooltipTrigger>
+                                   <TooltipContent side="top" className="text-xs">
+                                     {isAnnotatedByHuman ? 'Edit Annotation' : 'Annotate'}
+                                   </TooltipContent>
+                                 </Tooltip>
+                               )}
                               {isTbcActive ? (
                                 <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-primary text-primary-foreground">
                                   TBC
@@ -555,8 +582,8 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
                                 </div>
                               )}
                             </div>
-                            {/* Quick action buttons */}
-                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                             {/* View detail button only */}
+                             <div className="flex items-center gap-1">
                               <Tooltip>
                                 <TooltipTrigger asChild>
                                   <button 
@@ -568,29 +595,6 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
                                 </TooltipTrigger>
                                 <TooltipContent side="top" className="text-xs">View Detail</TooltipContent>
                               </Tooltip>
-                              {!isAutoConfirmed && (
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <button 
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handlePopoverOpenChange('TBC', true);
-                                      }}
-                                      className={cn(
-                                        "p-1.5 rounded-md transition-colors",
-                                        isAnnotatedByHuman 
-                                          ? "hover:bg-success/10 text-success hover:text-success"
-                                          : "hover:bg-primary/10 text-muted-foreground hover:text-primary"
-                                      )}
-                                    >
-                                      <Edit3 className="w-3.5 h-3.5" />
-                                    </button>
-                                  </TooltipTrigger>
-                                  <TooltipContent side="top" className="text-xs">
-                                    {isAnnotatedByHuman ? 'Edit Annotation' : 'Annotate'}
-                                  </TooltipContent>
-                                </Tooltip>
-                              )}
                             </div>
                           </div>
                           <p className={cn(
@@ -610,6 +614,19 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
                             )}
                           </p>
                         </div>
+                           
+                           {/* TBC Quick Annotation Popover - positioned to the right */}
+                           <QuickAnnotationPopover
+                             label="TBC"
+                             isOpen={openPopovers.TBC}
+                             onOpenChange={(open) => handlePopoverOpenChange('TBC', open)}
+                             onSave={handleQuickAnnotationSave}
+                             aiSuggestion={tbcSource ? {
+                               category: tbcSource.category,
+                               confidence: tbcSource.confidence
+                             } : undefined}
+                           />
+                         </div>
                       );
                     })()}
 
@@ -621,7 +638,10 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
                       const isAnnotatedByHuman = grAnnotation?.isAnnotated;
                       
                       return (
-                        <div 
+                         <div
+                           className="relative"
+                         >
+                           <div 
                           className={cn(
                             "cursor-pointer rounded-xl p-3 transition-all group",
                             isGrActive 
@@ -632,6 +652,30 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
                         >
                           <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-2">
+                               {/* Edit button - moved to left */}
+                               {!isAutoConfirmed && (
+                                 <Tooltip>
+                                   <TooltipTrigger asChild>
+                                     <button 
+                                       onClick={(e) => {
+                                         e.stopPropagation();
+                                         handlePopoverOpenChange('GR', true);
+                                       }}
+                                       className={cn(
+                                         "p-1.5 rounded-md transition-colors",
+                                         isAnnotatedByHuman 
+                                           ? "hover:bg-success/10 text-success hover:text-success"
+                                           : "hover:bg-emerald-500/10 text-muted-foreground hover:text-emerald-600"
+                                       )}
+                                     >
+                                       <Edit3 className="w-3.5 h-3.5" />
+                                     </button>
+                                   </TooltipTrigger>
+                                   <TooltipContent side="top" className="text-xs">
+                                     {isAnnotatedByHuman ? 'Edit Annotation' : 'Annotate'}
+                                   </TooltipContent>
+                                 </Tooltip>
+                               )}
                               {isGrActive ? (
                                 <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500 text-white">
                                   GR
@@ -655,8 +699,8 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
                                 </div>
                               )}
                             </div>
-                            {/* Quick action buttons */}
-                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                             {/* View detail button only */}
+                             <div className="flex items-center gap-1">
                               <Tooltip>
                                 <TooltipTrigger asChild>
                                   <button 
@@ -668,29 +712,6 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
                                 </TooltipTrigger>
                                 <TooltipContent side="top" className="text-xs">View Detail</TooltipContent>
                               </Tooltip>
-                              {!isAutoConfirmed && (
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <button 
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handlePopoverOpenChange('GR', true);
-                                      }}
-                                      className={cn(
-                                        "p-1.5 rounded-md transition-colors",
-                                        isAnnotatedByHuman 
-                                          ? "hover:bg-success/10 text-success hover:text-success"
-                                          : "hover:bg-emerald-500/10 text-muted-foreground hover:text-emerald-600"
-                                      )}
-                                    >
-                                      <Edit3 className="w-3.5 h-3.5" />
-                                    </button>
-                                  </TooltipTrigger>
-                                  <TooltipContent side="top" className="text-xs">
-                                    {isAnnotatedByHuman ? 'Edit Annotation' : 'Annotate'}
-                                  </TooltipContent>
-                                </Tooltip>
-                              )}
                             </div>
                           </div>
                           <p className={cn(
@@ -710,6 +731,19 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
                             )}
                           </p>
                         </div>
+                           
+                           {/* GR Quick Annotation Popover */}
+                           <QuickAnnotationPopover
+                             label="GR"
+                             isOpen={openPopovers.GR}
+                             onOpenChange={(open) => handlePopoverOpenChange('GR', open)}
+                             onSave={handleQuickAnnotationSave}
+                             aiSuggestion={grSource ? {
+                               category: grSource.category,
+                               confidence: grSource.confidence
+                             } : undefined}
+                           />
+                         </div>
                       );
                     })()}
 
@@ -721,7 +755,10 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
                       const isAnnotatedByHuman = psppAnnotation?.isAnnotated;
                       
                       return (
-                        <div 
+                         <div
+                           className="relative"
+                         >
+                           <div 
                           className={cn(
                             "cursor-pointer rounded-xl p-3 transition-all group",
                             isPsppActive 
@@ -732,6 +769,30 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
                         >
                           <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-2">
+                               {/* Edit button - moved to left */}
+                               {!isAutoConfirmed && (
+                                 <Tooltip>
+                                   <TooltipTrigger asChild>
+                                     <button 
+                                       onClick={(e) => {
+                                         e.stopPropagation();
+                                         handlePopoverOpenChange('PSPP', true);
+                                       }}
+                                       className={cn(
+                                         "p-1.5 rounded-md transition-colors",
+                                         isAnnotatedByHuman 
+                                           ? "hover:bg-success/10 text-success hover:text-success"
+                                           : "hover:bg-amber-500/10 text-muted-foreground hover:text-amber-600"
+                                       )}
+                                     >
+                                       <Edit3 className="w-3.5 h-3.5" />
+                                     </button>
+                                   </TooltipTrigger>
+                                   <TooltipContent side="top" className="text-xs">
+                                     {isAnnotatedByHuman ? 'Edit Annotation' : 'Annotate'}
+                                   </TooltipContent>
+                                 </Tooltip>
+                               )}
                               {isPsppActive ? (
                                 <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500 text-white">
                                   PSPP
@@ -755,8 +816,8 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
                                 </div>
                               )}
                             </div>
-                            {/* Quick action buttons */}
-                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                             {/* View detail button only */}
+                             <div className="flex items-center gap-1">
                               <Tooltip>
                                 <TooltipTrigger asChild>
                                   <button 
@@ -768,29 +829,6 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
                                 </TooltipTrigger>
                                 <TooltipContent side="top" className="text-xs">View Detail</TooltipContent>
                               </Tooltip>
-                              {!isAutoConfirmed && (
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <button 
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handlePopoverOpenChange('PSPP', true);
-                                      }}
-                                      className={cn(
-                                        "p-1.5 rounded-md transition-colors",
-                                        isAnnotatedByHuman 
-                                          ? "hover:bg-success/10 text-success hover:text-success"
-                                          : "hover:bg-amber-500/10 text-muted-foreground hover:text-amber-600"
-                                      )}
-                                    >
-                                      <Edit3 className="w-3.5 h-3.5" />
-                                    </button>
-                                  </TooltipTrigger>
-                                  <TooltipContent side="top" className="text-xs">
-                                    {isAnnotatedByHuman ? 'Edit Annotation' : 'Annotate'}
-                                  </TooltipContent>
-                                </Tooltip>
-                              )}
                             </div>
                           </div>
                           <p className={cn(
@@ -810,6 +848,19 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
                             )}
                           </p>
                         </div>
+                           
+                           {/* PSPP Quick Annotation Popover */}
+                           <QuickAnnotationPopover
+                             label="PSPP"
+                             isOpen={openPopovers.PSPP}
+                             onOpenChange={(open) => handlePopoverOpenChange('PSPP', open)}
+                             onSave={handleQuickAnnotationSave}
+                             aiSuggestion={psppSource ? {
+                               category: psppSource.category,
+                               confidence: psppSource.confidence
+                             } : undefined}
+                           />
+                         </div>
                       );
                     })()}
                   </div>
@@ -861,53 +912,6 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
 
         {/* VLM Inspection Panel */}
         
-        {/* Quick Annotation Dialogs */}
-        {(() => {
-          const tbcSource = aiSources.find(s => s.type === 'TBC');
-          return (
-            <QuickAnnotationPopover
-              label="TBC"
-              isOpen={openPopovers.TBC}
-              onOpenChange={(open) => handlePopoverOpenChange('TBC', open)}
-              onSave={handleQuickAnnotationSave}
-              aiSuggestion={tbcSource ? {
-                category: tbcSource.category,
-                confidence: tbcSource.confidence
-              } : undefined}
-            />
-          );
-        })()}
-        {(() => {
-          const grSource = aiSources.find(s => s.type === 'GR');
-          return (
-            <QuickAnnotationPopover
-              label="GR"
-              isOpen={openPopovers.GR}
-              onOpenChange={(open) => handlePopoverOpenChange('GR', open)}
-              onSave={handleQuickAnnotationSave}
-              aiSuggestion={grSource ? {
-                category: grSource.category,
-                confidence: grSource.confidence
-              } : undefined}
-            />
-          );
-        })()}
-        {(() => {
-          const psppSource = aiSources.find(s => s.type === 'PSPP');
-          return (
-            <QuickAnnotationPopover
-              label="PSPP"
-              isOpen={openPopovers.PSPP}
-              onOpenChange={(open) => handlePopoverOpenChange('PSPP', open)}
-              onSave={handleQuickAnnotationSave}
-              aiSuggestion={psppSource ? {
-                category: psppSource.category,
-                confidence: psppSource.confidence
-              } : undefined}
-            />
-          );
-        })()}
-
         <VLMInspectionPanel
           isOpen={showVLMPanel}
           onClose={() => setShowVLMPanel(false)}
