@@ -116,9 +116,13 @@ const QuickAnnotationPopover = ({
   return (
      <div 
        ref={popoverRef}
-       className="absolute left-full top-0 ml-2 z-50 w-[320px] bg-popover border border-border rounded-lg shadow-lg animate-in fade-in-0 zoom-in-95 slide-in-from-left-2"
+       className="absolute right-full top-0 mr-2 z-50 w-[320px] bg-popover border border-border rounded-lg shadow-xl animate-in fade-in-0 zoom-in-95 slide-in-from-right-2"
        onClick={(e) => e.stopPropagation()}
      >
+       {/* Arrow connector pointing right */}
+       <div className="absolute top-4 -right-2 w-0 h-0 border-t-[8px] border-t-transparent border-b-[8px] border-b-transparent border-l-[8px] border-l-border" />
+       <div className="absolute top-4 -right-[7px] w-0 h-0 border-t-[7px] border-t-transparent border-b-[7px] border-b-transparent border-l-[7px] border-l-popover" />
+       
        {/* Header */}
        <div className="px-4 pt-4 pb-3 border-b border-border">
          <h4 className="text-sm font-semibold flex items-center gap-2">
