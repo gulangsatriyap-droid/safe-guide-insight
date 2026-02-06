@@ -209,18 +209,47 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
     openAnalysisPanelWithTab(label, false);
   };
   
-  // Handler for quick annotation save from popover
-  const handleQuickAnnotationSave = (data: { selectedCategory: string; note: string; label: 'TBC' | 'GR' | 'PSPP' }) => {
-    setLabelAnnotations(prev => ({
-      ...prev,
-      [data.label]: {
+  // Handler for quick annotation save from unified popover
+  const handleQuickAnnotationSave = (data: { 
+    tbc: { category: string; note: string }; 
+    gr: { category: string; note: string }; 
+    pspp: { category: string; note: string }; 
+  }) => {
+    const newAnnotations: LabelAnnotationState = {};
+    
+    if (data.tbc.note.trim() || data.tbc.category !== 'none') {
+      newAnnotations['TBC'] = {
         isAnnotated: true,
         annotator: 'Officer',
         timestamp: new Date().toLocaleString('id-ID'),
-        note: data.note,
-        category: data.selectedCategory,
-      }
-    }));
+        note: data.tbc.note,
+        category: data.tbc.category,
+      };
+    }
+    
+    if (data.gr.note.trim() || data.gr.category !== 'none') {
+      newAnnotations['GR'] = {
+        isAnnotated: true,
+        annotator: 'Officer',
+        timestamp: new Date().toLocaleString('id-ID'),
+        note: data.gr.note,
+        category: data.gr.category,
+      };
+    }
+    
+    if (data.pspp.note.trim() || data.pspp.category !== 'none') {
+      newAnnotations['PSPP'] = {
+        isAnnotated: true,
+        annotator: 'Officer',
+        timestamp: new Date().toLocaleString('id-ID'),
+        note: data.pspp.note,
+        category: data.pspp.category,
+      };
+    }
+    
+    setLabelAnnotations(prev => ({ ...prev, ...newAnnotations }));
+    // Close all popovers
+    setOpenPopovers({ TBC: false, GR: false, PSPP: false });
   };
   
   // Handler for annotation save from panel (in real app, this would come from RightAnalysisPanel callback)
@@ -615,16 +644,15 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
                           </p>
                         </div>
                            
-                           {/* TBC Quick Annotation Popover - positioned to the right */}
+                           {/* Unified Quick Annotation Popover */}
                            <QuickAnnotationPopover
-                             label="TBC"
-                             isOpen={openPopovers.TBC}
-                             onOpenChange={(open) => handlePopoverOpenChange('TBC', open)}
+                             isOpen={openPopovers.TBC || openPopovers.GR || openPopovers.PSPP}
+                             onOpenChange={(open) => {
+                               if (!open) {
+                                 setOpenPopovers({ TBC: false, GR: false, PSPP: false });
+                               }
+                             }}
                              onSave={handleQuickAnnotationSave}
-                             aiSuggestion={tbcSource ? {
-                               category: tbcSource.category,
-                               confidence: tbcSource.confidence
-                             } : undefined}
                            />
                          </div>
                       );
@@ -732,17 +760,6 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
                           </p>
                         </div>
                            
-                           {/* GR Quick Annotation Popover */}
-                           <QuickAnnotationPopover
-                             label="GR"
-                             isOpen={openPopovers.GR}
-                             onOpenChange={(open) => handlePopoverOpenChange('GR', open)}
-                             onSave={handleQuickAnnotationSave}
-                             aiSuggestion={grSource ? {
-                               category: grSource.category,
-                               confidence: grSource.confidence
-                             } : undefined}
-                           />
                          </div>
                       );
                     })()}
@@ -849,17 +866,6 @@ const ReportDetail = ({ report, onBack, currentIndex, totalReports, onNavigate }
                           </p>
                         </div>
                            
-                           {/* PSPP Quick Annotation Popover */}
-                           <QuickAnnotationPopover
-                             label="PSPP"
-                             isOpen={openPopovers.PSPP}
-                             onOpenChange={(open) => handlePopoverOpenChange('PSPP', open)}
-                             onSave={handleQuickAnnotationSave}
-                             aiSuggestion={psppSource ? {
-                               category: psppSource.category,
-                               confidence: psppSource.confidence
-                             } : undefined}
-                           />
                          </div>
                       );
                     })()}
