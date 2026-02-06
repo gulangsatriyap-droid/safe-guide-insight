@@ -7,7 +7,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { AIKnowledgeSource } from "@/data/hazardReports";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import HumanAnnotationPanel, { AnnotationData, EditLock, TBC_CATEGORIES } from "@/components/HumanAnnotationPanel";
+import HumanAnnotationPanel, { AnnotationData, EditLock, TBC_CATEGORIES, GR_CATEGORIES, PSPP_CATEGORIES } from "@/components/HumanAnnotationPanel";
 import { useAutoConfirmCountdown, formatCountdown, getUrgencyLevel } from "@/hooks/useAutoConfirmCountdown";
 interface RightAnalysisPanelProps {
   isOpen: boolean;
@@ -1466,12 +1466,22 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
                       </div>
                       <div className="flex-1 min-w-0">
                         <span className="text-[10px] px-1.5 py-0.5 rounded font-bold bg-emerald-500/20 text-emerald-700">
-                          TBC (By Human)
+                          Human Annotation
                         </span>
                         <h4 className="text-sm font-semibold text-foreground mt-1">
-                          {annotationData.annotatedTBC 
-                            ? TBC_CATEGORIES.find(c => c.id.toString() === annotationData.annotatedTBC)?.name 
-                            : "No TBC Assigned"}
+                          {(() => {
+                            const tab = activeTab as 'TBC' | 'GR' | 'PSPP';
+                            if (tab === 'TBC' && annotationData.tbc.category !== 'none') {
+                              return TBC_CATEGORIES.find(c => c.id.toString() === annotationData.tbc.category)?.name;
+                            }
+                            if (tab === 'GR' && annotationData.gr.category !== 'none') {
+                              return GR_CATEGORIES.find(c => c.id === annotationData.gr.category)?.name;
+                            }
+                            if (tab === 'PSPP' && annotationData.pspp.category !== 'none') {
+                              return PSPP_CATEGORIES.find(c => c.id === annotationData.pspp.category)?.name;
+                            }
+                            return "Tidak Ada Kategori";
+                          })()}
                         </h4>
                       </div>
                     </div>
@@ -1483,7 +1493,12 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
                         <span className="text-[10px] font-medium text-emerald-700 uppercase tracking-wide">Catatan Anotasi</span>
                       </div>
                       <p className="text-xs text-foreground leading-relaxed italic">
-                        "{annotationData.annotationNote}"
+                        "{(() => {
+                          const tab = activeTab as 'TBC' | 'GR' | 'PSPP';
+                          if (tab === 'TBC') return annotationData.tbc.note;
+                          if (tab === 'GR') return annotationData.gr.note;
+                          return annotationData.pspp.note || '-';
+                        })()}"
                       </p>
                     </div>
 
@@ -1513,22 +1528,34 @@ const RightAnalysisPanel = ({ isOpen, onClose, aiSources, activeLabels, initialT
               {/* SECTION 2: PRIMARY CARD - Shows AI suggestion (label changes if human annotated) */}
               {(() => {
                 const currentMainData = getMainDataByType(activeTab);
-                // If human annotated TBC, use human's choice for display
-                const displayTitle = (isAnnotated && annotationData?.annotatedTBC && activeTab === 'TBC')
-                  ? TBC_CATEGORIES.find(c => c.id.toString() === annotationData.annotatedTBC)?.name || currentMainData.title
-                  : currentMainData.title;
+                // If human annotated, use human's choice for display
+                const getHumanCategory = () => {
+                  if (!isAnnotated || !annotationData) return null;
+                  if (activeTab === 'TBC' && annotationData.tbc.category !== 'none') {
+                    return TBC_CATEGORIES.find(c => c.id.toString() === annotationData.tbc.category)?.name;
+                  }
+                  if (activeTab === 'GR' && annotationData.gr.category !== 'none') {
+                    return GR_CATEGORIES.find(c => c.id === annotationData.gr.category)?.name;
+                  }
+                  if (activeTab === 'PSPP' && annotationData.pspp.category !== 'none') {
+                    return PSPP_CATEGORIES.find(c => c.id === annotationData.pspp.category)?.name;
+                  }
+                  return null;
+                };
+                const humanCategory = getHumanCategory();
+                const displayTitle = humanCategory || currentMainData.title;
                 
                 return (
                   <div className={cn(
                     "rounded-xl border overflow-hidden",
-                    isAnnotated && activeTab === 'TBC' 
+                    isAnnotated
                       ? "border-muted opacity-60" 
                       : isCurrentActive ? config.border : "border-destructive/30"
                   )}>
                     {/* Card Header */}
                     <div className={cn(
                       "px-4 py-3",
-                      isAnnotated && activeTab === 'TBC' 
+                      isAnnotated
                         ? "bg-muted/30" 
                         : isCurrentActive ? config.accent : "bg-destructive/5"
                     )}>
