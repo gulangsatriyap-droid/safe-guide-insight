@@ -62,6 +62,10 @@ export interface HazardReport {
   ketidaksesuaian?: string;
   subKetidaksesuaian?: string;
   
+  // New fields
+  picPerusahaan?: string;
+  gambarUrl?: string;
+  
   // AI Pipeline fields
   aiStatus: AIStatus;
   aiBatch?: string;
@@ -380,6 +384,10 @@ export const hazardReports: HazardReport[] = [
     quickAction: "Fatigue Test",
     tanggalPembuatan: "Edi Gunawan",
     rolePelapor: "Supervisor/Officer",
+    ketidaksesuaian: "DDP : Kelayakan dan Pengoperasian Kendaraan / Unit",
+    subKetidaksesuaian: "Tidak menggunakan APD sesuai standard",
+    picPerusahaan: "Edi Gunawan",
+    gambarUrl: "/placeholder.svg",
     aiStatus: "AI_SELESAI",
     labels: ['TBC', 'PSPP', 'GR'],
     confidenceScore: 95,
@@ -441,6 +449,10 @@ export const hazardReports: HazardReport[] = [
     quickAction: "Safety Briefing",
     tanggalPembuatan: "Rudi Hartono",
     rolePelapor: "Safety Officer",
+    ketidaksesuaian: "Pembelian, Penanganan bahan dan kendali bahan",
+    subKetidaksesuaian: "Penyimpanan bahan tidak tepat",
+    picPerusahaan: "Rudi Hartono",
+    gambarUrl: "/placeholder.svg",
     aiStatus: "AI_SELESAI",
     labels: ['TBC'],
     confidenceScore: 88,
@@ -463,6 +475,10 @@ export const hazardReports: HazardReport[] = [
     quickAction: "Warning Letter",
     tanggalPembuatan: "Budi Santoso",
     rolePelapor: "Gate Keeper",
+    ketidaksesuaian: "Kelayakan/Penggunaan Tools",
+    subKetidaksesuaian: "Kesesuaian penggunaan Supporting Tools",
+    picPerusahaan: "Budi Santoso",
+    gambarUrl: "/placeholder.svg",
     aiStatus: "AI_SELESAI",
     labels: ['PSPP', 'GR'],
     confidenceScore: 92,
@@ -487,6 +503,10 @@ export const hazardReports: HazardReport[] = [
     quickAction: "Road Maintenance",
     tanggalPembuatan: "Eko Prasetyo",
     rolePelapor: "Road Inspector",
+    ketidaksesuaian: "Perawatan Jalan",
+    subKetidaksesuaian: "Boulder",
+    picPerusahaan: "Eko Prasetyo",
+    gambarUrl: "/placeholder.svg",
     aiStatus: "AI_SELESAI",
     labels: ['GR'],
     confidenceScore: 85,
@@ -510,6 +530,10 @@ export const hazardReports: HazardReport[] = [
     quickAction: "Coaching",
     tanggalPembuatan: "Joko Widodo",
     rolePelapor: "Supervisor",
+    ketidaksesuaian: "Perlengkapan_Mesin_atau_Peralatan",
+    subKetidaksesuaian: "Penggantian komponen yang tidak sesuai",
+    picPerusahaan: "Joko Widodo",
+    gambarUrl: "/placeholder.svg",
     aiStatus: "AI_SELESAI",
     labels: ['TBC', 'PSPP'],
     confidenceScore: 91,
@@ -532,6 +556,10 @@ export const hazardReports: HazardReport[] = [
     quickAction: "Safety Briefing",
     tanggalPembuatan: "Agus Salim",
     rolePelapor: "Security",
+    ketidaksesuaian: "Standar Road Management",
+    subKetidaksesuaian: "Drainase tersumbat pada jalan angkut",
+    picPerusahaan: "Agus Salim",
+    gambarUrl: "/placeholder.svg",
     aiStatus: "AI_SELESAI",
     labels: ['PSPP', 'GR'],
     confidenceScore: 89,
@@ -555,6 +583,10 @@ export const hazardReports: HazardReport[] = [
     quickAction: "Area Closure",
     tanggalPembuatan: "Hendra Wijaya",
     rolePelapor: "Geotechnical",
+    ketidaksesuaian: "Kelengkapan tanggap darurat",
+    subKetidaksesuaian: "Alat Tanggap Darurat belum dilakukan inspeksi",
+    picPerusahaan: "Hendra Wijaya",
+    gambarUrl: "/placeholder.svg",
     aiStatus: "AI_SELESAI",
     labels: ['GR'],
     confidenceScore: 94,
@@ -579,6 +611,10 @@ export const hazardReports: HazardReport[] = [
     quickAction: "Coaching",
     tanggalPembuatan: "Surya Dharma",
     rolePelapor: "Supervisor",
+    ketidaksesuaian: "Bahaya Elektrikal",
+    subKetidaksesuaian: "Pengamanan peralatan listrik tidak memadai",
+    picPerusahaan: "Surya Dharma",
+    gambarUrl: "/placeholder.svg",
     aiStatus: "AI_SELESAI",
     labels: ['TBC'],
     confidenceScore: 87,
